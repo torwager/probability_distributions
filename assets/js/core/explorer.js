@@ -244,6 +244,12 @@ export function mountExplorer(container, mod, { store }) {
         d.at = spec.at(p);
       }
     } catch (e) { console.warn('handle geometry failed', spec, e); return null; }
+    // a handle whose position is undefined at these parameters (NaN or infinite) is hidden until it is defined again
+    const fin = v => Number.isFinite(v);
+    if ((d.type === 'vline' || d.type === 'xPoint') && !fin(d.x)) return null;
+    if ((d.type === 'hArrow' || d.type === 'vArrow') && !(d.from && d.to && fin(d.from.x) && fin(d.from.y) && fin(d.to.x) && fin(d.to.y))) return null;
+    if (d.type === 'point' && !(d.at && fin(d.at.x) && fin(d.at.y))) return null;
+    if (d.lineTo !== undefined && !fin(d.lineTo)) delete d.lineTo;
     return d;
   }
 
@@ -314,9 +320,11 @@ export function mountExplorer(container, mod, { store }) {
       valueText: fmt(x), valueNow: x,
       onDrag: (pt, phase) => { if (pt) moveThreshold(which, pt.x); if (phase === 'end') request(); },
       onKey: steps => {
+        // read the current value from the store (several key presses can arrive before the next frame)
+        const cur = store.get().area[which];
         const [lo, hi] = anim.cur.x;
         const st = discrete ? 1 : niceStep((hi - lo) / 100);
-        moveThreshold(which, discrete ? x + steps : roundTo(x + steps * st, st));
+        moveThreshold(which, discrete ? cur + steps : roundTo(cur + steps * st, st));
       },
     });
     out.push(mk('a', s.area.a));

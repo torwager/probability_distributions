@@ -7,6 +7,7 @@ import * as plot from './plot.js';
 import * as ui from './ui.js';
 import * as catalog from '../catalog.js';
 import { mountExplorer, defaultParams } from './explorer.js';
+import * as demos from './demos.js';
 import { DIST_MODULES, RELATION_MODULES } from '../modules.js';
 
 const distCache = new Map();
@@ -39,5 +40,5 @@ export const hasRelation = id => RELATION_MODULES.includes(id);
 
 /** Build a ctx object. `extra` is merged in (e.g. {store, dist, relation}). */
 export function makeCtx(extra = {}) {
-  return { math, plot, ui, catalog, loadDist, loadRelation, hasDist, hasRelation, mountExplorer, defaultParams, ...extra };
+  return { math, plot, ui, catalog, demos, loadDist, loadRelation, hasDist, hasRelation, mountExplorer, defaultParams, ...extra };
 }

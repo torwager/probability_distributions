@@ -1,13 +1,10 @@
 // about.html: renders the conventions, the notation glossary and the edge-kind legend from the catalog.
 import { CATALOG, NOTATION, EDGE_KINDS, KIND_LABELS } from '../catalog.js';
-import { h, glossaryList } from '../core/ui.js';
+import { h, rich, glossaryList } from '../core/ui.js';
 
-// Conventions: the catalog stores them as one paragraph; split into sentences for a list.
+// Conventions: an array of rich-text sentences in the catalog.
 const conv = document.getElementById('conventions');
-if (conv) {
-  const parts = CATALOG.conventions.split(/(?<=\.)\s+(?=[A-Z])/).filter(s => s.length > 3);
-  conv.append(h('ul', {}, parts.map(s => h('li', {}, s))));
-}
+if (conv) conv.append(h('ul', {}, CATALOG.conventions.map(s => rich('li', s))));
 const nota = document.getElementById('notation');
 if (nota) nota.append(glossaryList(NOTATION.map(e => ({ sym: e.sym, meaning: e.plain })), 'Symbols'));
 const ek = document.getElementById('edge-kinds');

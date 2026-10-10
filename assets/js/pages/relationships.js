@@ -1,6 +1,6 @@
 // relationships.html: every relationship in the catalog, grouped by kind.
 import { RELATIONS, KIND_LABELS, EDGE_KINDS, getDist } from '../catalog.js';
-import { h, renderTex } from '../core/ui.js';
+import { h, rich, renderTex, firstSentence } from '../core/ui.js';
 
 const ORDER = ['special-case', 'transformation', 'sum', 'ratio', 'limit', 'mixture', 'conditioning', 'conjugate-prior', 'other'];
 const INTRO = {
@@ -14,7 +14,6 @@ const INTRO = {
   'conjugate-prior': 'In Bayesian analysis, a prior from the first family combined with data from the second gives a posterior in the first family again.',
   'other': 'Other connections, explained on each page.',
 };
-const firstSentence = s => { const m = String(s).match(/^(.*?[.!?])(\s|$)/); return m ? m[1] : s; };
 
 const root = document.getElementById('rel-list');
 const jump = document.getElementById('rel-jump');
@@ -31,7 +30,7 @@ for (const k of ORDER) {
       h('div', { class: 'rel-top' },
         h('span', { class: 'rel-name' }, h('a', { href: `relation.html?r=${r.id}` }, `${getDist(r.from).name} ${r.bidirectional ? '↔' : '→'} ${getDist(r.to).name}`)),
         lab, r.onOriginalMap ? h('span', { class: 'chip' }, 'Original map') : null),
-      h('p', {}, firstSentence(r.plain))));
+      rich('p', firstSentence(r.plain))));
   }
   root.append(ul);
 }

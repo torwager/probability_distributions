@@ -166,6 +166,16 @@ await check('area tool: right and between modes', async () => {
   await page.locator('.explorer').screenshot({ path: path.join(outDir, 'interact-area-between.png') });
 });
 
+await check('area tool: arrow keys move a focused threshold by one step per key press', async () => {
+  const txt0 = await page.locator('.area-readout').textContent();
+  const a0 = Number(txt0.match(/P\(([−\-\d.]+) < X/)[1].replace('−', '-'));
+  await page.locator('.fig-pdf .handle[data-handle="area-a"]').focus();
+  for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowLeft'); // pressed faster than the screen redraws
+  const txt1 = await page.locator('.area-readout').textContent();
+  const a1 = Number(txt1.match(/P\(([−\-\d.]+) < X/)[1].replace('−', '-'));
+  assert.ok(a0 - a1 > 0.3, `threshold a moved from ${a0} to ${a1}`);
+});
+
 await check('properties table updates live', async () => {
   await mu.fill('2');
   await page.waitForTimeout(200);
@@ -192,6 +202,41 @@ await check('phone: drag mu works and layout has no horizontal scroll', async ()
   await phone.locator('.explorer').screenshot({ path: path.join(outDir, 'interact-phone.png') });
 });
 
+// phone with real touch events (CDP): a diagonal drag on a handle must not scroll the page,
+// and a vertical swipe on the plot background must still scroll it
+const touchCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const tp = await touchCtx.newPage();
+tp.on('pageerror', e => errors.push('touch pageerror: ' + e.message));
+await tp.goto(url + 'distribution.html?d=normal', { waitUntil: 'load' });
+await tp.waitForSelector('.explorer .handle');
+await check('touch: diagonal drag on the sigma arrow changes sigma and does not scroll the page', async () => {
+  const cdp = await touchCtx.newCDPSession(tp);
+  await tp.locator('.fig-pdf').scrollIntoViewIfNeeded();
+  await tp.waitForTimeout(300);
+  const k = await tp.locator('.fig-pdf .handle[data-handle="hArrow-sigma"] .knob').boundingBox();
+  const from = { x: k.x + k.width / 2, y: k.y + k.height / 2 }, to = { x: from.x + 40, y: from.y - 40 };
+  const y0 = await tp.evaluate(() => scrollY);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [from] });
+  for (let i = 1; i <= 8; i++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: from.x + (to.x - from.x) * i / 8, y: from.y + (to.y - from.y) * i / 8 }] });
+    await tp.waitForTimeout(16);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await tp.waitForTimeout(300);
+  const sg = Number(await tp.locator('.param-input[data-param="sigma"]').inputValue());
+  assert.ok(sg > 1.3, `sigma = ${sg}`);
+  assert.equal(await tp.evaluate(() => scrollY), y0, 'page scrolled during a handle drag');
+  // a vertical swipe on the empty plot area scrolls the page
+  const bg = await tp.locator('.fig-pdf .plot-bg').boundingBox();
+  const s0 = { x: bg.x + bg.width * 0.15, y: bg.y + bg.height * 0.8 };
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [s0] });
+  for (let i = 1; i <= 8; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: s0.x, y: s0.y - 18 * i }] }); await tp.waitForTimeout(16); }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await tp.waitForTimeout(500);
+  assert.ok((await tp.evaluate(() => scrollY)) > y0 + 40, 'a swipe on the plot background should scroll the page');
+});
+await touchCtx.close();
+
 // relation demo: n handle and boxes
 const rp = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
 rp.on('pageerror', e => errors.push('relation pageerror: ' + e.message));
@@ -204,6 +249,40 @@ await check('relation demo: typing n updates the readout', async () => {
   const after = await rp.locator('.demo-readout').textContent();
   assert.notEqual(after, before);
   assert.match(after, /is met/);
+});
+
+// demo helpers: compareDemo (poisson--normal) and simulationDemo (exponential--gamma)
+const dp = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+dp.on('pageerror', e => errors.push('demo pageerror: ' + e.message));
+dp.on('console', m => { if (m.type() === 'error' && !/fonts\.g/.test(m.text())) errors.push('demo console: ' + m.text()); });
+await dp.goto(url + 'relation.html?r=poisson--normal', { waitUntil: 'load' });
+await dp.waitForSelector('.demo .handle');
+await check('compareDemo: dragging the λ marker raises λ and shrinks the CDF gap', async () => {
+  const gap = async () => Number((await dp.locator('.demo-readout b').first().textContent()).replace('−', '-'));
+  const g0 = await gap();
+  await dp.locator('.demo .handle[data-handle="lambda"] .knob').scrollIntoViewIfNeeded();
+  const k = await box(dp.locator('.demo .handle[data-handle="lambda"] .knob'));
+  await dp.mouse.move(k.x, k.y); await dp.mouse.down();
+  await dp.mouse.move(k.x + 200, k.y, { steps: 8 }); await dp.mouse.up();
+  await dp.waitForTimeout(300);
+  const lam = Number(await dp.locator('.demo .param-input[data-param="lambda"]').inputValue());
+  assert.ok(lam > 6, `lambda = ${lam}`);
+  assert.ok(await gap() < g0, 'gap should shrink');
+});
+await dp.goto(url + 'relation.html?r=exponential--gamma', { waitUntil: 'load' });
+await dp.waitForSelector('.demo .plot-svg');
+await check('simulationDemo: new samples and sample sizes redraw; the KS gap is within chance', async () => {
+  const read = () => dp.locator('.demo-readout').textContent();
+  const r0 = await read();
+  await dp.getByRole('button', { name: 'Draw new samples' }).click(); await dp.waitForTimeout(200);
+  const r1 = await read();
+  assert.notEqual(r1, r0);
+  await dp.getByRole('radio', { name: /20,000 draws/ }).click(); await dp.waitForTimeout(300);
+  const r2 = await read();
+  assert.match(r2, /With 20,000 simulated values/);
+  assert.match(r2, /agrees with the target distribution/);
+  await dp.locator('.demo .param-input[data-param="n"]').fill('12'); await dp.waitForTimeout(300);
+  assert.match(await read(), /mean n\/λ|mean/);
 });
 
 await browser.close();

@@ -21,6 +21,18 @@
 //   vline   {x, cls}   hline {y, cls}   segment {x1,y1,x2,y2,cls}
 //   dot     {x, y, r=4, cls}    text {x, y, text, cls, anchor='middle', dx=0, dy=0}
 //   bracket {x, y1, y2, cls, side='right', label?}   vertical bracket at data x between y1 and y2 (px-sized caps)
+//   polygon {points:[[x,y],...], cls, closed=true}  closed (filled) polygon, e.g. a simplex triangle or a
+//                                                    probability ellipse; CSS classes: 'outline' (no fill),
+//                                                    'fill-steel', 'area-shade'; default is a light steel fill
+//   heatmap {x:[x0,x1], y:[y0,y1], nx, ny, values, max?, cls}
+//           a density image: values[j * nx + i] is the value in cell (i, j), with i = 0 at x0 and j = 0 at y0.
+//           Drawn in steel blue with opacity proportional to value / max (max defaults to the largest value);
+//           NaN or non-finite cells are transparent (use NaN outside a triangle or circle).
+//           Use about 60-120 cells per side; the image is re-rendered on every render() call.
+//
+// Plot options also include `equalAspect: true` (one data unit is the same length on both axes; the
+// shorter domain is widened around its center) for 2-D views such as contour plots and simplexes, and
+// `xTicks: false` / `yTicks: false` to hide tick labels.
 //
 // Handle types (see ARCHITECTURE.md). Each handle descriptor has:
 //   id, type, label (short text such as 'μ'), ariaLabel, valueText,
@@ -125,7 +137,11 @@ export class Plot {
   get margin() {
     const m = this.opts.margin || {};
     const narrow = this.width < 420;
-    return { t: m.t ?? 26, r: m.r ?? (narrow ? 12 : 18), b: m.b ?? 44, l: m.l ?? (narrow ? 46 : 56) };
+    // left margin: room for the widest y tick label (11px monospace, about 6.7px per character),
+    // an 8px gap and the rotated axis label
+    const tickW = this.opts.yTicks === false ? 0 : 6.7 * (this._yTickChars || 4);
+    const auto = Math.ceil(tickW + 8 + (this.opts.yLabel ? 20 : 4));
+    return { t: m.t ?? 26, r: m.r ?? (narrow ? 12 : 18), b: m.b ?? 44, l: m.l ?? Math.max(narrow ? 40 : 52, auto) };
   }
 
   _measure() {
@@ -158,6 +174,11 @@ export class Plot {
     this.xd = scene.x; this.yd = scene.y;
     if (!(this.xd[1] > this.xd[0])) this.xd = [this.xd[0] - 1, this.xd[0] + 1];
     if (!(this.yd[1] > this.yd[0])) this.yd = [this.yd[0], this.yd[0] + 1];
+    if (this.opts.equalAspect) this._equalize();
+    {
+      const yt = niceTicks(this.yd[0], this.yd[1], this.opts.yTickCount || 5);
+      this._yTickChars = Math.max(4, ...yt.map(v => formatTick(v, yt.step).length));
+    }
     const I = this.inner;
     this.bg.setAttribute('x', I.x0); this.bg.setAttribute('y', I.y0);
     this.bg.setAttribute('width', I.x1 - I.x0); this.bg.setAttribute('height', I.y1 - I.y0);
@@ -168,6 +189,19 @@ export class Plot {
     this._handles(scene.handles || []);
     this._legend(scene.legend || []);
   }
+
+  /** Widen the x or y domain so that one data unit has the same length in px on both axes. */
+  _equalize() {
+    const I = this.inner;
+    const pw = I.x1 - I.x0, ph = I.y1 - I.y0;
+    const [x0, x1] = this.xd, [y0, y1] = this.yd;
+    const ux = (x1 - x0) / pw, uy = (y1 - y0) / ph; // data units per px
+    if (ux > uy) { const c = (y0 + y1) / 2, half = ux * ph / 2; this.yd = [c - half, c + half]; }
+    else if (uy > ux) { const c = (x0 + x1) / 2, half = uy * pw / 2; this.xd = [c - half, c + half]; }
+  }
+
+  /** The domains actually drawn (they differ from the scene's when equalAspect is on). */
+  get domain() { return { x: [...this.xd], y: [...this.yd] }; }
 
   _axes(scene) {
     const I = this.inner, g = this.gAxes, grid = this.gGrid;
@@ -187,6 +221,7 @@ export class Plot {
     for (const v of xt) {
       const x = this.sx(v);
       el('line', { x1: f2(x), x2: f2(x), y1: I.y1, y2: I.y1 + 5, class: 'tick' }, g);
+      if (this.opts.xTicks === false) continue;
       const t = el('text', { x: f2(x), y: I.y1 + 18, class: 'tick-label', 'text-anchor': 'middle' }, g);
       t.textContent = formatTick(v, xt.step);
     }
@@ -367,6 +402,8 @@ export class Plot {
           const I = this.inner;
           const tx = L.side === 'left' ? x + 10 : x - 8;
           let ty = (y1 + y2) / 2;
+          // a very short bracket: put the label just above it so it does not sit on the axis
+          if (Math.abs(y1 - y2) < 18) ty = Math.min(y1, y2) - 12;
           ty = Math.max(I.y0 + 10, Math.min(I.y1 - 6, ty));
           t.setAttribute('x', f2(tx)); t.setAttribute('y', f2(ty));
           t.setAttribute('text-anchor', L.side === 'left' ? 'start' : 'end');
@@ -375,9 +412,59 @@ export class Plot {
         } else t.textContent = '';
         break;
       }
+      case 'polygon': {
+        let d = '', pen = false;
+        for (const [x, y] of L.points || []) {
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+          d += (pen ? 'L' : 'M') + f2(clampPx(this.sx(x))) + ',' + f2(clampPx(this.sy(y)));
+          pen = true;
+        }
+        if (d && L.closed !== false) d += 'Z';
+        this._ensure(rec, 'p', 'path', 'poly').setAttribute('d', d);
+        break;
+      }
+      case 'heatmap': {
+        const img = this._ensure(rec, 'p', 'image', 'heat');
+        const { nx, ny, values } = L;
+        if (!(nx > 0 && ny > 0) || !values) { img.removeAttribute('href'); break; }
+        let max = L.max;
+        if (!(max > 0)) { max = 0; for (let i = 0; i < values.length; i++) if (Number.isFinite(values[i]) && values[i] > max) max = values[i]; }
+        const cv = this._heatCanvas || (this._heatCanvas = document.createElement('canvas'));
+        cv.width = nx; cv.height = ny;
+        const c2 = cv.getContext('2d');
+        const im = c2.createImageData(nx, ny);
+        const rgb = this._cssRgb('--steel-deep', [63, 99, 144]);
+        for (let j = 0; j < ny; j++) {
+          const row = ny - 1 - j; // image rows go top to bottom
+          for (let i = 0; i < nx; i++) {
+            const v = values[j * nx + i], o = 4 * (row * nx + i);
+            im.data[o] = rgb[0]; im.data[o + 1] = rgb[1]; im.data[o + 2] = rgb[2];
+            im.data[o + 3] = Number.isFinite(v) && max > 0 ? Math.round(255 * 0.85 * Math.max(0, Math.min(1, v / max))) : 0;
+          }
+        }
+        c2.putImageData(im, 0, 0);
+        const xa = this.sx(L.x[0]), xb = this.sx(L.x[1]), ya = this.sy(L.y[1]), yb = this.sy(L.y[0]);
+        img.setAttribute('x', f2(Math.min(xa, xb))); img.setAttribute('y', f2(Math.min(ya, yb)));
+        img.setAttribute('width', f2(Math.abs(xb - xa))); img.setAttribute('height', f2(Math.abs(yb - ya)));
+        img.setAttribute('preserveAspectRatio', 'none');
+        img.setAttribute('href', cv.toDataURL());
+        break;
+      }
       default:
         console.warn('Unknown layer type', L.type);
     }
+  }
+
+  /** Read a CSS color variable (hex) as [r, g, b]; falls back to `dflt`. */
+  _cssRgb(name, dflt) {
+    try {
+      const v = getComputedStyle(this.root).getPropertyValue(name).trim();
+      const m = v.match(/^#([0-9a-f]{6})$/i);
+      if (m) return [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16));
+      const m3 = v.match(/^#([0-9a-f]{3})$/i);
+      if (m3) return [0, 1, 2].map(i => parseInt(m3[1][i] + m3[1][i], 16));
+    } catch (_) { /* ignore */ }
+    return dflt;
   }
 
   // ---------------------------------------------------------------- handles
@@ -419,6 +506,10 @@ export class Plot {
     parts.label = el('text', { class: 'handle-label', 'text-anchor': 'middle' }, g);
 
     g.addEventListener('pointerdown', e => this._onPointerDown(e, H.id));
+    // Chrome and Safari ignore CSS touch-action on SVG child elements, so a diagonal or vertical
+    // finger drag that starts on a handle would scroll the page and cancel the drag. Cancelling
+    // touchstart on the handle itself keeps the page still; pointer events are still delivered.
+    g.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     g.addEventListener('pointermove', e => this._onPointerMove(e));
     g.addEventListener('pointerup', e => this._onPointerUp(e));
     g.addEventListener('pointercancel', e => this._onPointerUp(e));

@@ -4,5 +4,7 @@ export const DIST_MODULES = [
   "normal"
 ];
 export const RELATION_MODULES = [
-  "binomial--normal"
+  "binomial--normal",
+  "exponential--gamma",
+  "poisson--normal"
 ];

@@ -3,7 +3,7 @@
 // limits and special cases, uses, related distributions, references.
 
 import { DISTRIBUTIONS, GROUP_ORDER, KIND_LABELS, getDist, relationsOf } from '../catalog.js';
-import { h, rich, renderRich, renderTex, tex, section, glossaryList, referenceList, createStore, fmt } from '../core/ui.js';
+import { h, rich, renderRich, renderTex, tex, section, glossaryList, referenceList, createStore, fmt, firstSentence } from '../core/ui.js';
 import { mountExplorer, defaultParams } from '../core/explorer.js';
 import { makeCtx, loadDist } from '../core/ctx.js';
 import { groupLabel } from '../core/layout.js';
@@ -16,7 +16,6 @@ const KIND_EYEBROW = {
   'multivariate-discrete': 'Multivariate discrete distribution', 'multivariate-continuous': 'Multivariate continuous distribution',
 };
 
-function firstSentence(s) { const m = String(s).match(/^(.*?[.!?])(\s|$)/); return m ? m[1] : s; }
 
 function unknownPage() {
   document.title = 'Distribution not found | Probability distributions';
@@ -52,7 +51,7 @@ function pageHead(cat, mod) {
     for (const p of paras) head.append(rich('p', p));
   } else {
     head.append(h('p', {}, cat.blurb));
-    if (cat.whyAdded) head.append(h('p', {}, cat.whyAdded));
+    if (cat.whyAdded) head.append(rich('p', cat.whyAdded));
   }
   head.append(h('div', { class: 'chips' },
     h('span', { class: 'chip steel' }, groupLabel(cat.group)),
@@ -88,13 +87,16 @@ function relatedSection(cat) {
   for (const r of rels) {
     const otherId = r.from === cat.id ? r.to : r.from;
     const other = getDist(otherId);
-    const dirText = r.bidirectional ? '↔' : (r.from === cat.id ? '→' : '←');
+    // always written in the direction of the arrow on the map (from -> to); the other distribution is a link
+    const arrow = r.bidirectional ? ' ↔ ' : ' → ';
+    const otherLink = h('a', { href: `distribution.html?d=${otherId}` }, other ? other.name : otherId);
+    const self = h('span', {}, cat.name);
     const label = h('span', { class: 'rel-label' }); renderTex(label, r.label);
     ul.append(h('li', { class: 'rel-item' },
       h('div', { class: 'rel-top' },
-        h('span', { class: 'rel-name' }, `${cat.name} ${dirText} `, h('a', { href: `distribution.html?d=${otherId}` }, other ? other.name : otherId)),
+        h('span', { class: 'rel-name' }, ...(r.from === cat.id ? [self, arrow, otherLink] : [otherLink, arrow, self])),
         h('span', { class: 'chip' }, KIND_LABELS[r.kind] || r.kind), label),
-      h('p', {}, firstSentence(r.plain)),
+      rich('p', firstSentence(r.plain)),
       h('a', { class: 'rel-go', href: `relation.html?r=${r.id}` }, 'Explore this relationship →')));
   }
   body.append(ul);
@@ -201,7 +203,7 @@ function fallbackPage(cat) {
   main.append(h('div', { class: 'callout' }, h('p', {}, 'The interactive page for this distribution is still being written. The parameters and relationships below come from the site catalog.')));
   const { section: sec, body } = section('formulas', 'Parameters');
   body.append(parameterList(cat.params));
-  body.append(h('div', { class: 'callout steel', style: 'margin-top:1rem' }, h('p', {}, h('b', {}, 'Parameterization. '), cat.parameterization)));
+  body.append(h('div', { class: 'callout steel', style: 'margin-top:1rem' }, h('p', {}, h('b', {}, 'Parameterization. '), rich('span', cat.parameterization))));
   const sup = h('p', {}, 'Support (the values the variable can take): '); sup.append(tex(cat.support));
   body.append(sup);
   main.append(sec, relatedSection(cat));

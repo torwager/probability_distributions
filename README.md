@@ -45,9 +45,10 @@ override with `PLAYWRIGHT_PATH` and `CHROMIUM_PATH`).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the module API. In short: write
 `assets/js/dists/<id>.js` or `assets/js/relations/<from>--<to>.js` following the reference modules
-(`dists/normal.js`, `relations/binomial--normal.js`), run `node tools/update-manifest.mjs`, then `npm test`
-and `npm run smoke`. Distribution and relationship ids come from the catalog
-(`tools/catalog.source.json`, compiled to `assets/js/catalog.js` by `python3 tools/build_catalog.py`).
+(`dists/normal.js`; `relations/binomial--normal.js`, `relations/exponential--gamma.js` and
+`relations/poisson--normal.js`), run `node tools/update-manifest.mjs`, then `npm test` and `npm run smoke`.
+Distribution and relationship ids come from the catalog (`tools/catalog.source.json` for the data and
+`tools/catalog_rich.py` for its prose, compiled to `assets/js/catalog.js` by `python3 tools/build_catalog.py`).
 
 ## Deployment
 

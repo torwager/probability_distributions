@@ -26,11 +26,49 @@ test('incomplete gamma and beta', () => {
   rel(M.betaI(0.5, 7, 7), 0.5, 1e-13, 'symmetry');
   rel(M.betaI(M.betaIinv(0.37, 2.5, 0.7), 2.5, 0.7), 0.37, 1e-12, 'betaIinv');
   rel(M.gammaP(3.3, M.gammaPinv(3.3, 0.9)), 0.9, 1e-12, 'gammaPinv');
+  // reference values computed with mpmath at 250 digits
+  rel(M.gammaP(0.05, 0.0005), 0.702425553374778, 1e-12, 'P(0.05, 0.0005)');
+  rel(M.gammaQ(30, 600), 1.160472772952854e-211, 1e-10, 'Q(30, 600)');
+  rel(M.betaI(0.01, 0.5, 300), 0.9858968277820737, 1e-12, 'I_0.01(0.5, 300)');
+  rel(M.betaIc(1e-6, 0.05, 20), 0.40269841563094955, 1e-13, 'betaIc for tiny x keeps precision');
+});
+
+test('inverse incomplete gamma and beta are accurate in the tails', () => {
+  // relative accuracy of the round trip, including quantiles far below 1e-16 (old absolute stopping rule failed here)
+  for (const a of [0.05, 0.5, 2, 30, 1000, 1e5]) for (const p of [1e-12, 1e-6, 0.001, 0.3, 0.5, 0.9]) {
+    const x = M.gammaPinv(a, p);
+    if (x === 0) continue; // below the smallest double
+    rel(M.gammaP(a, x) / p, 1, 1e-9, `gammaPinv(${a}, ${p})`);
+  }
+  for (const a of [0.3, 1, 5, 200]) for (const b of [0.5, 2, 80, 5000]) for (const p of [1e-12, 1e-6, 0.01, 0.4]) {
+    const x = M.betaIinv(p, a, b);
+    if (x === 0) continue;
+    rel(M.betaI(x, a, b) / p, 1, 1e-8, `betaIinv(${p}, ${a}, ${b})`);
+  }
+  for (const [a, b] of [[2, 5], [0.5, 0.5], [80, 3]]) {
+    const x = M.betaIinv(0.999, a, b);
+    rel(M.betaIc(x, a, b), 0.001, 1e-9, `betaIinv upper tail (${a}, ${b})`);
+  }
+  rel(M.gammaPinv(0.5, 1e-10), 7.853981633974483e-21, 1e-9, 'gammaPinv(0.5, 1e-10) = (erf^-1)^2');
 });
 
 test('normal and error function', () => {
   rel(M.erf(1), 0.8427007929497149, 1e-14, 'erf(1)');
   rel(M.erfc(6), 2.1519736712498913e-17, 1e-10, 'erfc(6)');
+  rel(M.erfc(26), 5.663192408856143e-296, 1e-10, 'erfc(26)');
+  rel(M.erf(-0.49), -0.5116682611885231, 1e-14, 'erf(-0.49)');
+  rel(M.normalQuantile(1e-300), -37.0470962993612, 1e-12, 'Phi^-1(1e-300)');
+  // erfcx(x) = exp(x^2) erfc(x) and log Phi, reference values from mpmath
+  rel(M.erfcx(0.3), 0.7345993345676552, 1e-14, 'erfcx(0.3)');
+  rel(M.erfcx(1.2), 0.3785374169292398, 1e-14, 'erfcx(1.2)');
+  rel(M.erfcx(2), 0.2553956763105057, 1e-14, 'erfcx(2)');
+  rel(M.erfcx(10), 0.05614099274382259, 1e-14, 'erfcx(10)');
+  rel(M.erfcx(100), 0.005641613782989433, 1e-14, 'erfcx(100)');
+  rel(M.erfcx(-1), 5.00898008076228, 1e-14, 'erfcx(-1)');
+  rel(M.logNormalCdf(-40), -804.6084420137538, 1e-14, 'log Phi(-40)');
+  rel(M.logNormalCdf(-5.5), -17.77937635262526, 1e-13, 'log Phi(-5.5)');
+  rel(M.logNormalCdf(0), Math.log(0.5), 1e-15, 'log Phi(0)');
+  rel(M.logNormalCdf(7), -1.279812543886654e-12, 1e-10, 'log Phi(7)');
   rel(M.normalCdf(1.96), 0.9750021048517795, 1e-14, 'Phi(1.96)');
   rel(M.normalCdf(-8), 6.22096057427178e-16, 1e-9, 'Phi(-8)');
   rel(M.normalQuantile(0.975), 1.959963984540054, 1e-13, 'Phi^-1(0.975)');
@@ -50,8 +88,15 @@ test('integration and root finding', () => {
   rel(M.integrate(x => 1 / (Math.PI * (1 + x * x)), -Infinity, Infinity), 1, 1e-8, 'cauchy pdf');
   rel(M.integrate(x => Math.exp(-x), 0, Infinity), 1, 1e-12, 'exp');
   rel(M.integrate(x => 1 / Math.sqrt(x), 0, 1), 2, 1e-8, 'endpoint singularity');
+  // a narrow peak far from 0 on an infinite range needs break points
+  const narrow = x => M.normalPdf((x - 7) / 0.05) / 0.05;
+  rel(M.integrate(narrow, -Infinity, Infinity, { points: [6.8, 7, 7.2] }), 1, 1e-10, 'narrow peak with break points');
+  rel(M.integrate(narrow, -Infinity, 7, { points: [6.8] }), 0.5, 1e-10, 'narrow peak, half line');
   rel(M.integrateSimpson(Math.sin, 0, Math.PI), 2, 1e-10, 'simpson');
   rel(M.brent(x => x * x - 2, 0, 2), Math.SQRT2, 1e-13, 'brent');
+  rel(M.solveMonotone(v => 1 / v, 0.25, 0.1, 100, { log: true }), 4, 1e-9, 'solveMonotone decreasing, log scale');
+  rel(M.solveMonotone(v => v * v, 2, 0, 10), Math.SQRT2, 1e-9, 'solveMonotone increasing');
+  rel(M.solveMonotone(v => v, 50, 0, 10), 10, 0, 'solveMonotone clamps to the nearest bound');
   rel(M.quantileContinuous(M.normalCdf, 0.3), M.normalQuantile(0.3), 1e-10, 'numeric quantile');
 });
 

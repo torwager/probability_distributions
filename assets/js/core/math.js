@@ -189,32 +189,50 @@ export function gammaQ(a, x) {
   return x < a + 1 ? 1 - gser(a, x) : gcf(a, x);
 }
 
-/** Inverse of P(a, .): the x with P(a, x) = p. */
-export function gammaPinv(a, p) {
-  if (p <= 0) return 0;
-  if (p >= 1) return Infinity;
-  // initial guess (Wilson-Hilferty), then Newton with bisection safeguard
-  let x;
-  const z = normalQuantile(p);
-  const t = 1 / (9 * a);
-  x = a * Math.pow(1 - t + z * Math.sqrt(t), 3);
-  if (!(x > 0) || !Number.isFinite(x)) x = Math.max(1e-3, a);
-  if (a < 1) {
-    const g = Math.exp(lgamma(a + 1));
-    const xs = Math.pow(p * g, 1 / a);
-    if (xs < x || !(x > 0)) x = xs;
-  }
-  let lo = 0, hi = Infinity;
-  for (let i = 0; i < 200; i++) {
-    const f = gammaP(a, x) - p;
-    if (f < 0) lo = x; else hi = x;
-    const dens = Math.exp((a - 1) * Math.log(x) - x - lgamma(a));
-    let nx = dens > 0 ? x - f / dens : NaN;
-    if (!(nx > lo && nx < hi) || !Number.isFinite(nx)) nx = hi === Infinity ? Math.max(2 * x, lo + 1) : (lo + hi) / 2;
-    if (Math.abs(nx - x) <= 1e-14 * Math.max(1, x)) { x = nx; break; }
+/**
+ * Safeguarded Newton solve of an increasing function f(x) = 0 on (lo, hi) for a quantile.
+ * `dfdx(x)` is the density. Steps that leave the bracket are replaced by bisection, which is
+ * geometric (in log x) when the bracket spans orders of magnitude, so tiny quantiles converge.
+ * Convergence is relative to x, so very small quantiles keep full precision.
+ */
+function newtonQuantile(f, dfdx, x, lo, hi) {
+  for (let i = 0; i < 400; i++) {
+    const fx = f(x);
+    if (fx === 0) return x;
+    if (fx < 0) lo = x; else hi = x;
+    const d = dfdx(x);
+    let nx = d > 0 && Number.isFinite(d) ? x - fx / d : NaN;
+    if (!(nx > lo && nx < hi) || !Number.isFinite(nx)) {
+      if (hi === Infinity) nx = Math.max(2 * x, lo + 1);
+      else if (lo > 0 && hi / lo < 4) nx = 0.5 * (lo + hi);
+      else nx = lo > 0 ? Math.sqrt(lo * hi) : hi / 16;
+    }
+    if (Math.abs(nx - x) <= 2e-16 * Math.abs(nx) || (hi < Infinity && hi - lo <= 4e-16 * hi) || nx === 0) return nx;
     x = nx;
   }
   return x;
+}
+
+/** Inverse of P(a, .): the x with P(a, x) = p. Accurate in both tails (relative precision in x). */
+export function gammaPinv(a, p) {
+  if (Number.isNaN(p) || !(a > 0)) return NaN;
+  if (p <= 0) return 0;
+  if (p >= 1) return Infinity;
+  // initial guess (Wilson-Hilferty), then safeguarded Newton
+  const z = normalQuantile(p);
+  const t = 1 / (9 * a);
+  let x = a * Math.pow(1 - t + z * Math.sqrt(t), 3);
+  if (!(x > 0) || !Number.isFinite(x)) x = Math.max(1e-3, a);
+  if (a < 1 || p < 0.05) {
+    // lower-tail series: P(a, x) ~ x^a / Gamma(a + 1) for small x
+    const xs = Math.exp((Math.log(p) + lgamma(a + 1)) / a);
+    if (xs < x) x = xs;
+  }
+  if (x === 0) return 0; // below the smallest representable number
+  const upper = p > 0.5, q = 1 - p, lg = lgamma(a);
+  const f = upper ? x => q - gammaQ(a, x) : x => gammaP(a, x) - p;
+  const dens = x => Math.exp((a - 1) * Math.log(x) - x - lg);
+  return newtonQuantile(f, dens, x, 0, Infinity);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,30 +270,40 @@ export function betaI(x, a, b) {
   if (x < (a + 1) / (a + b + 2)) return Math.exp(lbt) * betacf(a, b, x) / a;
   return 1 - Math.exp(lbt) * betacf(b, a, 1 - x) / b;
 }
-/** Upper tail 1 - I_x(a, b), computed without cancellation. */
+/** Upper tail 1 - I_x(a, b), computed without cancellation (and without forming 1 - x). */
 export function betaIc(x, a, b) {
+  if (Number.isNaN(x) || !(a > 0) || !(b > 0)) return NaN;
   if (x <= 0) return 1;
   if (x >= 1) return 0;
-  return betaI(1 - x, b, a);
+  const lbt = lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log1p(-x);
+  if (x < (a + 1) / (a + b + 2)) return 1 - Math.exp(lbt) * betacf(a, b, x) / a;
+  return Math.exp(lbt) * betacf(b, a, 1 - x) / b;
 }
-/** Inverse regularized incomplete beta: the x with I_x(a, b) = p. */
+/** Inverse regularized incomplete beta: the x with I_x(a, b) = p. Accurate in both tails. */
 export function betaIinv(p, a, b) {
+  if (Number.isNaN(p) || !(a > 0) || !(b > 0)) return NaN;
   if (p <= 0) return 0;
   if (p >= 1) return 1;
-  let lo = 0, hi = 1;
-  // initial guess from the mean, then Newton with bisection safeguard
-  let x = a / (a + b);
-  const lb = lbeta(a, b);
-  for (let i = 0; i < 300; i++) {
-    const f = betaI(x, a, b) - p;
-    if (f < 0) lo = x; else hi = x;
-    const dens = Math.exp((a - 1) * Math.log(x) + (b - 1) * Math.log1p(-x) - lb);
-    let nx = x - f / dens;
-    if (!(nx > lo && nx < hi) || !Number.isFinite(nx)) nx = (lo + hi) / 2;
-    if (Math.abs(nx - x) <= 1e-15 * Math.max(1e-300, x) || hi - lo < 1e-16) { x = nx; break; }
-    x = nx;
+  // initial guess (Numerical Recipes, 3rd ed., section 6.14), then safeguarded Newton
+  let x;
+  if (a >= 1 && b >= 1) {
+    const pp = p < 0.5 ? p : 1 - p, t = Math.sqrt(-2 * Math.log(pp));
+    let z = (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481)) - t;
+    if (p < 0.5) z = -z;
+    const al = (z * z - 3) / 6, h = 2 / (1 / (2 * a - 1) + 1 / (2 * b - 1));
+    const w = z * Math.sqrt(al + h) / h - (1 / (2 * b - 1) - 1 / (2 * a - 1)) * (al + 5 / 6 - 2 / (3 * h));
+    x = a / (a + b * Math.exp(2 * w));
+  } else {
+    const lna = Math.log(a / (a + b)), lnb = Math.log(b / (a + b));
+    const t = Math.exp(a * lna) / a, u = Math.exp(b * lnb) / b, w = t + u;
+    x = p < t / w ? Math.exp((Math.log(a * w * p)) / a) : 1 - Math.exp(Math.log(b * w * (1 - p)) / b);
   }
-  return x;
+  if (!(x > 0 && x < 1)) x = x <= 0 ? Number.MIN_VALUE : 1 - Number.EPSILON;
+  if (x === 0) return 0;
+  const upper = p > 0.5, q = 1 - p, lb = lbeta(a, b);
+  const f = upper ? x => q - betaIc(x, a, b) : x => betaI(x, a, b) - p;
+  const dens = x => Math.exp((a - 1) * Math.log(x) + (b - 1) * Math.log1p(-x) - lb);
+  return newtonQuantile(f, dens, x, 0, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -306,6 +334,38 @@ export function erfc(x) {
   if (Number.isNaN(x)) return NaN;
   if (Math.abs(x) < 0.5) return 1 - erf(x);
   return x > 0 ? gammaQ(0.5, x * x) : 1 + gammaP(0.5, x * x);
+}
+
+/**
+ * Scaled complementary error function erfcx(x) = exp(x^2) erfc(x). It stays finite for large x
+ * (where erfc underflows), which is what densities such as the ex-Gaussian and the Wald CDF need.
+ */
+export function erfcx(x) {
+  if (Number.isNaN(x)) return NaN;
+  if (x < 0) return x < -26.6 ? Infinity : 2 * Math.exp(x * x) - erfcx(-x);
+  if (x < 1.25) return Math.exp(x * x) * erfc(x);
+  if (x > 1e8) return 1 / (x * Math.sqrt(PI));
+  // continued fraction for erfc (modified Lentz), without the exp(-x^2) factor:
+  // erfcx(x) = (1/sqrt(pi)) / (x + (1/2)/(x + 1/(x + (3/2)/(x + 2/(x + ...)))))
+  const tiny = 1e-300;
+  let f = x, C = x, D = 0;
+  for (let n = 1; n < 500; n++) {
+    const an = n / 2;
+    D = x + an * D; if (Math.abs(D) < tiny) D = tiny; D = 1 / D;
+    C = x + an / C; if (Math.abs(C) < tiny) C = tiny;
+    const delta = C * D; f *= delta;
+    if (Math.abs(delta - 1) < 1e-16) break;
+  }
+  return 1 / (Math.sqrt(PI) * f);
+}
+
+/** log Phi(z), accurate far into the lower tail (e.g. log Phi(-40) = -804.6) and near 0 for large z. */
+export function logNormalCdf(z) {
+  if (Number.isNaN(z)) return NaN;
+  if (z > 5) return Math.log1p(-0.5 * erfc(z / SQRT2));
+  if (z > -5) return Math.log(normalCdf(z));
+  const t = -z / SQRT2;
+  return Math.log(0.5) - t * t + Math.log(erfcx(t));
 }
 
 /** Standard normal density phi(z). */
@@ -425,11 +485,26 @@ function gk15(f, a, b) {
 /**
  * Adaptive Gauss-Kronrod integral of f over [a, b]. Infinite limits are allowed
  * (handled by a change of variables). Non-finite integrand values are treated as 0.
+ *
+ * `points`: break points inside (a, b) where the integrand has most of its mass or a kink, e.g.
+ * the ends of a plotting window and the mode. **Pass them whenever a limit is infinite and the
+ * integrand is narrow or far from 0**: the change of variables for an infinite range samples
+ * mostly near 0 and can miss a narrow peak elsewhere entirely (e.g. a normal density with mean 7
+ * and standard deviation 0.05 integrates to 0 without break points).
  * @returns {number}
  */
-export function integrate(f, a, b, { tol = 1e-11, maxIntervals = 2000 } = {}) {
+export function integrate(f, a, b, { tol = 1e-11, maxIntervals = 2000, points = null } = {}) {
   if (a === b) return 0;
-  if (a > b) return -integrate(f, b, a, { tol, maxIntervals });
+  if (a > b) return -integrate(f, b, a, { tol, maxIntervals, points });
+  if (points && points.length) {
+    const cuts = [...new Set(points.filter(x => Number.isFinite(x) && x > a && x < b))].sort((u, v) => u - v);
+    if (cuts.length) {
+      const edges = [a, ...cuts, b];
+      let total = 0;
+      for (let i = 0; i + 1 < edges.length; i++) total += integrate(f, edges[i], edges[i + 1], { tol, maxIntervals });
+      return total;
+    }
+  }
   const safe = g => t => { const v = g(t); return Number.isFinite(v) ? v : 0; };
   let g, lo, hi;
   if (a === -Infinity && b === Infinity) {
@@ -487,6 +562,31 @@ export function bisect(f, a, b, tol = 1e-13, maxIter = 300) {
     if ((fm < 0) === (fa < 0)) { a = m; fa = fm; } else b = m;
   }
   return 0.5 * (a + b);
+}
+
+/**
+ * Solve g(v) = target for a parameter v when g is monotone (increasing or decreasing) on [lo, hi].
+ * Useful for drag handles whose position is a non-invertible function of a parameter, e.g. the peak
+ * height of a Student t as a function of its degrees of freedom:
+ *   set: pt => ({ nu: solveMonotone(nu => tPdf(0, nu), pt.y, 0.5, 200, { log: true }) })
+ * Returns the bound nearest to the target if the target is outside g's range. `log: true` searches in
+ * log(v) (needs lo > 0), which suits scale-like parameters.
+ */
+export function solveMonotone(g, target, lo, hi, { log = false, tol = 1e-10 } = {}) {
+  const tr = log ? Math.log : (v => v), inv = log ? Math.exp : (v => v);
+  let a = tr(lo), b = tr(hi);
+  const ga = g(lo) - target, gb = g(hi) - target;
+  if (!Number.isFinite(ga) || !Number.isFinite(gb)) return NaN;
+  if (ga === 0) return lo;
+  if (gb === 0) return hi;
+  if ((ga > 0) === (gb > 0)) return Math.abs(ga) < Math.abs(gb) ? lo : hi;
+  const inc = gb > ga;
+  for (let i = 0; i < 200 && b - a > tol * Math.max(1, Math.abs(a)); i++) {
+    const m = 0.5 * (a + b), gm = g(inv(m)) - target;
+    if (gm === 0) return inv(m);
+    if ((gm < 0) === inc) a = m; else b = m;
+  }
+  return inv(0.5 * (a + b));
 }
 
 /** Brent's method for f(x) = 0 on [a, b] (f(a), f(b) must bracket a root). */

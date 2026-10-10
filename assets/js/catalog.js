@@ -2,9 +2,13 @@
 // The catalog of distributions and relationships shown on the site. Pure data, no DOM; safe to import in Node.
 //
 // distribution fields: id, name, kind ('discrete' | 'continuous' | 'multivariate-discrete' | 'multivariate-continuous'),
-//   group, onOriginalMap, whyAdded, parameterization, params[{sym, key, label, name, meaning, domain, default, min, max, integer}],
+//   group, onOriginalMap, whyAdded (rich), parameterization (rich), parameterizationText (plain unicode),
+//   params[{sym, key, label, name, meaning (rich), meaningText (plain), domain, default, min, max, integer}],
 //   support (TeX), blurb (one plain sentence), mapPos {col,row} (placeholder grid position for the map).
-// relation fields: id ('from--to'), from, to, bidirectional, kind (see edgeKinds), label (TeX), statement (TeX), plain, onOriginalMap.
+// relation fields: id ('from--to'), from, to, bidirectional, kind (see edgeKinds), label (TeX), statement (TeX),
+//   plain (rich), plainText (plain unicode), onOriginalMap.
+// notation entries: {sym (TeX), plain (rich), plainText, match}; conventions: array of rich-text sentences.
+// "rich" = HTML in which $...$ is inline TeX (render with ui.renderRich / ui.rich).
 
 function deepFreeze(o) {
   if (o && typeof o === 'object' && !Object.isFrozen(o)) {
@@ -23,7 +27,7 @@ export const CATALOG = deepFreeze({
    "group": "uniform",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Integers a <= b; each of the n = b - a + 1 values a, a+1, ..., b has probability 1/n. Some texts use the support {1,...,n} (a = 1, b = n) or {0,...,n-1}.",
+   "parameterization": "Integers $a \\le b$. Each of the $n = b - a + 1$ values $a, a+1, \\dots, b$ has probability $1/n$. Some texts use the support $\\{1, \\dots, n\\}$ (that is, $a = 1$, $b = n$) or $\\{0, \\dots, n-1\\}$.",
    "params": [
     {
      "sym": "a",
@@ -35,22 +39,25 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": true,
      "key": "a",
-     "label": "a"
+     "label": "a",
+     "meaningText": "Smallest value the variable can take (e.g. 1 for a die)."
     },
     {
      "sym": "b",
      "name": "upper bound",
-     "meaning": "Largest value the variable can take (e.g. 6 for a die). Must be at least a.",
+     "meaning": "Largest value the variable can take (e.g. 6 for a die). Must be at least $a$.",
      "domain": "b\\in\\mathbb{Z},\\ b\\ge a",
      "default": 6,
      "min": -10,
      "max": 20,
      "integer": true,
      "key": "b",
-     "label": "b"
+     "label": "b",
+     "meaningText": "Largest value the variable can take (e.g. 6 for a die). Must be at least a."
     }
    ],
    "support": "x\\in\\{a,a+1,\\dots,b\\}",
+   "parameterizationText": "Integers a ≤ b. Each of the n = b - a + 1 values a, a+1, …, b has probability 1/n. Some texts use the support {1, …, n} (that is, a = 1, b = n) or {0, …, n-1}.",
    "blurb": "Each of a fixed range of consecutive whole numbers is equally likely, as with the roll of a fair die.",
    "mapPos": {
     "col": 0,
@@ -64,7 +71,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Success probability p: P(X=1) = p, P(X=0) = 1 - p.",
+   "parameterization": "Success probability $p$: $P(X = 1) = p$ and $P(X = 0) = 1 - p$.",
    "params": [
     {
      "sym": "p",
@@ -76,10 +83,12 @@ export const CATALOG = deepFreeze({
      "max": 1,
      "integer": false,
      "key": "p",
-     "label": "p"
+     "label": "p",
+     "meaningText": "Probability that a single trial is a success (coded 1)."
     }
    ],
    "support": "x\\in\\{0,1\\}",
+   "parameterizationText": "Success probability p: P(X = 1) = p and P(X = 0) = 1 - p.",
    "blurb": "A single trial with two outcomes: success (coded 1) with probability p, failure (coded 0) otherwise.",
    "mapPos": {
     "col": 1,
@@ -92,23 +101,25 @@ export const CATALOG = deepFreeze({
    "kind": "discrete",
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
-   "whyAdded": "Outcome of a single trial with K > 2 possible categories. It is the likelihood for choice data, classification labels, mixture-component indicators and softmax / multinomial-logit models in computational modeling.",
-   "parameterization": "K categories labelled 1..K with probability vector p = (p_1,...,p_K), p_j >= 0, sum p_j = 1. The probability vector is set interactively by dragging bars (default p_j = 1/K, renormalized to sum to 1). Some texts code the outcome as a one-hot vector (= Multinomial(1, p)).",
+   "whyAdded": "The outcome of a single trial with $K > 2$ possible categories. It is the likelihood for choice data, classification labels, mixture-component indicators and softmax (multinomial-logit) models in computational modeling.",
+   "parameterization": "$K$ categories labelled $1, \\dots, K$ with probability vector $\\mathbf p = (p_1, \\dots, p_K)$, where every $p_j \\ge 0$ and $\\sum_j p_j = 1$. On this page the probabilities are set by dragging bars; they start equal ($p_j = 1/K$) and are rescaled so that they always add up to 1. Some texts code the outcome as a one-hot vector, which is the same as $\\mathrm{Multinomial}(1, \\mathbf p)$.",
    "params": [
     {
      "sym": "K",
      "name": "number of categories",
-     "meaning": "How many distinct outcomes a single trial can have. The probabilities p_1,...,p_K of each category are adjusted separately by dragging bars.",
+     "meaning": "How many distinct outcomes a single trial can have. The probabilities $p_1, \\dots, p_K$ of the categories are adjusted separately by dragging bars.",
      "domain": "K\\in\\{2,3,\\dots\\}",
      "default": 4,
      "min": 2,
      "max": 10,
      "integer": true,
      "key": "K",
-     "label": "K"
+     "label": "K",
+     "meaningText": "How many distinct outcomes a single trial can have. The probabilities p1, …, pK of the categories are adjusted separately by dragging bars."
     }
    ],
    "support": "x\\in\\{1,2,\\dots,K\\}",
+   "parameterizationText": "K categories labelled 1, …, K with probability vector p = (p1, …, pK), where every pj ≥ 0 and Σj pj = 1. On this page the probabilities are set by dragging bars; they start equal (pj = 1/K) and are rescaled so that they always add up to 1. Some texts code the outcome as a one-hot vector, which is the same as Multinomial(1, p).",
    "blurb": "A single trial with K possible outcomes, each with its own probability.",
    "mapPos": {
     "col": 2,
@@ -122,7 +133,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Number of successes X in n independent trials, each with success probability p.",
+   "parameterization": "Number of successes $X$ in $n$ independent trials, each with success probability $p$.",
    "params": [
     {
      "sym": "n",
@@ -134,7 +145,8 @@ export const CATALOG = deepFreeze({
      "max": 50,
      "integer": true,
      "key": "n",
-     "label": "n"
+     "label": "n",
+     "meaningText": "How many independent yes/no trials are performed."
     },
     {
      "sym": "p",
@@ -146,10 +158,12 @@ export const CATALOG = deepFreeze({
      "max": 1,
      "integer": false,
      "key": "p",
-     "label": "p"
+     "label": "p",
+     "meaningText": "Probability of success on each trial."
     }
    ],
    "support": "k\\in\\{0,1,\\dots,n\\}",
+   "parameterizationText": "Number of successes X in n independent trials, each with success probability p.",
    "blurb": "The number of successes in a fixed number n of independent trials that share the same success probability p.",
    "mapPos": {
     "col": 2,
@@ -162,35 +176,38 @@ export const CATALOG = deepFreeze({
    "kind": "multivariate-discrete",
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
-   "whyAdded": "Counts in each of K categories after n independent categorical trials. Basis of chi-squared goodness-of-fit and contingency-table tests, and of Dirichlet-multinomial Bayesian models (e.g. topic models, choice counts).",
-   "parameterization": "n trials, K categories, probability vector p = (p_1,...,p_K) with sum 1 (set interactively by dragging bars; default uniform). X = (X_1,...,X_K) with X_j = number of trials landing in category j.",
+   "whyAdded": "The counts in each of $K$ categories after $n$ independent categorical trials. It is the basis of chi-squared goodness-of-fit and contingency-table tests, and of Dirichlet–multinomial Bayesian models (for example topic models and choice counts).",
+   "parameterization": "$n$ trials, $K$ categories and a probability vector $\\mathbf p = (p_1, \\dots, p_K)$ that adds up to 1 (set on this page by dragging bars; equal by default). The outcome is the vector of counts $\\mathbf X = (X_1, \\dots, X_K)$, where $X_j$ is the number of trials that land in category $j$.",
    "params": [
     {
      "sym": "n",
      "name": "number of trials",
-     "meaning": "Total number of independent trials; the category counts always add up to n.",
+     "meaning": "Total number of independent trials; the category counts always add up to $n$.",
      "domain": "n\\in\\{1,2,\\dots\\}",
      "default": 10,
      "min": 1,
      "max": 30,
      "integer": true,
      "key": "n",
-     "label": "n"
+     "label": "n",
+     "meaningText": "Total number of independent trials; the category counts always add up to n."
     },
     {
      "sym": "K",
      "name": "number of categories",
-     "meaning": "How many categories each trial can fall into. Category probabilities p_1,...,p_K are adjusted separately.",
+     "meaning": "How many categories each trial can fall into. The category probabilities $p_1, \\dots, p_K$ are adjusted separately.",
      "domain": "K\\in\\{2,3,\\dots\\}",
      "default": 3,
      "min": 2,
      "max": 6,
      "integer": true,
      "key": "K",
-     "label": "K"
+     "label": "K",
+     "meaningText": "How many categories each trial can fall into. The category probabilities p1, …, pK are adjusted separately."
     }
    ],
    "support": "\\mathbf{x}=(x_1,\\dots,x_K),\\ x_j\\in\\{0,\\dots,n\\},\\ \\sum_{j=1}^K x_j=n",
+   "parameterizationText": "n trials, K categories and a probability vector p = (p1, …, pK) that adds up to 1 (set on this page by dragging bars; equal by default). The outcome is the vector of counts X = (X1, …, XK), where Xj is the number of trials that land in category j.",
    "blurb": "The counts in each of K categories after n independent trials.",
    "mapPos": {
     "col": 3,
@@ -204,7 +221,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Population of N items of which K are 'successes'; n items are drawn without replacement; X = number of successes drawn. (Conventions differ: R uses m = K, n = N - K, k = draws; SciPy uses M = N, n = K, N = draws.)",
+   "parameterization": "A population of $N$ items, of which $K$ count as successes. $n$ items are drawn without replacement, and $X$ is the number of successes drawn. Software uses different letters: R uses $m = K$, $n = N - K$ and $k$ = number of draws; SciPy uses $M = N$, $n = K$ and $N$ = number of draws.",
    "params": [
     {
      "sym": "N",
@@ -216,7 +233,8 @@ export const CATALOG = deepFreeze({
      "max": 200,
      "integer": true,
      "key": "N",
-     "label": "N"
+     "label": "N",
+     "meaningText": "Total number of items in the population (e.g. cards in the deck)."
     },
     {
      "sym": "K",
@@ -228,7 +246,8 @@ export const CATALOG = deepFreeze({
      "max": 200,
      "integer": true,
      "key": "K",
-     "label": "K"
+     "label": "K",
+     "meaningText": "How many items in the population count as successes (e.g. red cards)."
     },
     {
      "sym": "n",
@@ -240,10 +259,12 @@ export const CATALOG = deepFreeze({
      "max": 200,
      "integer": true,
      "key": "n",
-     "label": "n"
+     "label": "n",
+     "meaningText": "How many items are drawn without putting them back."
     }
    ],
    "support": "k\\in\\{\\max(0,\\,n+K-N),\\dots,\\min(n,K)\\}",
+   "parameterizationText": "A population of N items, of which K count as successes. n items are drawn without replacement, and X is the number of successes drawn. Software uses different letters: R uses m = K, n = N - K and k = number of draws; SciPy uses M = N, n = K and N = number of draws.",
    "blurb": "The number of successes in a sample drawn without replacement from a finite population.",
    "mapPos": {
     "col": 1,
@@ -257,22 +278,24 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "K = number of failures before the first success in independent Bernoulli(p) trials: P(K=k) = (1-p)^k p, k = 0,1,2,...; mean (1-p)/p. Alternative convention: Y = K + 1 = number of trials up to and including the first success, support {1,2,...}, mean 1/p. The failures convention is chosen so that Geometric(p) = NegBin(1,p).",
+   "parameterization": "$K$ = the number of failures before the first success in independent $\\mathrm{Bernoulli}(p)$ trials: $P(K = k) = (1-p)^k p$ for $k = 0, 1, 2, \\dots$, with mean $(1-p)/p$. The other common convention counts trials instead: $Y = K + 1$ is the number of trials up to and including the first success, with support $\\{1, 2, \\dots\\}$ and mean $1/p$. This site counts failures so that $\\mathrm{Geometric}(p) = \\mathrm{NegBin}(1, p)$.",
    "params": [
     {
      "sym": "p",
      "name": "success probability",
-     "meaning": "Probability of success on each trial; larger p means a shorter wait.",
+     "meaning": "Probability of success on each trial; a larger $p$ means a shorter wait.",
      "domain": "0< p\\le 1",
      "default": 0.3,
      "min": 0.01,
      "max": 1,
      "integer": false,
      "key": "p",
-     "label": "p"
+     "label": "p",
+     "meaningText": "Probability of success on each trial; a larger p means a shorter wait."
     }
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
+   "parameterizationText": "K = the number of failures before the first success in independent Bernoulli(p) trials: P(K = k) = (1-p)ᵏ p for k = 0, 1, 2, …, with mean (1-p)/p. The other common convention counts trials instead: Y = K + 1 is the number of trials up to and including the first success, with support {1, 2, …} and mean 1/p. This site counts failures so that Geometric(p) = NegBin(1, p).",
    "blurb": "The number of failures before the first success in a sequence of independent trials.",
    "mapPos": {
     "col": 0,
@@ -286,19 +309,20 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "K = number of failures before the r-th success in independent Bernoulli(p) trials: P(K=k) = C(k+r-1, k) p^r (1-p)^k; mean r(1-p)/p, variance r(1-p)/p^2. r may be any positive real (via the gamma-Poisson mixture). Alternatives: trials until r-th success; mean/dispersion form used in GLMs (R glm.nb, Stan neg_binomial_2) with mean mu = r(1-p)/p and variance mu + mu^2/r.",
+   "parameterization": "$K$ = the number of failures before the $r$-th success in independent $\\mathrm{Bernoulli}(p)$ trials: $P(K = k) = \\binom{k+r-1}{k} p^r (1-p)^k$, with mean $r(1-p)/p$ and variance $r(1-p)/p^2$. $r$ may be any positive real number (this comes from the gamma–Poisson mixture). Other forms: the number of trials until the $r$-th success; and the mean–dispersion form used in regression software (R <code>glm.nb</code>, Stan <code>neg_binomial_2</code>) with mean $\\mu = r(1-p)/p$ and variance $\\mu + \\mu^2/r$.",
    "params": [
     {
      "sym": "r",
      "name": "number of successes (size)",
-     "meaning": "How many successes we wait for. The formula also works for non-integer r, where r acts as a dispersion ('size') parameter: the variance is mu + mu^2/r, so smaller r means more overdispersion (variance much larger than the mean), and very large r approaches the Poisson distribution.",
+     "meaning": "How many successes we wait for. The formula also works for non-integer $r$, where $r$ acts as a dispersion (“size”) parameter: the variance is $\\mu + \\mu^2/r$, so a smaller $r$ means more overdispersion (variance much larger than the mean), and a very large $r$ approaches the Poisson distribution.",
      "domain": "r>0",
      "default": 3,
      "min": 0.2,
      "max": 30,
      "integer": false,
      "key": "r",
-     "label": "r"
+     "label": "r",
+     "meaningText": "How many successes we wait for. The formula also works for non-integer r, where r acts as a dispersion (“size”) parameter: the variance is μ + μ²/r, so a smaller r means more overdispersion (variance much larger than the mean), and a very large r approaches the Poisson distribution."
     },
     {
      "sym": "p",
@@ -310,10 +334,12 @@ export const CATALOG = deepFreeze({
      "max": 1,
      "integer": false,
      "key": "p",
-     "label": "p"
+     "label": "p",
+     "meaningText": "Probability of success on each trial."
     }
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
+   "parameterizationText": "K = the number of failures before the r-th success in independent Bernoulli(p) trials: P(K = k) = C(k+r-1, k) p^r (1-p)ᵏ, with mean r(1-p)/p and variance r(1-p)/p². r may be any positive real number (this comes from the gamma–Poisson mixture). Other forms: the number of trials until the r-th success; and the mean–dispersion form used in regression software (R glm.nb, Stan neg_binomial_2) with mean μ = r(1-p)/p and variance μ + μ²/r.",
    "blurb": "The number of failures before the r-th success; also a standard model for counts whose variance exceeds their mean.",
    "mapPos": {
     "col": 1,
@@ -327,7 +353,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Rate (mean) lambda: P(X=k) = e^{-lambda} lambda^k / k!; mean = variance = lambda. For a process with rate lambda per unit time, counts in time t are Poisson(lambda t).",
+   "parameterization": "Rate (mean) $\\lambda$: $P(X = k) = e^{-\\lambda} \\lambda^k / k!$, and the mean and the variance both equal $\\lambda$. For events that occur at rate $\\lambda$ per unit time, the count in a window of length $t$ is $\\mathrm{Poisson}(\\lambda t)$.",
    "params": [
     {
      "sym": "\\lambda",
@@ -339,10 +365,12 @@ export const CATALOG = deepFreeze({
      "max": 30,
      "integer": false,
      "key": "lambda",
-     "label": "λ"
+     "label": "λ",
+     "meaningText": "Expected number of events in the interval; also equals the variance."
     }
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
+   "parameterizationText": "Rate (mean) λ: P(X = k) = e^-λ λᵏ / k!, and the mean and the variance both equal λ. For events that occur at rate λ per unit time, the count in a window of length t is Poisson(λ t).",
    "blurb": "The number of events in a fixed interval when events occur independently at a constant average rate.",
    "mapPos": {
     "col": 2,
@@ -356,7 +384,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": false,
    "whyAdded": "Binomial count whose success probability itself varies according to a Beta distribution. Used for overdispersed proportions (e.g. per-subject accuracy that differs across subjects), as the prior/posterior predictive of the Beta-Binomial Bayesian model, and in hierarchical models.",
-   "parameterization": "n trials; p ~ Beta(alpha, beta) and X | p ~ Binomial(n, p). P(X=k) = C(n,k) B(k+alpha, n-k+beta) / B(alpha, beta). Alternative: mean pi = alpha/(alpha+beta) and overdispersion rho = 1/(alpha+beta+1).",
+   "parameterization": "$n$ trials; $p \\sim \\mathrm{Beta}(\\alpha, \\beta)$ and, given $p$, $X \\sim \\mathrm{Binomial}(n, p)$. Then $P(X = k) = \\binom nk B(k + \\alpha,\\, n - k + \\beta) / B(\\alpha, \\beta)$. An alternative form uses the mean $\\pi = \\alpha/(\\alpha + \\beta)$ and the overdispersion $\\rho = 1/(\\alpha + \\beta + 1)$.",
    "params": [
     {
      "sym": "n",
@@ -368,7 +396,8 @@ export const CATALOG = deepFreeze({
      "max": 50,
      "integer": true,
      "key": "n",
-     "label": "n"
+     "label": "n",
+     "meaningText": "How many trials are counted."
     },
     {
      "sym": "\\alpha",
@@ -380,7 +409,8 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "alpha",
-     "label": "α"
+     "label": "α",
+     "meaningText": "First Beta shape parameter; acts like a pseudo-count of successes."
     },
     {
      "sym": "\\beta",
@@ -392,10 +422,12 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "beta",
-     "label": "β"
+     "label": "β",
+     "meaningText": "Second Beta shape parameter; acts like a pseudo-count of failures."
     }
    ],
    "support": "k\\in\\{0,1,\\dots,n\\}",
+   "parameterizationText": "n trials; p ~ Beta(α, β) and, given p, X ~ Binomial(n, p). Then P(X = k) = C(n, k) B(k + α, n - k + β) / B(α, β). An alternative form uses the mean π = α/(α + β) and the overdispersion ρ = 1/(α + β + 1).",
    "blurb": "A binomial count whose success probability itself varies according to a Beta distribution.",
    "mapPos": {
     "col": 3,
@@ -409,7 +441,7 @@ export const CATALOG = deepFreeze({
    "group": "uniform",
    "onOriginalMap": false,
    "whyAdded": "Every value in an interval is equally likely. It is the basis of random-number generation and inverse-CDF sampling, the distribution of p-values under a true null hypothesis, and a common flat prior.",
-   "parameterization": "Lower bound a and upper bound b, density 1/(b-a) on [a,b].",
+   "parameterization": "Lower bound $a$ and upper bound $b$; the density is $1/(b - a)$ on $[a, b]$.",
    "params": [
     {
      "sym": "a",
@@ -421,22 +453,25 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "a",
-     "label": "a"
+     "label": "a",
+     "meaningText": "Left end of the interval."
     },
     {
      "sym": "b",
      "name": "upper bound",
-     "meaning": "Right end of the interval; must exceed a.",
+     "meaning": "Right end of the interval; must be larger than $a$.",
      "domain": "b>a",
      "default": 1,
      "min": -5,
      "max": 10,
      "integer": false,
      "key": "b",
-     "label": "b"
+     "label": "b",
+     "meaningText": "Right end of the interval; must be larger than a."
     }
    ],
    "support": "x\\in[a,b]",
+   "parameterizationText": "Lower bound a and upper bound b; the density is 1/(b - a) on [a, b].",
    "blurb": "Every value in an interval from a to b is equally likely.",
    "mapPos": {
     "col": 5,
@@ -450,22 +485,24 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Rate lambda: f(x) = lambda e^{-lambda x}, mean 1/lambda. Alternative: scale theta = 1/lambda (mean), used by SciPy/NumPy.",
+   "parameterization": "Rate $\\lambda$: $f(x) = \\lambda e^{-\\lambda x}$, with mean $1/\\lambda$. Alternative: the scale (mean) $\\theta = 1/\\lambda$, used by SciPy and NumPy.",
    "params": [
     {
      "sym": "\\lambda",
      "name": "rate",
-     "meaning": "Average number of events per unit time; the mean waiting time is 1/lambda.",
+     "meaning": "Average number of events per unit time; the mean waiting time is $1/\\lambda$.",
      "domain": "\\lambda>0",
      "default": 1,
      "min": 0.1,
      "max": 5,
      "integer": false,
      "key": "lambda",
-     "label": "λ"
+     "label": "λ",
+     "meaningText": "Average number of events per unit time; the mean waiting time is 1/λ."
     }
    ],
    "support": "x\\in[0,\\infty)",
+   "parameterizationText": "Rate λ: f(x) = λ e^-λ x, with mean 1/λ. Alternative: the scale (mean) θ = 1/λ, used by SciPy and NumPy.",
    "blurb": "The waiting time until the next event when events occur independently at a constant rate.",
    "mapPos": {
     "col": 3,
@@ -479,34 +516,37 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Shape alpha (also written k) and rate beta: f(x) = beta^alpha x^{alpha-1} e^{-beta x} / Gamma(alpha); mean alpha/beta, variance alpha/beta^2. This is the BDA/Stan convention. Alternative: shape k and scale theta = 1/beta (Wikipedia's (k, theta), SciPy, NumPy).",
+   "parameterization": "Shape $\\alpha$ (also written $k$) and rate $\\beta$: $f(x) = \\beta^\\alpha x^{\\alpha-1} e^{-\\beta x} / \\Gamma(\\alpha)$, with mean $\\alpha/\\beta$ and variance $\\alpha/\\beta^2$. This is the convention of <i>Bayesian Data Analysis</i> and Stan. Alternative: shape $k$ and scale $\\theta = 1/\\beta$ (Wikipedia's $(k, \\theta)$, SciPy, NumPy).",
    "params": [
     {
      "sym": "\\alpha",
      "name": "shape",
-     "meaning": "Controls the shape; for integer alpha it is the number of exponential waiting times added together.",
+     "meaning": "Controls the shape; for a whole-number $\\alpha$ it is the number of exponential waiting times added together.",
      "domain": "\\alpha>0",
      "default": 2,
      "min": 0.1,
      "max": 20,
      "integer": false,
      "key": "alpha",
-     "label": "α"
+     "label": "α",
+     "meaningText": "Controls the shape; for a whole-number α it is the number of exponential waiting times added together."
     },
     {
      "sym": "\\beta",
      "name": "rate",
-     "meaning": "Inverse scale; larger beta compresses the distribution toward 0. The scale is 1/beta.",
+     "meaning": "Inverse scale; a larger $\\beta$ compresses the distribution toward 0. The scale is $1/\\beta$.",
      "domain": "\\beta>0",
      "default": 1,
      "min": 0.1,
      "max": 5,
      "integer": false,
      "key": "beta",
-     "label": "β"
+     "label": "β",
+     "meaningText": "Inverse scale; a larger β compresses the distribution toward 0. The scale is 1/β."
     }
    ],
    "support": "x\\in(0,\\infty)",
+   "parameterizationText": "Shape α (also written k) and rate β: f(x) = β^α x^α-1 e^-β x / Γ(α), with mean α/β and variance α/β². This is the convention of Bayesian Data Analysis and Stan. Alternative: shape k and scale θ = 1/β (Wikipedia's (k, θ), SciPy, NumPy).",
    "blurb": "A distribution for positive values; with a whole-number shape it is the total waiting time for several events.",
    "mapPos": {
     "col": 5,
@@ -520,7 +560,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Shape k and scale lambda: F(x) = 1 - exp(-(x/lambda)^k). k < 1: decreasing hazard; k = 1: exponential with rate 1/lambda; k > 1: increasing hazard; k = 2: Rayleigh with sigma = lambda/sqrt(2). Note lambda here is a scale, not a rate.",
+   "parameterization": "Shape $k$ and scale $\\lambda$: $F(x) = 1 - \\exp\\!\\big(-(x/\\lambda)^k\\big)$. With $k < 1$ the hazard (failure rate) decreases over time; $k = 1$ is the exponential with rate $1/\\lambda$; with $k > 1$ the hazard increases; $k = 2$ is the Rayleigh distribution with $\\sigma = \\lambda/\\sqrt 2$. Note that $\\lambda$ is a scale here, not a rate.",
    "params": [
     {
      "sym": "k",
@@ -532,22 +572,25 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "k",
-     "label": "k"
+     "label": "k",
+     "meaningText": "Controls how the failure rate (hazard) changes over time."
     },
     {
      "sym": "\\lambda",
      "name": "scale",
-     "meaning": "Stretches the distribution; about 63% of values fall below lambda.",
+     "meaning": "Stretches the distribution; about 63% of values fall below $\\lambda$.",
      "domain": "\\lambda>0",
      "default": 1,
      "min": 0.1,
      "max": 5,
      "integer": false,
      "key": "lambda",
-     "label": "λ"
+     "label": "λ",
+     "meaningText": "Stretches the distribution; about 63% of values fall below λ."
     }
    ],
    "support": "x\\in[0,\\infty)",
+   "parameterizationText": "Shape k and scale λ: F(x) = 1 - exp(-(x/λ)ᵏ). With k 1 the hazard increases; k = 2 is the Rayleigh distribution with σ = λ/√2. Note that λ is a scale here, not a rate.",
    "blurb": "A distribution of lifetimes whose failure rate can decrease, stay constant or increase over time.",
    "mapPos": {
     "col": 4,
@@ -561,7 +604,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Mean mu and standard deviation sigma; written N(mu, sigma^2). Alternatives: variance sigma^2, or precision tau = 1/sigma^2 (BUGS/JAGS).",
+   "parameterization": "Mean $\\mu$ and standard deviation $\\sigma$, written $\\mathcal N(\\mu, \\sigma^2)$. Alternatives: the variance $\\sigma^2$, or the precision $\\tau = 1/\\sigma^2$ (used in BUGS and JAGS).",
    "params": [
     {
      "sym": "\\mu",
@@ -573,22 +616,25 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Center of the bell curve (also its median and mode)."
     },
     {
      "sym": "\\sigma",
      "name": "standard deviation",
-     "meaning": "Spread; about 68% of values lie within one sigma of the mean.",
+     "meaning": "Spread; about 68% of values lie within one standard deviation $\\sigma$ of the mean.",
      "domain": "\\sigma>0",
      "default": 1,
      "min": 0.1,
      "max": 5,
      "integer": false,
      "key": "sigma",
-     "label": "σ"
+     "label": "σ",
+     "meaningText": "Spread; about 68% of values lie within one standard deviation σ of the mean."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "Mean μ and standard deviation σ, written N(μ, σ²). Alternatives: the variance σ², or the precision τ = 1/σ² (used in BUGS and JAGS).",
    "blurb": "The bell curve: a symmetric distribution described by its mean and standard deviation.",
    "mapPos": {
     "col": 8,
@@ -602,34 +648,37 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "mu and sigma are the mean and standard deviation of ln X (not of X). Median e^mu, mean e^{mu + sigma^2/2}.",
+   "parameterization": "$\\mu$ and $\\sigma$ are the mean and standard deviation of $\\ln X$, not of $X$. The median of $X$ is $e^{\\mu}$ and its mean is $e^{\\mu + \\sigma^2/2}$.",
    "params": [
     {
      "sym": "\\mu",
      "name": "log-mean",
-     "meaning": "Mean of the logarithm of X; e^mu is the median of X.",
+     "meaning": "Mean of the logarithm of $X$; $e^{\\mu}$ is the median of $X$.",
      "domain": "\\mu\\in\\mathbb{R}",
      "default": 0,
      "min": -2,
      "max": 3,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Mean of the logarithm of X; e^μ is the median of X."
     },
     {
      "sym": "\\sigma",
      "name": "log-standard deviation",
-     "meaning": "Standard deviation of ln X; larger values give a longer right tail.",
+     "meaning": "Standard deviation of $\\ln X$; larger values give a longer right tail.",
      "domain": "\\sigma>0",
      "default": 0.5,
      "min": 0.05,
      "max": 2,
      "integer": false,
      "key": "sigma",
-     "label": "σ"
+     "label": "σ",
+     "meaningText": "Standard deviation of ln X; larger values give a longer right tail."
     }
    ],
    "support": "x\\in(0,\\infty)",
+   "parameterizationText": "μ and σ are the mean and standard deviation of ln X, not of X. The median of X is e^μ and its mean is e^μ + σ²/2.",
    "blurb": "A positive, right-skewed distribution whose logarithm has a normal distribution.",
    "mapPos": {
     "col": 9,
@@ -643,22 +692,24 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Standard t with nu degrees of freedom (centered at 0, scale 1). Location-scale version mu + sigma T is used for robust regression and priors; mean 0 for nu > 1, variance nu/(nu-2) for nu > 2.",
+   "parameterization": "The standard $t$ distribution with $\\nu$ degrees of freedom (centered at 0, scale 1). The location–scale version $\\mu + \\sigma T$ is used for robust regression and as a prior. The mean is 0 when $\\nu > 1$ and the variance is $\\nu/(\\nu - 2)$ when $\\nu > 2$.",
    "params": [
     {
      "sym": "\\nu",
      "name": "degrees of freedom",
-     "meaning": "Controls tail heaviness; small nu gives heavy tails, large nu approaches the normal. In a one-sample t-test nu = n - 1.",
+     "meaning": "Controls how heavy the tails are: a small $\\nu$ gives heavy tails, and a large $\\nu$ approaches the normal. In a one-sample t-test, $\\nu = n - 1$.",
      "domain": "\\nu>0",
      "default": 5,
      "min": 0.5,
      "max": 100,
      "integer": false,
      "key": "nu",
-     "label": "ν"
+     "label": "ν",
+     "meaningText": "Controls how heavy the tails are: a small ν gives heavy tails, and a large ν approaches the normal. In a one-sample t-test, ν = n - 1."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "The standard t distribution with ν degrees of freedom (centered at 0, scale 1). The location–scale version μ + σ T is used for robust regression and as a prior. The mean is 0 when ν > 1 and the variance is ν/(ν - 2) when ν > 2.",
    "blurb": "A bell-shaped distribution with heavier tails than the normal, used for tests and intervals about means.",
    "mapPos": {
     "col": 7,
@@ -672,7 +723,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Degrees of freedom k: distribution of the sum of k squared independent standard normals; mean k, variance 2k. Equals Gamma(k/2, rate 1/2).",
+   "parameterization": "Degrees of freedom $k$: the distribution of the sum of $k$ squared independent standard normal variables, with mean $k$ and variance $2k$. It equals $\\mathrm{Gamma}(k/2,\\ \\text{rate } 1/2)$.",
    "params": [
     {
      "sym": "k",
@@ -684,10 +735,12 @@ export const CATALOG = deepFreeze({
      "max": 50,
      "integer": true,
      "key": "k",
-     "label": "k"
+     "label": "k",
+     "meaningText": "Number of independent squared standard normal variables being added."
     }
    ],
    "support": "x\\in[0,\\infty)",
+   "parameterizationText": "Degrees of freedom k: the distribution of the sum of k squared independent standard normal variables, with mean k and variance 2k. It equals Gamma(k/2, rate 1/2).",
    "blurb": "The sum of squared independent standard normal variables; used in variance and goodness-of-fit tests.",
    "mapPos": {
     "col": 6,
@@ -701,7 +754,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": true,
    "whyAdded": "",
-   "parameterization": "Shapes alpha, beta: f(x) = x^{alpha-1}(1-x)^{beta-1} / B(alpha,beta); mean alpha/(alpha+beta). Alternative: mean m = alpha/(alpha+beta) and concentration kappa = alpha+beta.",
+   "parameterization": "Shapes $\\alpha$ and $\\beta$: $f(x) = x^{\\alpha-1} (1-x)^{\\beta-1} / B(\\alpha, \\beta)$, with mean $\\alpha/(\\alpha + \\beta)$. Alternative: the mean $m = \\alpha/(\\alpha + \\beta)$ and the concentration $\\kappa = \\alpha + \\beta$.",
    "params": [
     {
      "sym": "\\alpha",
@@ -713,7 +766,8 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "alpha",
-     "label": "α"
+     "label": "α",
+     "meaningText": "Pulls mass toward 1; in Bayesian updating it behaves like a count of prior successes."
     },
     {
      "sym": "\\beta",
@@ -725,10 +779,12 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "beta",
-     "label": "β"
+     "label": "β",
+     "meaningText": "Pulls mass toward 0; behaves like a count of prior failures."
     }
    ],
    "support": "x\\in[0,1]",
+   "parameterizationText": "Shapes α and β: f(x) = x^α-1 (1-x)^β-1 / B(α, β), with mean α/(α + β). Alternative: the mean m = α/(α + β) and the concentration κ = α + β.",
    "blurb": "A distribution for proportions and probabilities, on the interval from 0 to 1.",
    "mapPos": {
     "col": 4,
@@ -742,7 +798,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Ratio of two scaled chi-squared variables. Reference distribution for ANOVA, regression F-tests, nested model comparison, and tests of equal variances.",
-   "parameterization": "Numerator degrees of freedom d1 and denominator degrees of freedom d2; mean d2/(d2-2) for d2 > 2.",
+   "parameterization": "Numerator degrees of freedom $d_1$ and denominator degrees of freedom $d_2$. The mean is $d_2/(d_2 - 2)$ when $d_2 > 2$.",
    "params": [
     {
      "sym": "d_1",
@@ -754,22 +810,25 @@ export const CATALOG = deepFreeze({
      "max": 100,
      "integer": true,
      "key": "d1",
-     "label": "d₁"
+     "label": "d₁",
+     "meaningText": "Degrees of freedom of the effect (e.g. number of groups minus 1 in ANOVA)."
     },
     {
      "sym": "d_2",
      "name": "denominator degrees of freedom",
-     "meaning": "Degrees of freedom of the error term (e.g. N minus number of groups).",
+     "meaning": "Degrees of freedom of the error term (e.g. $N$ minus the number of groups).",
      "domain": "d_2>0",
      "default": 10,
      "min": 1,
      "max": 100,
      "integer": true,
      "key": "d2",
-     "label": "d₂"
+     "label": "d₂",
+     "meaningText": "Degrees of freedom of the error term (e.g. N minus the number of groups)."
     }
    ],
    "support": "x\\in[0,\\infty)",
+   "parameterizationText": "Numerator degrees of freedom d1 and denominator degrees of freedom d2. The mean is d2/(d2 - 2) when d2 > 2.",
    "blurb": "The ratio of two chi-squared variables, each divided by its degrees of freedom; the reference distribution for ANOVA and regression F-tests.",
    "mapPos": {
     "col": 7,
@@ -783,7 +842,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "The standard example of a distribution with no mean or variance: averages of Cauchy samples do not settle down as the sample grows. It equals Student's t with 1 degree of freedom and the ratio of two independent standard normal variables (centered at 0). It is used for robust likelihoods and for heavy-tailed, weakly informative priors that allow occasional large values.",
-   "parameterization": "Location x0 (median and mode) and scale gamma (half-width at half-maximum; also the semi-interquartile range).",
+   "parameterization": "Location $x_0$ (the median and the mode) and scale $\\gamma$ (the half-width of the peak at half its height, which is also half the distance between the quartiles).",
    "params": [
     {
      "sym": "x_0",
@@ -795,7 +854,8 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "x0",
-     "label": "x₀"
+     "label": "x₀",
+     "meaningText": "Center (median and peak) of the distribution."
     },
     {
      "sym": "\\gamma",
@@ -807,10 +867,12 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "gamma",
-     "label": "γ"
+     "label": "γ",
+     "meaningText": "Half the width of the peak at half its height; half the distance between the quartiles."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "Location x0 (the median and the mode) and scale γ (the half-width of the peak at half its height, which is also half the distance between the quartiles).",
    "blurb": "A symmetric distribution with tails so heavy that it has no mean or variance.",
    "mapPos": {
     "col": 8,
@@ -824,7 +886,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Prior for standard-deviation (scale) parameters, for example the between-subject standard deviation in a hierarchical (multilevel) model, where each subject has its own parameter drawn from a group distribution. It puts most of its mass near zero but has a heavy tail, so the data can still support a large standard deviation. Gelman (2006) recommended it (and the half-t) as a weakly informative default. More recent Stan prior guidance often uses the half-normal, half-t or exponential instead; these are shown as alternatives on this page.",
-   "parameterization": "Scale gamma: |X| for X ~ Cauchy(0, gamma); f(x) = 2 / (pi gamma (1 + (x/gamma)^2)), median gamma. Written HalfCauchy(0, A) in Gelman (2006).",
+   "parameterization": "Scale $\\gamma$: the distribution of $|X|$ for $X \\sim \\mathrm{Cauchy}(0, \\gamma)$, with density $f(x) = \\dfrac{2}{\\pi \\gamma \\,(1 + (x/\\gamma)^2)}$ and median $\\gamma$. Gelman (2006) writes it $\\mathrm{HalfCauchy}(0, A)$.",
    "params": [
     {
      "sym": "\\gamma",
@@ -836,10 +898,12 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "gamma",
-     "label": "γ"
+     "label": "γ",
+     "meaningText": "Median of the distribution; prior guess for the typical size of the scale parameter."
     }
    ],
    "support": "x\\in[0,\\infty)",
+   "parameterizationText": "Scale γ: the distribution of |X| for X ~ Cauchy(0, γ), with density f(x) = (2)/(π γ (1 + (x/γ)²)) and median γ. Gelman (2006) writes it HalfCauchy(0, A).",
    "blurb": "The positive half of a Cauchy distribution, often used as a prior for standard deviations.",
    "mapPos": {
     "col": 9,
@@ -853,7 +917,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Symmetric with a sharp peak and tails that decay exponentially, so they are heavier than the normal's. If regression errors are assumed to be Laplace, the best fit minimizes absolute rather than squared errors (median or least-absolute-deviation regression). A Laplace prior on regression coefficients makes the single most probable value of the posterior (the MAP estimate) equal to the LASSO estimate, which shrinks small coefficients to exactly zero. It is also the noise added to published statistics in differential privacy.",
-   "parameterization": "Location mu and scale b: f(x) = exp(-|x-mu|/b) / (2b); variance 2b^2. Alternative: rate lambda = 1/b.",
+   "parameterization": "Location $\\mu$ and scale $b$: $f(x) = \\exp(-|x - \\mu|/b) / (2b)$, with variance $2b^2$. Alternative: the rate $\\lambda = 1/b$.",
    "params": [
     {
      "sym": "\\mu",
@@ -865,7 +929,8 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Center (mean, median and mode)."
     },
     {
      "sym": "b",
@@ -877,10 +942,12 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "b",
-     "label": "b"
+     "label": "b",
+     "meaningText": "Average absolute distance from the center."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "Location μ and scale b: f(x) = exp(-|x - μ|/b) / (2b), with variance 2b². Alternative: the rate λ = 1/b.",
    "blurb": "A symmetric distribution with a sharp peak and exponentially decaying tails on both sides.",
    "mapPos": {
     "col": 3,
@@ -894,19 +961,20 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Its CDF is the logistic (sigmoid) function, an S-shaped curve rising from 0 to 1. Logistic regression can be written as a hidden continuous score plus logistic noise that is compared with zero; this gives the logit link, in which the log-odds of a 1 is a linear function of the predictors. The same S-shaped curve is used for psychometric functions (probability of detecting or discriminating a stimulus as its intensity changes) and in item response theory (probability of answering a test item correctly as a function of a person's ability).",
-   "parameterization": "Location mu and scale s: F(x) = 1 / (1 + e^{-(x-mu)/s}); variance s^2 pi^2 / 3.",
+   "parameterization": "Location $\\mu$ and scale $s$: $F(x) = 1 / \\big(1 + e^{-(x - \\mu)/s}\\big)$, with variance $s^2 \\pi^2 / 3$.",
    "params": [
     {
      "sym": "\\mu",
      "name": "location",
-     "meaning": "Center (mean, median and mode); the point where the CDF equals 1/2.",
+     "meaning": "Center (mean, median and mode); the point where the CDF equals $1/2$.",
      "domain": "\\mu\\in\\mathbb{R}",
      "default": 0,
      "min": -10,
      "max": 10,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Center (mean, median and mode); the point where the CDF equals 1/2."
     },
     {
      "sym": "s",
@@ -918,10 +986,12 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "s",
-     "label": "s"
+     "label": "s",
+     "meaningText": "Spread; controls how steeply the sigmoid CDF rises."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "Location μ and scale s: F(x) = 1 / (1 + e^-(x - μ)/s), with variance s² π² / 3.",
    "blurb": "A symmetric distribution whose CDF is the logistic (sigmoid) curve.",
    "mapPos": {
     "col": 5,
@@ -935,7 +1005,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution of 1/X for a gamma variable. Conjugate prior (and posterior) for the variance of a normal distribution; also the mixing distribution that turns a normal into a Student's t.",
-   "parameterization": "Shape alpha and scale beta: f(x) = beta^alpha x^{-alpha-1} e^{-beta/x} / Gamma(alpha); mean beta/(alpha-1) for alpha > 1. If X ~ Gamma(alpha, rate beta) then 1/X ~ InvGamma(alpha, scale beta).",
+   "parameterization": "Shape $\\alpha$ and scale $\\beta$: $f(x) = \\beta^\\alpha x^{-\\alpha-1} e^{-\\beta/x} / \\Gamma(\\alpha)$, with mean $\\beta/(\\alpha - 1)$ when $\\alpha > 1$. If $X \\sim \\mathrm{Gamma}(\\alpha,\\ \\text{rate } \\beta)$ then $1/X \\sim \\mathrm{InvGamma}(\\alpha,\\ \\text{scale } \\beta)$.",
    "params": [
     {
      "sym": "\\alpha",
@@ -947,7 +1017,8 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "alpha",
-     "label": "α"
+     "label": "α",
+     "meaningText": "Controls tail heaviness; roughly half the prior number of observations when used as a variance prior."
     },
     {
      "sym": "\\beta",
@@ -959,10 +1030,12 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "beta",
-     "label": "β"
+     "label": "β",
+     "meaningText": "Stretches the distribution; roughly half the prior sum of squared deviations when used as a variance prior."
     }
    ],
    "support": "x\\in(0,\\infty)",
+   "parameterizationText": "Shape α and scale β: f(x) = β^α x^-α-1 e^-β/x / Γ(α), with mean β/(α - 1) when α > 1. If X ~ Gamma(α, rate β) then 1/X ~ InvGamma(α, scale β).",
    "blurb": "The distribution of the reciprocal of a gamma variable; a conjugate prior for the variance of a normal distribution.",
    "mapPos": {
     "col": 6,
@@ -976,19 +1049,20 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution over probability vectors (points on the simplex). Conjugate prior for categorical and multinomial probabilities; used for mixture weights and topic models (LDA). Its margins are Beta distributions.",
-   "parameterization": "Concentration vector alpha = (alpha_1,...,alpha_K), all > 0; alpha_0 = sum of alpha_j. Mean E[X_j] = alpha_j / alpha_0. The interactive view uses K = 3 (a triangle). Alternative: mean vector m and total concentration alpha_0.",
+   "parameterization": "Concentration vector $\\boldsymbol\\alpha = (\\alpha_1, \\dots, \\alpha_K)$ with every $\\alpha_j > 0$, and total concentration $\\alpha_0 = \\sum_j \\alpha_j$. The mean is $\\mathrm E[X_j] = \\alpha_j / \\alpha_0$. The interactive view uses $K = 3$, shown on a triangle. Alternative: a mean vector $\\mathbf m$ and the total concentration $\\alpha_0$.",
    "params": [
     {
      "sym": "\\alpha_1",
      "name": "concentration 1",
-     "meaning": "Pseudo-count for category 1; larger values pull probability mass toward category 1.",
+     "meaning": "Pseudo-count for category 1; larger values pull probability toward category 1.",
      "domain": "\\alpha_1>0",
      "default": 2,
      "min": 0.1,
      "max": 20,
      "integer": false,
      "key": "alpha1",
-     "label": "α₁"
+     "label": "α₁",
+     "meaningText": "Pseudo-count for category 1; larger values pull probability toward category 1."
     },
     {
      "sym": "\\alpha_2",
@@ -1000,7 +1074,8 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "alpha2",
-     "label": "α₂"
+     "label": "α₂",
+     "meaningText": "Pseudo-count for category 2."
     },
     {
      "sym": "\\alpha_3",
@@ -1012,10 +1087,12 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "alpha3",
-     "label": "α₃"
+     "label": "α₃",
+     "meaningText": "Pseudo-count for category 3."
     }
    ],
    "support": "\\mathbf{x}\\in\\Delta^{K-1}=\\{\\mathbf x: x_j>0,\\ \\sum_{j=1}^K x_j=1\\}",
+   "parameterizationText": "Concentration vector α = (α1, …, αK) with every αj > 0, and total concentration α0 = Σj αj. The mean is mathrm E[Xj] = αj / α0. The interactive view uses K = 3, shown on a triangle. Alternative: a mean vector m and the total concentration α0.",
    "blurb": "A distribution over lists of probabilities that add up to 1; the multivariate version of the Beta.",
    "mapPos": {
     "col": 4,
@@ -1029,70 +1106,76 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Joint distribution of several correlated normal variables, described by a mean for each variable and a covariance matrix (each variable's variance plus the covariance between each pair). It underlies multiple regression, multivariate tests such as MANOVA (analysis of variance with several outcome variables at once), linear mixed models, Gaussian-process models of smooth unknown functions, and Kalman filters that track a hidden state changing over time. In large samples, Bayesian posterior distributions and the sampling distributions of maximum-likelihood estimates are approximately multivariate normal.",
-   "parameterization": "Mean vector mu in R^d and covariance matrix Sigma (symmetric positive definite). The interactive view is bivariate (d = 2) with Sigma = [[sigma_1^2, rho sigma_1 sigma_2], [rho sigma_1 sigma_2, sigma_2^2]]. Alternatives: precision matrix Sigma^{-1}; Cholesky factor L; Stan multi_normal_cholesky with LKJ prior on the correlation matrix.",
+   "parameterization": "Mean vector $\\boldsymbol\\mu$ in $\\mathbb R^d$ and covariance matrix $\\Sigma$ (symmetric and positive definite). The interactive view is bivariate ($d = 2$) with $\\Sigma = \\begin{pmatrix} \\sigma_1^2 & \\rho\\sigma_1\\sigma_2 \\\\ \\rho\\sigma_1\\sigma_2 & \\sigma_2^2 \\end{pmatrix}$. Alternatives: the precision matrix $\\Sigma^{-1}$; a Cholesky factor $L$ with $\\Sigma = LL^\\top$; in Stan, <code>multi_normal_cholesky</code> with an LKJ prior on the correlation matrix.",
    "params": [
     {
      "sym": "\\mu_1",
-     "name": "mean of X1",
-     "meaning": "Center of the first variable.",
+     "name": "mean of X₁",
+     "meaning": "Center of the first variable, $X_1$.",
      "domain": "\\mu_1\\in\\mathbb{R}",
      "default": 0,
      "min": -5,
      "max": 5,
      "integer": false,
      "key": "mu1",
-     "label": "μ₁"
+     "label": "μ₁",
+     "meaningText": "Center of the first variable, X1."
     },
     {
      "sym": "\\mu_2",
-     "name": "mean of X2",
-     "meaning": "Center of the second variable.",
+     "name": "mean of X₂",
+     "meaning": "Center of the second variable, $X_2$.",
      "domain": "\\mu_2\\in\\mathbb{R}",
      "default": 0,
      "min": -5,
      "max": 5,
      "integer": false,
      "key": "mu2",
-     "label": "μ₂"
+     "label": "μ₂",
+     "meaningText": "Center of the second variable, X2."
     },
     {
      "sym": "\\sigma_1",
-     "name": "SD of X1",
-     "meaning": "Spread of the first variable.",
+     "name": "SD of X₁",
+     "meaning": "Spread (standard deviation) of the first variable.",
      "domain": "\\sigma_1>0",
      "default": 1,
      "min": 0.1,
      "max": 3,
      "integer": false,
      "key": "sigma1",
-     "label": "σ₁"
+     "label": "σ₁",
+     "meaningText": "Spread (standard deviation) of the first variable."
     },
     {
      "sym": "\\sigma_2",
-     "name": "SD of X2",
-     "meaning": "Spread of the second variable.",
+     "name": "SD of X₂",
+     "meaning": "Spread (standard deviation) of the second variable.",
      "domain": "\\sigma_2>0",
      "default": 1,
      "min": 0.1,
      "max": 3,
      "integer": false,
      "key": "sigma2",
-     "label": "σ₂"
+     "label": "σ₂",
+     "meaningText": "Spread (standard deviation) of the second variable."
     },
     {
      "sym": "\\rho",
      "name": "correlation",
-     "meaning": "Linear correlation between X1 and X2; tilts and narrows the elliptical contours.",
+     "meaning": "Linear correlation between $X_1$ and $X_2$; it tilts and narrows the elliptical contours.",
      "domain": "-1<\\rho<1",
      "default": 0.5,
      "min": -0.99,
      "max": 0.99,
      "integer": false,
      "key": "rho",
-     "label": "ρ"
+     "label": "ρ",
+     "meaningText": "Linear correlation between X1 and X2; it tilts and narrows the elliptical contours."
     }
    ],
    "support": "\\mathbf{x}\\in\\mathbb{R}^d",
+   "parameterizationText": "Mean vector μ in ℝ^d and covariance matrix Σ (symmetric and positive definite). The interactive view is bivariate (d = 2) with Σ = (2×2 matrix). Alternatives: the precision matrix Σ⁻¹; a Cholesky factor L with Σ = LLᵀ; in Stan, multi_normal_cholesky with an LKJ prior on the correlation matrix.",
    "blurb": "The joint distribution of several correlated normal variables.",
    "mapPos": {
     "col": 9,
@@ -1106,7 +1189,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "The circular analogue of the normal distribution, for angles, phases and directions. Used for circular data and in computational models of orientation and colour working memory (mixture models), head direction and spike phase.",
-   "parameterization": "Mean direction mu and concentration kappa: f(x) = e^{kappa cos(x-mu)} / (2 pi I_0(kappa)), where I_0 is the modified Bessel function of order 0. kappa = 0 is uniform on the circle; large kappa is approximately N(mu, 1/kappa).",
+   "parameterization": "Mean direction $\\mu$ and concentration $\\kappa$: $f(x) = e^{\\kappa \\cos(x - \\mu)} / \\big(2\\pi I_0(\\kappa)\\big)$, where $I_0$ is the modified Bessel function of order 0. $\\kappa = 0$ is the uniform distribution on the circle; for large $\\kappa$ it is approximately $\\mathcal N(\\mu, 1/\\kappa)$.",
    "params": [
     {
      "sym": "\\mu",
@@ -1118,22 +1201,25 @@ export const CATALOG = deepFreeze({
      "max": 3.14159,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "The angle (in radians) where the distribution peaks."
     },
     {
      "sym": "\\kappa",
      "name": "concentration",
-     "meaning": "How tightly angles cluster around mu; roughly 1/variance for large kappa.",
+     "meaning": "How tightly angles cluster around $\\mu$; roughly $1/\\text{variance}$ for large $\\kappa$.",
      "domain": "\\kappa\\ge 0",
      "default": 2,
      "min": 0,
      "max": 20,
      "integer": false,
      "key": "kappa",
-     "label": "κ"
+     "label": "κ",
+     "meaningText": "How tightly angles cluster around μ; roughly 1/variance for large κ."
     }
    ],
    "support": "x\\in[-\\pi,\\pi)",
+   "parameterizationText": "Mean direction μ and concentration κ: f(x) = e^κ cos(x - μ) / (2π I0(κ)), where I0 is the modified Bessel function of order 0. κ = 0 is the uniform distribution on the circle; for large κ it is approximately N(μ, 1/κ).",
    "blurb": "A bell-shaped distribution for angles and directions on a circle.",
    "mapPos": {
     "col": 8,
@@ -1147,7 +1233,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "Sum of a normal and an independent exponential variable. The standard descriptive model of right-skewed response-time distributions in psychology.",
-   "parameterization": "mu and sigma are the mean and SD of the normal component; tau is the mean (scale) of the exponential component (rate 1/tau). Overall mean mu + tau, variance sigma^2 + tau^2. Alternatives: rate lambda = 1/tau; SciPy exponnorm uses K = tau/sigma.",
+   "parameterization": "$\\mu$ and $\\sigma$ are the mean and standard deviation of the normal component; $\\tau$ is the mean (scale) of the exponential component, whose rate is $1/\\tau$. The overall mean is $\\mu + \\tau$ and the variance is $\\sigma^2 + \\tau^2$. Alternatives: the rate $\\lambda = 1/\\tau$; SciPy's <code>exponnorm</code> uses $K = \\tau/\\sigma$.",
    "params": [
     {
      "sym": "\\mu",
@@ -1159,7 +1245,8 @@ export const CATALOG = deepFreeze({
      "max": 2,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Mean of the Gaussian component (e.g. typical response time in seconds without the slow tail)."
     },
     {
      "sym": "\\sigma",
@@ -1171,7 +1258,8 @@ export const CATALOG = deepFreeze({
      "max": 0.5,
      "integer": false,
      "key": "sigma",
-     "label": "σ"
+     "label": "σ",
+     "meaningText": "Spread of the Gaussian component."
     },
     {
      "sym": "\\tau",
@@ -1183,10 +1271,12 @@ export const CATALOG = deepFreeze({
      "max": 1.5,
      "integer": false,
      "key": "tau",
-     "label": "τ"
+     "label": "τ",
+     "meaningText": "Mean of the exponential component; controls the length of the slow right tail."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "μ and σ are the mean and standard deviation of the normal component; τ is the mean (scale) of the exponential component, whose rate is 1/τ. The overall mean is μ + τ and the variance is σ² + τ². Alternatives: the rate λ = 1/τ; SciPy's exponnorm uses K = τ/σ.",
    "blurb": "The sum of a normal and an independent exponential variable, often used to describe response times.",
    "mapPos": {
     "col": 6,
@@ -1200,7 +1290,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "First time a drifting Brownian motion reaches a boundary. Used as a single-boundary evidence-accumulation model of response times (shifted Wald), as a building block of drift-diffusion models, and as a GLM family for positive skewed data.",
-   "parameterization": "Mean mu and shape lambda: f(x) = sqrt(lambda/(2 pi x^3)) exp(-lambda (x-mu)^2 / (2 mu^2 x)); variance mu^3/lambda. Evidence-accumulation form: drift rate v, threshold a and noise standard deviation sigma give mu = a/v and lambda = a^2/sigma^2. The name 'inverse Gaussian' does not mean that 1/X is Gaussian. The normal describes where a drifting random walk is at a fixed time; the inverse Gaussian describes when it first reaches a fixed level. SciPy invgauss uses shape mu/lambda with scale lambda.",
+   "parameterization": "Mean $\\mu$ and shape $\\lambda$: $f(x) = \\sqrt{\\dfrac{\\lambda}{2\\pi x^3}}\\, \\exp\\!\\Big(-\\dfrac{\\lambda (x - \\mu)^2}{2\\mu^2 x}\\Big)$, with variance $\\mu^3/\\lambda$. Evidence-accumulation form: a drift rate $v$, a threshold $a$ and a noise standard deviation $\\sigma$ give $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$. The name “inverse Gaussian” does not mean that $1/X$ is normal: the normal describes where a drifting random walk is at a fixed time, and the inverse Gaussian describes when it first reaches a fixed level. SciPy's <code>invgauss</code> uses the shape $\\mu/\\lambda$ with scale $\\lambda$.",
    "params": [
     {
      "sym": "\\mu",
@@ -1212,7 +1302,8 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "Average first-passage time (threshold divided by drift rate)."
     },
     {
      "sym": "\\lambda",
@@ -1224,10 +1315,12 @@ export const CATALOG = deepFreeze({
      "max": 20,
      "integer": false,
      "key": "lambda",
-     "label": "λ"
+     "label": "λ",
+     "meaningText": "Larger values give a less skewed, more symmetric distribution (threshold squared over noise variance)."
     }
    ],
    "support": "x\\in(0,\\infty)",
+   "parameterizationText": "Mean μ and shape λ: f(x) = √((λ)/(2π x³)) exp(-(λ (x - μ)²)/(2μ² x)), with variance μ³/λ. Evidence-accumulation form: a drift rate v, a threshold a and a noise standard deviation σ give μ = a/v and λ = a²/σ². The name “inverse Gaussian” does not mean that 1/X is normal: the normal describes where a drifting random walk is at a fixed time, and the inverse Gaussian describes when it first reaches a fixed level. SciPy's invgauss uses the shape μ/λ with scale λ.",
    "blurb": "The time a drifting random walk takes to first reach a fixed boundary.",
    "mapPos": {
     "col": 7,
@@ -1241,7 +1334,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": false,
    "whyAdded": "The basic power-law distribution, for quantities with very heavy right tails such as incomes, city sizes and file sizes. A generalized version models values above a high threshold in extreme-value analysis. In Bayesian model checking, Pareto-smoothed importance sampling (PSIS, used for approximate leave-one-out cross-validation) fits a generalized Pareto to the largest importance weights, and its estimated tail index (k-hat) flags data points for which the approximation is unreliable.",
-   "parameterization": "Type I Pareto with scale (minimum) x_m and tail index alpha: P(X > x) = (x_m/x)^alpha for x >= x_m; mean alpha x_m/(alpha-1) for alpha > 1. Alternative: Lomax (Pareto type II) shifted to start at 0.",
+   "parameterization": "Type I Pareto with scale (minimum) $x_m$ and tail index $\\alpha$: $P(X > x) = (x_m/x)^\\alpha$ for $x \\ge x_m$, with mean $\\alpha x_m / (\\alpha - 1)$ when $\\alpha > 1$. Alternative: the Lomax (Pareto type II) distribution, shifted to start at 0.",
    "params": [
     {
      "sym": "x_m",
@@ -1253,22 +1346,25 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "xm",
-     "label": "x_m"
+     "label": "x_m",
+     "meaningText": "Smallest possible value."
     },
     {
      "sym": "\\alpha",
      "name": "tail index",
-     "meaning": "How fast the tail decays; smaller alpha means heavier tails (no mean if alpha <= 1, no variance if alpha <= 2).",
+     "meaning": "How fast the tail decays; a smaller $\\alpha$ means heavier tails (there is no mean if $\\alpha \\le 1$ and no variance if $\\alpha \\le 2$).",
      "domain": "\\alpha>0",
      "default": 2,
      "min": 0.1,
      "max": 10,
      "integer": false,
      "key": "alpha",
-     "label": "α"
+     "label": "α",
+     "meaningText": "How fast the tail decays; a smaller α means heavier tails (there is no mean if α ≤ 1 and no variance if α ≤ 2)."
     }
    ],
    "support": "x\\in[x_m,\\infty)",
+   "parameterizationText": "Type I Pareto with scale (minimum) xm and tail index α: P(X > x) = (xm/x)^α for x ≥ xm, with mean α xm / (α - 1) when α > 1. Alternative: the Lomax (Pareto type II) distribution, shifted to start at 0.",
    "blurb": "A power-law distribution with a heavy right tail.",
    "mapPos": {
     "col": 2,
@@ -1282,7 +1378,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Limiting distribution of the largest of many independent values whose tails are lighter than any power law, such as normal, exponential or gamma values (extreme value type I). If the value of each option in a choice is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax (multinomial logit) rule used in reinforcement-learning and decision models. The same fact gives the Gumbel-max trick: add Gumbel noise to the log-probabilities and take the largest to draw a sample from a categorical distribution.",
-   "parameterization": "Maximum-type Gumbel with location mu and scale beta: F(x) = exp(-e^{-(x-mu)/beta}); mean mu + 0.5772 beta. The minimum-type Gumbel is its mirror image.",
+   "parameterization": "Maximum-type Gumbel with location $\\mu$ and scale $\\beta$: $F(x) = \\exp\\!\\big(-e^{-(x - \\mu)/\\beta}\\big)$, with mean $\\mu + 0.5772\\,\\beta$. The minimum-type Gumbel is its mirror image.",
    "params": [
     {
      "sym": "\\mu",
@@ -1294,7 +1390,8 @@ export const CATALOG = deepFreeze({
      "max": 10,
      "integer": false,
      "key": "mu",
-     "label": "μ"
+     "label": "μ",
+     "meaningText": "The mode (peak) of the distribution."
     },
     {
      "sym": "\\beta",
@@ -1306,10 +1403,12 @@ export const CATALOG = deepFreeze({
      "max": 5,
      "integer": false,
      "key": "beta",
-     "label": "β"
+     "label": "β",
+     "meaningText": "Spread; in choice models it plays the role of the softmax temperature."
     }
    ],
    "support": "x\\in\\mathbb{R}",
+   "parameterizationText": "Maximum-type Gumbel with location μ and scale β: F(x) = exp(-e^-(x - μ)/β), with mean μ + 0.5772 β. The minimum-type Gumbel is its mirror image.",
    "blurb": "The distribution of the largest of many independent values; it also produces the softmax choice rule.",
    "mapPos": {
     "col": 4,
@@ -1326,8 +1425,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "p=\\tfrac12",
    "statement": "X\\sim\\mathrm{DUnif}\\{0,1\\}\\iff X\\sim\\mathrm{Bernoulli}(\\tfrac12),\\ \\text{since both give } P(X=0)=P(X=1)=\\tfrac12.",
-   "plain": "A fair coin flip is both a Bernoulli trial with p = 1/2 and a discrete uniform variable on the two values 0 and 1. The families overlap only at this point: a Bernoulli with p other than 1/2 is not uniform, and a discrete uniform on more than two values is not Bernoulli.",
-   "onOriginalMap": true
+   "plain": "A fair coin flip is both a Bernoulli trial with $p = 1/2$ and a discrete uniform variable on the two values 0 and 1. The two families overlap only at this point: a Bernoulli with $p \\ne 1/2$ is not uniform, and a discrete uniform on more than two values is not Bernoulli.",
+   "onOriginalMap": true,
+   "plainText": "A fair coin flip is both a Bernoulli trial with p = 1/2 and a discrete uniform variable on the two values 0 and 1. The two families overlap only at this point: a Bernoulli with p ≠ 1/2 is not uniform, and a discrete uniform on more than two values is not Bernoulli."
   },
   {
    "id": "bernoulli--binomial",
@@ -1337,8 +1437,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "\\sum_{i=1}^{n}",
    "statement": "X_1,\\dots,X_n\\overset{iid}{\\sim}\\mathrm{Bernoulli}(p)\\ \\Rightarrow\\ \\sum_{i=1}^n X_i\\sim\\mathrm{Binomial}(n,p);\\quad \\mathrm{Binomial}(1,p)=\\mathrm{Bernoulli}(p).",
-   "plain": "Repeat the same yes/no trial n times independently and count the successes; that count is binomial. A binomial with a single trial is just a Bernoulli trial.",
-   "onOriginalMap": true
+   "plain": "Repeat the same yes/no trial $n$ times independently and count the successes; that count is binomial. A binomial with a single trial ($n = 1$) is just a Bernoulli trial.",
+   "onOriginalMap": true,
+   "plainText": "Repeat the same yes/no trial n times independently and count the successes; that count is binomial. A binomial with a single trial (n = 1) is just a Bernoulli trial."
   },
   {
    "id": "bernoulli--geometric",
@@ -1348,8 +1449,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\text{wait for 1st success}",
    "statement": "X_1,X_2,\\dots\\overset{iid}{\\sim}\\mathrm{Bernoulli}(p),\\ K=\\min\\{i:X_i=1\\}-1\\ \\Rightarrow\\ K\\sim\\mathrm{Geometric}(p),\\ P(K=k)=(1-p)^k p,\\ k=0,1,2,\\dots",
-   "plain": "Keep running independent Bernoulli trials and count how many failures happen before the first success. That count is geometric: it is k only if the first k trials fail (probability (1-p)^k) and the next one succeeds (probability p).",
-   "onOriginalMap": true
+   "plain": "Keep running independent Bernoulli trials and count how many failures happen before the first success. That count is geometric: it equals $k$ only if the first $k$ trials fail (probability $(1-p)^k$) and the next one succeeds (probability $p$).",
+   "onOriginalMap": true,
+   "plainText": "Keep running independent Bernoulli trials and count how many failures happen before the first success. That count is geometric: it equals k only if the first k trials fail (probability (1-p)ᵏ) and the next one succeeds (probability p)."
   },
   {
    "id": "hypergeometric--binomial",
@@ -1359,8 +1461,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "N\\to\\infty;\\ \\text{Bin}\\mid\\text{total}",
    "statement": "\\text{If } N\\to\\infty,\\ K/N\\to p\\in[0,1],\\ n \\text{ fixed, then } \\mathrm{Hypergeometric}(N,K,n)\\xrightarrow{d}\\mathrm{Binomial}(n,p).\\ \\text{Conversely, if } X\\sim\\mathrm{Bin}(K,p),\\ Y\\sim\\mathrm{Bin}(N-K,p) \\text{ are independent, then } X\\mid X+Y=n\\ \\sim\\mathrm{Hypergeometric}(N,K,n) \\text{ for every } p\\in(0,1).",
-   "plain": "Drawing without replacement from a very large population is almost the same as drawing with replacement, because removing a few items barely changes the proportion of successes; so the hypergeometric approaches the binomial. In the other direction, if two groups each produce binomial counts with the same p, then given the total number of successes, the count in the first group is hypergeometric and no longer depends on p. This is the basis of Fisher's exact test.",
-   "onOriginalMap": true
+   "plain": "Drawing without replacement from a very large population is almost the same as drawing with replacement, because removing a few items barely changes the proportion of successes; so the hypergeometric approaches the binomial as the population size $N$ grows. In the other direction, if two groups each produce binomial counts with the same $p$, then given the total number of successes, the count in the first group is hypergeometric and no longer depends on $p$. This is the basis of Fisher's exact test.",
+   "onOriginalMap": true,
+   "plainText": "Drawing without replacement from a very large population is almost the same as drawing with replacement, because removing a few items barely changes the proportion of successes; so the hypergeometric approaches the binomial as the population size N grows. In the other direction, if two groups each produce binomial counts with the same p, then given the total number of successes, the count in the first group is hypergeometric and no longer depends on p. This is the basis of Fisher's exact test."
   },
   {
    "id": "binomial--geometric",
@@ -1370,8 +1473,9 @@ export const CATALOG = deepFreeze({
    "kind": "other",
    "label": "\\text{count vs. wait}",
    "statement": "\\text{In one iid Bernoulli}(p)\\text{ sequence let } B_m=\\#\\text{successes in the first } m \\text{ trials}\\sim\\mathrm{Bin}(m,p) \\text{ and } K=\\#\\text{failures before the first success}\\sim\\mathrm{Geom}(p).\\ \\text{Then } \\{K\\ge k\\}=\\{B_k=0\\},\\ \\text{so } P(K\\ge k)=(1-p)^k.",
-   "plain": "The original arrow is best read as two views of the same sequence of trials. The binomial fixes the number of trials and counts successes; the geometric fixes the number of successes (one) and counts how long you wait. Waiting at least k failures for the first success is the same event as seeing zero successes in the first k trials. The same duality links the negative binomial and binomial: P(NegBin(r,p) <= k) = P(Bin(k+r,p) >= r).",
-   "onOriginalMap": true
+   "plain": "The original arrow is best read as two views of the same sequence of trials. The binomial fixes the number of trials and counts successes; the geometric fixes the number of successes (one) and counts how long you wait. Waiting at least $k$ failures for the first success is the same event as seeing zero successes in the first $k$ trials. The same duality links the negative binomial and the binomial: $P(\\mathrm{NegBin}(r, p) \\le k) = P(\\mathrm{Bin}(k + r, p) \\ge r)$.",
+   "onOriginalMap": true,
+   "plainText": "The original arrow is best read as two views of the same sequence of trials. The binomial fixes the number of trials and counts successes; the geometric fixes the number of successes (one) and counts how long you wait. Waiting at least k failures for the first success is the same event as seeing zero successes in the first k trials. The same duality links the negative binomial and the binomial: P(NegBin(r, p) ≤ k) = P(Bin(k + r, p) ≥ r)."
   },
   {
    "id": "geometric--negative-binomial",
@@ -1381,8 +1485,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "\\sum_{i=1}^{r}",
    "statement": "K_1,\\dots,K_r\\overset{iid}{\\sim}\\mathrm{Geom}(p)\\ \\Rightarrow\\ \\sum_{i=1}^r K_i\\sim\\mathrm{NegBin}(r,p);\\quad \\mathrm{NegBin}(1,p)=\\mathrm{Geom}(p).",
-   "plain": "Waiting for r successes is the same as waiting for the first success r times in a row. Adding r independent geometric counts of failures gives the total number of failures before the r-th success, which is negative binomial. With r = 1 the negative binomial is the geometric.",
-   "onOriginalMap": true
+   "plain": "Waiting for $r$ successes is the same as waiting for the first success $r$ times in a row. Adding $r$ independent geometric counts of failures gives the total number of failures before the $r$-th success, which is negative binomial. With $r = 1$ the negative binomial is the geometric.",
+   "onOriginalMap": true,
+   "plainText": "Waiting for r successes is the same as waiting for the first success r times in a row. Adding r independent geometric counts of failures gives the total number of failures before the r-th success, which is negative binomial. With r = 1 the negative binomial is the geometric."
   },
   {
    "id": "binomial--poisson",
@@ -1392,8 +1497,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "np\\to\\lambda",
    "statement": "X_n\\sim\\mathrm{Bin}(n,p_n),\\ n\\to\\infty,\\ np_n\\to\\lambda\\in(0,\\infty)\\ \\Rightarrow\\ P(X_n=k)\\to\\frac{e^{-\\lambda}\\lambda^k}{k!}\\ \\text{for each } k, \\text{ i.e. } X_n\\xrightarrow{d}\\mathrm{Poisson}(\\lambda).",
-   "plain": "When there are many trials and each success is rare, with the expected number of successes n p held near lambda, the binomial count is well approximated by a Poisson count with mean lambda. This is the 'law of rare events', and it is why counts of rare independent events (mutations, spikes in short bins, accidents) are often modeled as Poisson.",
-   "onOriginalMap": true
+   "plain": "When there are many trials and each success is rare, with the expected number of successes $np$ held near $\\lambda$, the binomial count is well approximated by a Poisson count with mean $\\lambda$. This is the “law of rare events”, and it is why counts of rare independent events (mutations, spikes in short time bins, accidents) are often modeled as Poisson.",
+   "onOriginalMap": true,
+   "plainText": "When there are many trials and each success is rare, with the expected number of successes np held near λ, the binomial count is well approximated by a Poisson count with mean λ. This is the “law of rare events”, and it is why counts of rare independent events (mutations, spikes in short time bins, accidents) are often modeled as Poisson."
   },
   {
    "id": "poisson--exponential",
@@ -1403,8 +1509,9 @@ export const CATALOG = deepFreeze({
    "kind": "other",
    "label": "\\text{Poisson process}",
    "statement": "\\text{A counting process } N(t) \\text{ has independent, stationary increments with } N(t)\\sim\\mathrm{Poisson}(\\lambda t) \\iff \\text{its inter-arrival times } T_1,T_2,\\dots\\overset{iid}{\\sim}\\mathrm{Exp}(\\lambda).\\ \\text{In particular } P(T_1>t)=P(N(t)=0)=e^{-\\lambda t}.",
-   "plain": "In a Poisson process events happen at a constant average rate lambda, independently of each other. The number of events in a window of length t is Poisson with mean lambda t, and the waiting times between successive events are independent exponentials with rate lambda. Each description implies the other.",
-   "onOriginalMap": true
+   "plain": "In a Poisson process, events happen independently of each other at a constant average rate $\\lambda$. The number of events in a window of length $t$ is Poisson with mean $\\lambda t$, and the waiting times between successive events are independent exponentials with rate $\\lambda$. Each description implies the other.",
+   "onOriginalMap": true,
+   "plainText": "In a Poisson process, events happen independently of each other at a constant average rate λ. The number of events in a window of length t is Poisson with mean λ t, and the waiting times between successive events are independent exponentials with rate λ. Each description implies the other."
   },
   {
    "id": "geometric--exponential",
@@ -1414,8 +1521,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "K/n,\\ n\\to\\infty",
    "statement": "K_n\\sim\\mathrm{Geom}(p_n),\\ np_n\\to\\lambda>0\\ \\Rightarrow\\ K_n/n\\xrightarrow{d}\\mathrm{Exp}(\\lambda),\\ \\text{since } P(K_n>nx)=(1-p_n)^{\\lfloor nx\\rfloor+1}\\to e^{-\\lambda x}.\\ \\text{Exactly: } T\\sim\\mathrm{Exp}(\\lambda)\\Rightarrow\\lfloor T\\rfloor\\sim\\mathrm{Geom}(1-e^{-\\lambda}).",
-   "plain": "This is the discrete-to-continuous limit of waiting times. Split time into n tiny steps per unit time, each with a small chance lambda/n of an event. The number of steps waited, rescaled to time units, becomes an exponential waiting time as the steps get finer. The geometric is the discrete-time version of the exponential: both are memoryless, and rounding an exponential time down to whole units gives a geometric count.",
-   "onOriginalMap": true
+   "plain": "This is the discrete-to-continuous limit of waiting times. Split each unit of time into $n$ tiny steps, each with a small chance $\\lambda/n$ of an event. The number of steps waited, divided by $n$ to convert it to time, becomes an exponential waiting time as the steps get finer. The geometric is the discrete-time version of the exponential: both are memoryless, and rounding an exponential time down to whole units gives a geometric count.",
+   "onOriginalMap": true,
+   "plainText": "This is the discrete-to-continuous limit of waiting times. Split each unit of time into n tiny steps, each with a small chance λ/n of an event. The number of steps waited, divided by n to convert it to time, becomes an exponential waiting time as the steps get finer. The geometric is the discrete-time version of the exponential: both are memoryless, and rounding an exponential time down to whole units gives a geometric count."
   },
   {
    "id": "hypergeometric--normal",
@@ -1425,8 +1533,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "N,n,K\\to\\infty",
    "statement": "\\text{If } N,n,K\\to\\infty \\text{ with } n/N\\to f\\in[0,1),\\ K/N\\to q\\in(0,1), \\text{ then } \\frac{X-nK/N}{\\sqrt{n\\frac{K}{N}\\left(1-\\frac{K}{N}\\right)\\frac{N-n}{N-1}}}\\xrightarrow{d}\\mathcal N(0,1).",
-   "plain": "When the population, the number of successes in it and the sample are all large (and the sample is not almost the whole population), the hypergeometric count is approximately normal. Its mean is n K/N and its variance is the binomial variance multiplied by the finite-population correction (N-n)/(N-1). This is the central limit theorem for sampling without replacement, used in survey sampling and for large-sample approximations to Fisher's exact test.",
-   "onOriginalMap": true
+   "plain": "When the population, the number of successes in it and the sample are all large (and the sample is not almost the whole population), the hypergeometric count is approximately normal. Its mean is $nK/N$ and its variance is the binomial variance multiplied by the finite-population correction $(N - n)/(N - 1)$. This is the central limit theorem for sampling without replacement, used in survey sampling and for large-sample approximations to Fisher's exact test.",
+   "onOriginalMap": true,
+   "plainText": "When the population, the number of successes in it and the sample are all large (and the sample is not almost the whole population), the hypergeometric count is approximately normal. Its mean is nK/N and its variance is the binomial variance multiplied by the finite-population correction (N - n)/(N - 1). This is the central limit theorem for sampling without replacement, used in survey sampling and for large-sample approximations to Fisher's exact test."
   },
   {
    "id": "poisson--normal",
@@ -1436,8 +1545,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "\\lambda\\to\\infty",
    "statement": "X_\\lambda\\sim\\mathrm{Poisson}(\\lambda),\\ \\lambda\\to\\infty\\ \\Rightarrow\\ \\frac{X_\\lambda-\\lambda}{\\sqrt\\lambda}\\xrightarrow{d}\\mathcal N(0,1).",
-   "plain": "When the expected count lambda is large, the Poisson distribution looks like a bell curve with mean lambda and standard deviation the square root of lambda. This holds because a Poisson(lambda) count is a sum of many independent Poisson counts with small means, so the central limit theorem applies.",
-   "onOriginalMap": true
+   "plain": "When the expected count $\\lambda$ is large, the Poisson distribution looks like a bell curve with mean $\\lambda$ and standard deviation $\\sqrt\\lambda$. This holds because a $\\mathrm{Poisson}(\\lambda)$ count is a sum of many independent Poisson counts with small means, so the central limit theorem applies.",
+   "onOriginalMap": true,
+   "plainText": "When the expected count λ is large, the Poisson distribution looks like a bell curve with mean λ and standard deviation √λ. This holds because a Poisson(λ) count is a sum of many independent Poisson counts with small means, so the central limit theorem applies."
   },
   {
    "id": "exponential--weibull",
@@ -1447,8 +1557,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\lambda X^{1/k}",
    "statement": "X\\sim\\mathrm{Exp}(1)\\ \\Rightarrow\\ \\lambda X^{1/k}\\sim\\mathrm{Weibull}(k,\\lambda);\\ \\text{conversely } W\\sim\\mathrm{Weibull}(k,\\lambda)\\Rightarrow (W/\\lambda)^k\\sim\\mathrm{Exp}(1).\\ \\text{Special case: } \\mathrm{Weibull}(1,\\lambda)=\\mathrm{Exp}(\\text{rate } 1/\\lambda).",
-   "plain": "Raising a standard exponential variable to the power 1/k and multiplying by lambda gives a Weibull variable. The exponential has a constant hazard (failure rate); the power transform makes the hazard decrease (k < 1) or increase (k > 1) over time. Note that lambda is a scale for the Weibull but a rate for the exponential.",
-   "onOriginalMap": true
+   "plain": "Raising a standard exponential variable to the power $1/k$ and multiplying by $\\lambda$ gives a Weibull variable. The exponential has a constant hazard (failure rate); the power transformation makes the hazard decrease ($k < 1$) or increase ($k > 1$) over time. Note that $\\lambda$ is a scale for the Weibull but a rate for the exponential.",
+   "onOriginalMap": true,
+   "plainText": "Raising a standard exponential variable to the power 1/k and multiplying by λ gives a Weibull variable. The exponential has a constant hazard (failure rate); the power transformation makes the hazard decrease (k 1) over time. Note that λ is a scale for the Weibull but a rate for the exponential."
   },
   {
    "id": "exponential--gamma",
@@ -1458,8 +1569,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "\\sum_{i=1}^{n}",
    "statement": "X_1,\\dots,X_n\\overset{iid}{\\sim}\\mathrm{Exp}(\\lambda)\\ \\Rightarrow\\ \\sum_{i=1}^n X_i\\sim\\mathrm{Gamma}(\\alpha=n,\\ \\beta=\\lambda)\\ (\\text{Erlang});\\quad \\mathrm{Gamma}(\\alpha=1,\\beta)=\\mathrm{Exp}(\\lambda=\\beta).",
-   "plain": "The total waiting time for n events in a Poisson process with rate lambda is the sum of n independent exponential waiting times. It has a gamma distribution with shape n and rate lambda (called the Erlang distribution). The gamma family extends this to non-integer shapes, and shape 1 gives back the exponential.",
-   "onOriginalMap": true
+   "plain": "The total waiting time for $n$ events in a Poisson process with rate $\\lambda$ is the sum of $n$ independent exponential waiting times. It has a gamma distribution with shape $n$ and rate $\\lambda$ (called the Erlang distribution). The gamma family extends this to shapes that are not whole numbers, and shape 1 gives back the exponential.",
+   "onOriginalMap": true,
+   "plainText": "The total waiting time for n events in a Poisson process with rate λ is the sum of n independent exponential waiting times. It has a gamma distribution with shape n and rate λ (called the Erlang distribution). The gamma family extends this to shapes that are not whole numbers, and shape 1 gives back the exponential."
   },
   {
    "id": "normal--log-normal",
@@ -1470,7 +1582,8 @@ export const CATALOG = deepFreeze({
    "label": "e^{X}",
    "statement": "X\\sim\\mathcal N(\\mu,\\sigma^2)\\iff Y=e^X\\sim\\mathrm{LogNormal}(\\mu,\\sigma).",
    "plain": "Exponentiating a normal variable gives a log-normal variable, and taking the log of a log-normal variable gives back a normal one. Because sums of many small independent effects tend to be normal, products of many small positive multiplicative effects tend to be log-normal. Response times, incomes and concentrations are often modeled this way.",
-   "onOriginalMap": true
+   "onOriginalMap": true,
+   "plainText": "Exponentiating a normal variable gives a log-normal variable, and taking the log of a log-normal variable gives back a normal one. Because sums of many small independent effects tend to be normal, products of many small positive multiplicative effects tend to be log-normal. Response times, incomes and concentrations are often modeled this way."
   },
   {
    "id": "normal--student-t",
@@ -1480,8 +1593,9 @@ export const CATALOG = deepFreeze({
    "kind": "ratio",
    "label": "\\frac{Z}{\\sqrt{V/\\nu}};\\ \\nu\\to\\infty",
    "statement": "Z\\sim\\mathcal N(0,1),\\ V\\sim\\chi^2_\\nu \\text{ independent}\\ \\Rightarrow\\ T=\\frac{Z}{\\sqrt{V/\\nu}}\\sim t_\\nu.\\ \\text{Hence for } X_1,\\dots,X_n\\overset{iid}{\\sim}\\mathcal N(\\mu,\\sigma^2):\\ \\frac{\\bar X-\\mu}{S/\\sqrt n}\\sim t_{n-1}.\\ \\text{Conversely } t_\\nu\\xrightarrow{d}\\mathcal N(0,1) \\text{ as } \\nu\\to\\infty, \\text{ because } V/\\nu\\to1 \\text{ in probability.}",
-   "plain": "Dividing a standard normal variable by an independent estimate of its standard deviation (the square root of a chi-squared divided by its degrees of freedom) gives a t variable. This is exactly what happens in a t-test: the sample mean is standardized with the sample standard deviation instead of the true sigma, which adds uncertainty and fattens the tails. In the other direction, as the degrees of freedom grow, the t distribution approaches the standard normal: with a large sample the estimated standard deviation is almost exactly the true one, so the extra uncertainty disappears. In practice t and normal critical values are close once nu is above about 30.",
-   "onOriginalMap": true
+   "plain": "Dividing a standard normal variable by an independent estimate of its standard deviation (the square root of a chi-squared variable divided by its degrees of freedom) gives a $t$ variable. This is exactly what happens in a t-test: the sample mean is standardized with the sample standard deviation instead of the true $\\sigma$, which adds uncertainty and makes the tails heavier. In the other direction, as the degrees of freedom $\\nu$ grow, the $t$ distribution approaches the standard normal: with a large sample the estimated standard deviation is almost exactly the true one, so the extra uncertainty disappears. In practice $t$ and normal critical values are close once $\\nu$ is above about 30.",
+   "onOriginalMap": true,
+   "plainText": "Dividing a standard normal variable by an independent estimate of its standard deviation (the square root of a chi-squared variable divided by its degrees of freedom) gives a t variable. This is exactly what happens in a t-test: the sample mean is standardized with the sample standard deviation instead of the true σ, which adds uncertainty and makes the tails heavier. In the other direction, as the degrees of freedom ν grow, the t distribution approaches the standard normal: with a large sample the estimated standard deviation is almost exactly the true one, so the extra uncertainty disappears. In practice t and normal critical values are close once ν is above about 30."
   },
   {
    "id": "normal--chi-squared",
@@ -1491,8 +1605,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "\\sum Z_i^2",
    "statement": "Z_1,\\dots,Z_k\\overset{iid}{\\sim}\\mathcal N(0,1)\\ \\Rightarrow\\ \\sum_{i=1}^k Z_i^2\\sim\\chi^2_k.\\ \\text{For an iid } \\mathcal N(\\mu,\\sigma^2) \\text{ sample of size } n:\\ (n-1)S^2/\\sigma^2\\sim\\chi^2_{n-1}.",
-   "plain": "Square k independent standard normal variables and add them up; the result has a chi-squared distribution with k degrees of freedom. Sums of squared deviations behave this way, which is why the sample variance, goodness-of-fit statistics and likelihood-ratio statistics have chi-squared distributions.",
-   "onOriginalMap": true
+   "plain": "Square $k$ independent standard normal variables and add them up; the result has a chi-squared distribution with $k$ degrees of freedom. Sums of squared deviations behave this way, which is why the sample variance, goodness-of-fit statistics and likelihood-ratio statistics have chi-squared distributions.",
+   "onOriginalMap": true,
+   "plainText": "Square k independent standard normal variables and add them up; the result has a chi-squared distribution with k degrees of freedom. Sums of squared deviations behave this way, which is why the sample variance, goodness-of-fit statistics and likelihood-ratio statistics have chi-squared distributions."
   },
   {
    "id": "chi-squared--gamma",
@@ -1502,8 +1617,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\alpha=\\tfrac k2,\\ \\beta=\\tfrac12",
    "statement": "\\chi^2_k=\\mathrm{Gamma}(\\alpha=k/2,\\ \\beta=1/2)\\ (\\text{rate});\\ \\text{conversely } X\\sim\\mathrm{Gamma}(\\alpha,\\beta)\\Rightarrow 2\\beta X\\sim\\chi^2_{2\\alpha}.",
-   "plain": "The chi-squared distribution is a gamma distribution with shape k/2 and rate 1/2. Any gamma variable can be rescaled into a chi-squared variable, which is how gamma probabilities were once looked up in chi-squared tables.",
-   "onOriginalMap": true
+   "plain": "The chi-squared distribution with $k$ degrees of freedom is a gamma distribution with shape $k/2$ and rate $1/2$. Any gamma variable can be rescaled into a chi-squared variable, which is how gamma probabilities were once looked up in chi-squared tables.",
+   "onOriginalMap": true,
+   "plainText": "The chi-squared distribution with k degrees of freedom is a gamma distribution with shape k/2 and rate 1/2. Any gamma variable can be rescaled into a chi-squared variable, which is how gamma probabilities were once looked up in chi-squared tables."
   },
   {
    "id": "gamma--beta",
@@ -1513,8 +1629,9 @@ export const CATALOG = deepFreeze({
    "kind": "ratio",
    "label": "\\frac{X}{X+Y}",
    "statement": "X\\sim\\mathrm{Gamma}(\\alpha,c),\\ Y\\sim\\mathrm{Gamma}(\\beta,c) \\text{ independent, same rate } c\\ \\Rightarrow\\ \\frac{X}{X+Y}\\sim\\mathrm{Beta}(\\alpha,\\beta), \\text{ independent of } X+Y\\sim\\mathrm{Gamma}(\\alpha+\\beta,c).",
-   "plain": "Take two independent gamma variables with the same rate and ask what fraction of their total comes from the first one. That fraction lies between 0 and 1 and has a beta distribution whose shapes are the two gamma shapes. For example, the fraction of the total waiting time for alpha + beta events that is spent waiting for the first alpha events is Beta(alpha, beta).",
-   "onOriginalMap": true
+   "plain": "Take two independent gamma variables with the same rate and ask what fraction of their total comes from the first one. That fraction lies between 0 and 1 and has a beta distribution whose shapes are the two gamma shapes. For example, the fraction of the total waiting time for $\\alpha + \\beta$ events that is spent waiting for the first $\\alpha$ events is $\\mathrm{Beta}(\\alpha, \\beta)$.",
+   "onOriginalMap": true,
+   "plainText": "Take two independent gamma variables with the same rate and ask what fraction of their total comes from the first one. That fraction lies between 0 and 1 and has a beta distribution whose shapes are the two gamma shapes. For example, the fraction of the total waiting time for α + β events that is spent waiting for the first α events is Beta(α, β)."
   },
   {
    "id": "categorical--bernoulli",
@@ -1524,8 +1641,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "K=2",
    "statement": "\\mathrm{Categorical}(K=2;\\ p_1=1-p,\\ p_2=p)\\ \\text{is}\\ \\mathrm{Bernoulli}(p) \\text{ with categories relabeled } 1\\mapsto0,\\ 2\\mapsto1.",
-   "plain": "The categorical distribution describes a single trial with K possible outcomes, so it generalizes the yes/no Bernoulli trial. Setting the number of categories to K = 2 gives exactly a Bernoulli trial, with the second category playing the role of 'success' (coded 1).",
-   "onOriginalMap": false
+   "plain": "The categorical distribution describes a single trial with $K$ possible outcomes, so it generalizes the yes/no Bernoulli trial. Setting the number of categories to $K = 2$ gives exactly a Bernoulli trial, with the second category playing the role of “success” (coded 1).",
+   "onOriginalMap": false,
+   "plainText": "The categorical distribution describes a single trial with K possible outcomes, so it generalizes the yes/no Bernoulli trial. Setting the number of categories to K = 2 gives exactly a Bernoulli trial, with the second category playing the role of “success” (coded 1)."
   },
   {
    "id": "categorical--multinomial",
@@ -1535,8 +1653,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "\\sum_{i=1}^{n}",
    "statement": "Y_1,\\dots,Y_n\\overset{iid}{\\sim}\\mathrm{Categorical}(\\mathbf p),\\ X_j=\\#\\{i:Y_i=j\\}\\ \\Rightarrow\\ (X_1,\\dots,X_K)\\sim\\mathrm{Multinomial}(n,\\mathbf p);\\quad \\mathrm{Multinomial}(1,\\mathbf p) \\text{ is the one-hot form of } \\mathrm{Categorical}(\\mathbf p).",
-   "plain": "Repeat a K-outcome trial n times and count how often each outcome occurs; the vector of counts is multinomial. This is the same step that takes the Bernoulli to the binomial, extended to more than two categories.",
-   "onOriginalMap": false
+   "plain": "Repeat a $K$-outcome trial $n$ times and count how often each outcome occurs; the vector of counts is multinomial. This is the same step that takes the Bernoulli to the binomial, extended to more than two categories.",
+   "onOriginalMap": false,
+   "plainText": "Repeat a K-outcome trial n times and count how often each outcome occurs; the vector of counts is multinomial. This is the same step that takes the Bernoulli to the binomial, extended to more than two categories."
   },
   {
    "id": "binomial--multinomial",
@@ -1547,7 +1666,8 @@ export const CATALOG = deepFreeze({
    "label": "K=2",
    "statement": "X\\sim\\mathrm{Bin}(n,p)\\iff (X,\\,n-X)\\sim\\mathrm{Multinomial}(n,(p,1-p)).\\ \\text{Each margin of } \\mathbf X\\sim\\mathrm{Multinomial}(n,\\mathbf p) \\text{ is binomial: } X_j\\sim\\mathrm{Bin}(n,p_j).",
    "plain": "A binomial count is a multinomial with two categories (successes and failures). Going the other way, if you focus on one category of a multinomial and lump all the others together, the count in that category is binomial.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "A binomial count is a multinomial with two categories (successes and failures). Going the other way, if you focus on one category of a multinomial and lump all the others together, the count in that category is binomial."
   },
   {
    "id": "poisson--multinomial",
@@ -1557,8 +1677,9 @@ export const CATALOG = deepFreeze({
    "kind": "conditioning",
    "label": "\\mid \\textstyle\\sum_j X_j=n",
    "statement": "X_j\\sim\\mathrm{Poisson}(\\lambda_j),\\ j=1,\\dots,K, \\text{ independent}\\ \\Rightarrow\\ (X_1,\\dots,X_K)\\mid \\textstyle\\sum_j X_j=n\\ \\sim\\mathrm{Multinomial}\\big(n,\\ (\\lambda_1,\\dots,\\lambda_K)/\\textstyle\\sum_j\\lambda_j\\big).\\ \\text{For } K=2:\\ X_1\\mid X_1+X_2=n\\sim\\mathrm{Bin}\\big(n,\\lambda_1/(\\lambda_1+\\lambda_2)\\big).",
-   "plain": "If several independent Poisson counts are observed and we condition on their total, the way the total is split among them is multinomial, with probabilities proportional to the rates. This is why Poisson log-linear models and multinomial models of contingency tables give the same inferences, and it underlies the conditional test comparing two Poisson rates.",
-   "onOriginalMap": false
+   "plain": "If several independent Poisson counts are observed and we condition on their total, the way the total is split among them is multinomial, with probabilities proportional to the rates. This is why Poisson log-linear models and multinomial models of contingency tables give the same inferences, and it underlies the conditional test that compares two Poisson rates.",
+   "onOriginalMap": false,
+   "plainText": "If several independent Poisson counts are observed and we condition on their total, the way the total is split among them is multinomial, with probabilities proportional to the rates. This is why Poisson log-linear models and multinomial models of contingency tables give the same inferences, and it underlies the conditional test that compares two Poisson rates."
   },
   {
    "id": "multinomial--chi-squared",
@@ -1568,8 +1689,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "\\sum\\frac{(O-E)^2}{E}",
    "statement": "\\mathbf X\\sim\\mathrm{Multinomial}(n,\\mathbf p),\\ p_j>0,\\ E_j=np_j\\ \\Rightarrow\\ X^2=\\sum_{j=1}^K\\frac{(X_j-E_j)^2}{E_j}\\xrightarrow{d}\\chi^2_{K-1}\\ \\text{as } n\\to\\infty.\\ \\text{For an } r\\times c \\text{ contingency table tested for independence (expected counts from the margins): } X^2\\xrightarrow{d}\\chi^2_{(r-1)(c-1)}.",
-   "plain": "Pearson's chi-squared test compares the observed count O in each category with the count E expected under a hypothesis. When the counts come from a multinomial and the sample is large, adding up (O - E)^2 / E over the K categories gives a value that is approximately chi-squared with K - 1 degrees of freedom. One degree of freedom is lost because the counts must add up to n. When testing whether two categorical variables in a table are independent, the degrees of freedom are (rows - 1) x (columns - 1). A common rule of thumb is that every expected count should be at least about 5 for the approximation to be good.",
-   "onOriginalMap": false
+   "plain": "Pearson's chi-squared test compares the observed count $O$ in each category with the count $E$ expected under a hypothesis. When the counts come from a multinomial and the sample is large, adding up $(O - E)^2/E$ over the $K$ categories gives a value that is approximately chi-squared with $K - 1$ degrees of freedom. One degree of freedom is lost because the counts must add up to $n$. When testing whether two categorical variables in a table are independent, the degrees of freedom are $(\\text{rows} - 1) \\times (\\text{columns} - 1)$. A common rule of thumb is that every expected count should be at least about 5 for the approximation to be good.",
+   "onOriginalMap": false,
+   "plainText": "Pearson's chi-squared test compares the observed count O in each category with the count E expected under a hypothesis. When the counts come from a multinomial and the sample is large, adding up (O - E)²/E over the K categories gives a value that is approximately chi-squared with K - 1 degrees of freedom. One degree of freedom is lost because the counts must add up to n. When testing whether two categorical variables in a table are independent, the degrees of freedom are (rows - 1) × (columns - 1). A common rule of thumb is that every expected count should be at least about 5 for the approximation to be good."
   },
   {
    "id": "beta--binomial",
@@ -1579,8 +1701,9 @@ export const CATALOG = deepFreeze({
    "kind": "conjugate-prior",
    "label": "\\text{prior for } p",
    "statement": "p\\sim\\mathrm{Beta}(\\alpha,\\beta),\\ X\\mid p\\sim\\mathrm{Bin}(n,p)\\ \\Rightarrow\\ p\\mid X=x\\ \\sim\\mathrm{Beta}(\\alpha+x,\\ \\beta+n-x).\\ \\text{(Same update for Bernoulli data; for Geometric/NegBin data with } k \\text{ failures and } r \\text{ successes: } \\mathrm{Beta}(\\alpha+r,\\ \\beta+k).)",
-   "plain": "In Bayesian analysis a Beta prior on a success probability, combined with binomial data, gives a Beta posterior. Updating just adds the observed successes to alpha and the observed failures to beta, so alpha and beta act like prior counts of successes and failures.",
-   "onOriginalMap": false
+   "plain": "In Bayesian analysis, a Beta prior on a success probability combined with binomial data gives a Beta posterior. Updating just adds the observed successes to $\\alpha$ and the observed failures to $\\beta$, so $\\alpha$ and $\\beta$ act like prior counts of successes and failures.",
+   "onOriginalMap": false,
+   "plainText": "In Bayesian analysis, a Beta prior on a success probability combined with binomial data gives a Beta posterior. Updating just adds the observed successes to α and the observed failures to β, so α and β act like prior counts of successes and failures."
   },
   {
    "id": "binomial--beta-binomial",
@@ -1590,8 +1713,9 @@ export const CATALOG = deepFreeze({
    "kind": "mixture",
    "label": "p\\sim\\mathrm{Beta}",
    "statement": "p\\sim\\mathrm{Beta}(\\alpha,\\beta),\\ X\\mid p\\sim\\mathrm{Bin}(n,p)\\ \\Rightarrow\\ X\\sim\\mathrm{BetaBin}(n,\\alpha,\\beta).\\ \\text{As } \\alpha+\\beta\\to\\infty \\text{ with } \\alpha/(\\alpha+\\beta)\\to p:\\ \\mathrm{BetaBin}(n,\\alpha,\\beta)\\to\\mathrm{Bin}(n,p).",
-   "plain": "If the success probability is not fixed but varies from unit to unit according to a Beta distribution, the resulting counts follow a beta-binomial distribution. It has the same mean as a binomial with p = alpha/(alpha+beta) but a larger variance (overdispersion). It is also the Bayesian prior predictive distribution of the count; as the Beta becomes very concentrated it reduces to the binomial.",
-   "onOriginalMap": false
+   "plain": "If the success probability is not fixed but varies from unit to unit according to a Beta distribution, the resulting counts follow a beta-binomial distribution. It has the same mean as a binomial with $p = \\alpha/(\\alpha + \\beta)$ but a larger variance (overdispersion). It is also the Bayesian prior predictive distribution of the count; as the Beta becomes very concentrated it reduces to the binomial.",
+   "onOriginalMap": false,
+   "plainText": "If the success probability is not fixed but varies from unit to unit according to a Beta distribution, the resulting counts follow a beta-binomial distribution. It has the same mean as a binomial with p = α/(α + β) but a larger variance (overdispersion). It is also the Bayesian prior predictive distribution of the count; as the Beta becomes very concentrated it reduces to the binomial."
   },
   {
    "id": "beta-binomial--discrete-uniform",
@@ -1601,8 +1725,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\alpha=\\beta=1",
    "statement": "\\mathrm{BetaBin}(n,1,1)=\\mathrm{DUnif}\\{0,1,\\dots,n\\}:\\ P(X=k)=\\frac{1}{n+1},\\ k=0,\\dots,n.",
-   "plain": "If the success probability is drawn from a flat Uniform(0,1) prior (Beta(1,1)), every number of successes from 0 to n is equally likely beforehand. This is the result behind Bayes' original billiard-table argument.",
-   "onOriginalMap": false
+   "plain": "If the success probability is drawn from a flat $\\mathrm{Uniform}(0, 1)$ prior, which is $\\mathrm{Beta}(1, 1)$, every number of successes from 0 to $n$ is equally likely beforehand. This is the result behind Bayes' original billiard-table argument.",
+   "onOriginalMap": false,
+   "plainText": "If the success probability is drawn from a flat Uniform(0, 1) prior, which is Beta(1, 1), every number of successes from 0 to n is equally likely beforehand. This is the result behind Bayes' original billiard-table argument."
   },
   {
    "id": "gamma--poisson",
@@ -1612,8 +1737,9 @@ export const CATALOG = deepFreeze({
    "kind": "conjugate-prior",
    "label": "\\text{prior for } \\lambda",
    "statement": "\\lambda\\sim\\mathrm{Gamma}(\\alpha,\\beta),\\ X_1,\\dots,X_n\\mid\\lambda\\overset{iid}{\\sim}\\mathrm{Poisson}(\\lambda)\\ \\Rightarrow\\ \\lambda\\mid\\mathbf x\\sim\\mathrm{Gamma}\\big(\\alpha+\\textstyle\\sum_i x_i,\\ \\beta+n\\big).\\ \\text{(Also conjugate for an Exponential rate: } \\mathrm{Gamma}(\\alpha+n,\\ \\beta+\\textstyle\\sum_i x_i).)",
-   "plain": "A gamma prior on a Poisson rate gives a gamma posterior after observing counts. The shape increases by the total count and the rate increases by the number of observation periods, so alpha behaves like a prior total count and beta like a prior number of periods.",
-   "onOriginalMap": false
+   "plain": "A gamma prior on a Poisson rate gives a gamma posterior after observing counts. The shape increases by the total count and the rate increases by the number of observation periods, so $\\alpha$ behaves like a prior total count and $\\beta$ like a prior number of periods.",
+   "onOriginalMap": false,
+   "plainText": "A gamma prior on a Poisson rate gives a gamma posterior after observing counts. The shape increases by the total count and the rate increases by the number of observation periods, so α behaves like a prior total count and β like a prior number of periods."
   },
   {
    "id": "poisson--negative-binomial",
@@ -1623,8 +1749,9 @@ export const CATALOG = deepFreeze({
    "kind": "mixture",
    "label": "\\lambda\\sim\\mathrm{Gamma}",
    "statement": "\\lambda\\sim\\mathrm{Gamma}(r,\\beta),\\ X\\mid\\lambda\\sim\\mathrm{Poisson}(\\lambda)\\ \\Rightarrow\\ X\\sim\\mathrm{NegBin}\\big(r,\\ p=\\tfrac{\\beta}{1+\\beta}\\big).\\ \\text{Conversely } \\mathrm{NegBin}(r,p)\\xrightarrow{d}\\mathrm{Poisson}(\\mu) \\text{ as } r\\to\\infty \\text{ with mean } r(1-p)/p=\\mu \\text{ fixed}.",
-   "plain": "If each unit has its own Poisson rate and those rates vary according to a gamma distribution, the pooled counts are negative binomial. This gamma-Poisson mixture explains why negative binomial regression is used for overdispersed counts (variance larger than the mean), such as spike counts or RNA-seq reads. When the rates stop varying (r very large), it becomes Poisson again.",
-   "onOriginalMap": false
+   "plain": "If each unit has its own Poisson rate and those rates vary according to a gamma distribution, the pooled counts are negative binomial. This gamma–Poisson mixture explains why negative binomial regression is used for overdispersed counts (variance larger than the mean), such as spike counts or RNA-seq reads. When the rates stop varying (very large $r$), it becomes Poisson again.",
+   "onOriginalMap": false,
+   "plainText": "If each unit has its own Poisson rate and those rates vary according to a gamma distribution, the pooled counts are negative binomial. This gamma–Poisson mixture explains why negative binomial regression is used for overdispersed counts (variance larger than the mean), such as spike counts or RNA-seq reads. When the rates stop varying (very large r), it becomes Poisson again."
   },
   {
    "id": "dirichlet--multinomial",
@@ -1634,8 +1761,9 @@ export const CATALOG = deepFreeze({
    "kind": "conjugate-prior",
    "label": "\\text{prior for } \\mathbf p",
    "statement": "\\mathbf p\\sim\\mathrm{Dir}(\\boldsymbol\\alpha),\\ \\mathbf X\\mid\\mathbf p\\sim\\mathrm{Multinomial}(n,\\mathbf p)\\ \\Rightarrow\\ \\mathbf p\\mid\\mathbf x\\sim\\mathrm{Dir}(\\boldsymbol\\alpha+\\mathbf x).\\ \\text{The same update holds for } n \\text{ iid Categorical}(\\mathbf p) \\text{ draws with category counts } \\mathbf x.",
-   "plain": "The Dirichlet is to the multinomial what the Beta is to the binomial. A Dirichlet prior on category probabilities, combined with observed category counts, gives a Dirichlet posterior whose parameters are the prior pseudo-counts plus the observed counts.",
-   "onOriginalMap": false
+   "plain": "The Dirichlet is to the multinomial what the Beta is to the binomial. A Dirichlet prior on the category probabilities, combined with observed category counts, gives a Dirichlet posterior whose parameters are the prior pseudo-counts plus the observed counts.",
+   "onOriginalMap": false,
+   "plainText": "The Dirichlet is to the multinomial what the Beta is to the binomial. A Dirichlet prior on the category probabilities, combined with observed category counts, gives a Dirichlet posterior whose parameters are the prior pseudo-counts plus the observed counts."
   },
   {
    "id": "dirichlet--beta",
@@ -1645,8 +1773,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\text{marginal};\\ K=2",
    "statement": "\\mathbf X\\sim\\mathrm{Dir}(\\alpha_1,\\dots,\\alpha_K),\\ \\alpha_0=\\textstyle\\sum_j\\alpha_j\\ \\Rightarrow\\ X_j\\sim\\mathrm{Beta}(\\alpha_j,\\ \\alpha_0-\\alpha_j).\\ \\text{For } K=2:\\ (X_1,1-X_1)\\sim\\mathrm{Dir}(\\alpha_1,\\alpha_2)\\iff X_1\\sim\\mathrm{Beta}(\\alpha_1,\\alpha_2).",
-   "plain": "A Dirichlet with two categories is a Beta distribution. With more categories, the probability of any single category (lumping all others together) still follows a Beta distribution.",
-   "onOriginalMap": false
+   "plain": "A Dirichlet with two categories is a Beta distribution. With more categories, the probability of any single category (lumping all the others together) still follows a Beta distribution.",
+   "onOriginalMap": false,
+   "plainText": "A Dirichlet with two categories is a Beta distribution. With more categories, the probability of any single category (lumping all the others together) still follows a Beta distribution."
   },
   {
    "id": "gamma--dirichlet",
@@ -1656,8 +1785,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\frac{Y_j}{\\sum_i Y_i}",
    "statement": "Y_j\\sim\\mathrm{Gamma}(\\alpha_j,c),\\ j=1,\\dots,K, \\text{ independent, same rate } c\\ \\Rightarrow\\ \\Big(\\frac{Y_1}{\\sum_i Y_i},\\dots,\\frac{Y_K}{\\sum_i Y_i}\\Big)\\sim\\mathrm{Dir}(\\alpha_1,\\dots,\\alpha_K).",
-   "plain": "Draw K independent gamma variables with the same rate and divide each by their total; the resulting proportions follow a Dirichlet distribution. This is the standard way to simulate Dirichlet draws and generalizes the gamma-to-beta relationship to more than two parts.",
-   "onOriginalMap": false
+   "plain": "Draw $K$ independent gamma variables with the same rate and divide each by their total; the resulting proportions follow a Dirichlet distribution. This is the standard way to simulate Dirichlet draws, and it generalizes the gamma-to-beta relationship to more than two parts.",
+   "onOriginalMap": false,
+   "plainText": "Draw K independent gamma variables with the same rate and divide each by their total; the resulting proportions follow a Dirichlet distribution. This is the standard way to simulate Dirichlet draws, and it generalizes the gamma-to-beta relationship to more than two parts."
   },
   {
    "id": "gamma--inverse-gamma",
@@ -1667,8 +1797,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "1/X",
    "statement": "X\\sim\\mathrm{Gamma}(\\alpha,\\ \\text{rate } \\beta)\\iff 1/X\\sim\\mathrm{InvGamma}(\\alpha,\\ \\text{scale } \\beta).",
-   "plain": "The reciprocal of a gamma variable has an inverse-gamma distribution with the same shape; the gamma rate becomes the inverse-gamma scale. In Bayesian models a gamma prior on a precision (1/variance) is the same as an inverse-gamma prior on the variance.",
-   "onOriginalMap": false
+   "plain": "The reciprocal of a gamma variable has an inverse-gamma distribution with the same shape; the gamma rate becomes the inverse-gamma scale. In Bayesian models, a gamma prior on a precision ($1/\\text{variance}$) is the same as an inverse-gamma prior on the variance.",
+   "onOriginalMap": false,
+   "plainText": "The reciprocal of a gamma variable has an inverse-gamma distribution with the same shape; the gamma rate becomes the inverse-gamma scale. In Bayesian models, a gamma prior on a precision (1/variance) is the same as an inverse-gamma prior on the variance."
   },
   {
    "id": "inverse-gamma--normal",
@@ -1678,8 +1809,9 @@ export const CATALOG = deepFreeze({
    "kind": "conjugate-prior",
    "label": "\\text{prior for } \\sigma^2",
    "statement": "\\sigma^2\\sim\\mathrm{InvGamma}(\\alpha,\\beta),\\ X_1,\\dots,X_n\\mid\\sigma^2\\overset{iid}{\\sim}\\mathcal N(\\mu,\\sigma^2)\\ (\\mu \\text{ known})\\ \\Rightarrow\\ \\sigma^2\\mid\\mathbf x\\sim\\mathrm{InvGamma}\\big(\\alpha+\\tfrac n2,\\ \\beta+\\tfrac12\\textstyle\\sum_i(x_i-\\mu)^2\\big).",
-   "plain": "An inverse-gamma prior on the variance of normal data with known mean gives an inverse-gamma posterior. The shape grows by half the sample size and the scale grows by half the sum of squared deviations. (For the mean of normal data with known variance, a normal prior is conjugate; with both unknown, the normal-inverse-gamma prior is used.)",
-   "onOriginalMap": false
+   "plain": "An inverse-gamma prior on the variance of normal data with a known mean gives an inverse-gamma posterior. The shape grows by half the sample size and the scale grows by half the sum of squared deviations. (For the mean of normal data with a known variance, a normal prior is conjugate; when both are unknown, the normal–inverse-gamma prior is used.)",
+   "onOriginalMap": false,
+   "plainText": "An inverse-gamma prior on the variance of normal data with a known mean gives an inverse-gamma posterior. The shape grows by half the sample size and the scale grows by half the sum of squared deviations. (For the mean of normal data with a known variance, a normal prior is conjugate; when both are unknown, the normal–inverse-gamma prior is used.)"
   },
   {
    "id": "inverse-gamma--student-t",
@@ -1689,8 +1821,9 @@ export const CATALOG = deepFreeze({
    "kind": "mixture",
    "label": "\\text{scale mixture of }\\mathcal N",
    "statement": "\\sigma^2\\sim\\mathrm{InvGamma}(\\tfrac\\nu2,\\tfrac\\nu2),\\ X\\mid\\sigma^2\\sim\\mathcal N(0,\\sigma^2)\\ \\Rightarrow\\ X\\sim t_\\nu.\\ \\text{(Equivalently, precision } \\tau=1/\\sigma^2\\sim\\mathrm{Gamma}(\\tfrac\\nu2,\\tfrac\\nu2).)",
-   "plain": "A Student's t variable is a normal variable whose variance is itself random, drawn from an inverse-gamma distribution. Averaging normals over uncertain variances produces heavier tails. This is why the posterior predictive distribution under a normal model with unknown variance is a t distribution, and how robust t-likelihoods are fitted in Bayesian software. (On the map this arrow starts at the mixing distribution; the other mixture arrows, Binomial to Beta-binomial and Poisson to Negative binomial, start at the base distribution and name the mixing distribution in their label.)",
-   "onOriginalMap": false
+   "plain": "A Student's $t$ variable is a normal variable whose variance is itself random, drawn from an inverse-gamma distribution. Averaging normals over uncertain variances produces heavier tails. This is why the posterior predictive distribution under a normal model with unknown variance is a $t$ distribution, and how robust $t$ likelihoods are fitted in Bayesian software. (On the map this arrow starts at the mixing distribution; the other mixture arrows, Binomial to Beta-binomial and Poisson to Negative binomial, start at the base distribution and name the mixing distribution in their label.)",
+   "onOriginalMap": false,
+   "plainText": "A Student's t variable is a normal variable whose variance is itself random, drawn from an inverse-gamma distribution. Averaging normals over uncertain variances produces heavier tails. This is why the posterior predictive distribution under a normal model with unknown variance is a t distribution, and how robust t likelihoods are fitted in Bayesian software. (On the map this arrow starts at the mixing distribution; the other mixture arrows, Binomial to Beta-binomial and Poisson to Negative binomial, start at the base distribution and name the mixing distribution in their label.)"
   },
   {
    "id": "student-t--cauchy",
@@ -1700,8 +1833,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\nu=1",
    "statement": "t_1=\\mathrm{Cauchy}(0,1);\\ \\text{more generally } x_0+\\gamma T\\sim\\mathrm{Cauchy}(x_0,\\gamma) \\text{ for } T\\sim t_1.",
-   "plain": "With one degree of freedom the t distribution is the standard Cauchy distribution. Its tails are so heavy that it has no mean or variance.",
-   "onOriginalMap": false
+   "plain": "With one degree of freedom ($\\nu = 1$) the $t$ distribution is the standard Cauchy distribution. Its tails are so heavy that it has no mean or variance.",
+   "onOriginalMap": false,
+   "plainText": "With one degree of freedom (ν = 1) the t distribution is the standard Cauchy distribution. Its tails are so heavy that it has no mean or variance."
   },
   {
    "id": "normal--cauchy",
@@ -1712,7 +1846,8 @@ export const CATALOG = deepFreeze({
    "label": "Z_1/Z_2",
    "statement": "Z_1,Z_2\\overset{iid}{\\sim}\\mathcal N(0,1)\\ \\Rightarrow\\ Z_1/Z_2\\sim\\mathrm{Cauchy}(0,1).",
    "plain": "Dividing one independent standard normal variable by another gives a standard Cauchy variable. Because the denominator is often close to zero, the ratio occasionally takes huge values, which produces the heavy tails. Both normals must be centered at zero; with non-zero means the ratio is not Cauchy.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "Dividing one independent standard normal variable by another gives a standard Cauchy variable. Because the denominator is often close to zero, the ratio occasionally takes huge values, which produces the heavy tails. Both normals must be centered at zero; with non-zero means the ratio is not Cauchy."
   },
   {
    "id": "chi-squared--f",
@@ -1722,8 +1857,9 @@ export const CATALOG = deepFreeze({
    "kind": "ratio",
    "label": "\\frac{U/d_1}{V/d_2}",
    "statement": "U\\sim\\chi^2_{d_1},\\ V\\sim\\chi^2_{d_2} \\text{ independent}\\ \\Rightarrow\\ \\frac{U/d_1}{V/d_2}\\sim F(d_1,d_2).\\ \\text{E.g. } S_1^2/S_2^2\\sim F(n_1-1,\\,n_2-1) \\text{ for independent normal samples with equal variances.}",
-   "plain": "The ratio of two independent chi-squared variables, each divided by its degrees of freedom, has an F distribution. In ANOVA and regression the F statistic compares the variance explained by an effect with the residual variance in exactly this form.",
-   "onOriginalMap": false
+   "plain": "The ratio of two independent chi-squared variables, each divided by its degrees of freedom, has an F distribution. In ANOVA and regression, the F statistic compares the variance explained by an effect with the residual variance in exactly this form.",
+   "onOriginalMap": false,
+   "plainText": "The ratio of two independent chi-squared variables, each divided by its degrees of freedom, has an F distribution. In ANOVA and regression, the F statistic compares the variance explained by an effect with the residual variance in exactly this form."
   },
   {
    "id": "student-t--f",
@@ -1733,8 +1869,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "T^2",
    "statement": "T\\sim t_\\nu\\ \\Rightarrow\\ T^2\\sim F(1,\\nu).",
-   "plain": "Squaring a t statistic gives an F statistic with 1 numerator degree of freedom. This is why a two-group ANOVA gives the same p-value as a two-sided two-sample t-test.",
-   "onOriginalMap": false
+   "plain": "Squaring a $t$ statistic gives an F statistic with 1 numerator degree of freedom. This is why a two-group ANOVA gives the same p-value as a two-sided two-sample t-test.",
+   "onOriginalMap": false,
+   "plainText": "Squaring a t statistic gives an F statistic with 1 numerator degree of freedom. This is why a two-group ANOVA gives the same p-value as a two-sided two-sample t-test."
   },
   {
    "id": "f--beta",
@@ -1744,8 +1881,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\frac{d_1X}{d_1X+d_2}",
    "statement": "X\\sim F(d_1,d_2)\\ \\Rightarrow\\ \\frac{d_1X}{d_1X+d_2}\\sim\\mathrm{Beta}\\big(\\tfrac{d_1}2,\\ \\tfrac{d_2}2\\big).",
-   "plain": "An F statistic can be converted to a number between 0 and 1 that has a Beta distribution. In regression this quantity is the proportion of variance explained (R squared, or partial eta squared) under the null hypothesis, so the null distribution of R squared is Beta.",
-   "onOriginalMap": false
+   "plain": "An F statistic can be converted to a number between 0 and 1 that has a Beta distribution. In regression this quantity is the proportion of variance explained ($R^2$, or partial $\\eta^2$) under the null hypothesis, so the null distribution of $R^2$ is Beta.",
+   "onOriginalMap": false,
+   "plainText": "An F statistic can be converted to a number between 0 and 1 that has a Beta distribution. In regression this quantity is the proportion of variance explained (R², or partial η²) under the null hypothesis, so the null distribution of R² is Beta."
   },
   {
    "id": "binomial--normal",
@@ -1755,8 +1893,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "n\\to\\infty",
    "statement": "X_n\\sim\\mathrm{Bin}(n,p),\\ p\\in(0,1) \\text{ fixed},\\ n\\to\\infty\\ \\Rightarrow\\ \\frac{X_n-np}{\\sqrt{np(1-p)}}\\xrightarrow{d}\\mathcal N(0,1)\\ (\\text{de Moivre-Laplace}).",
-   "plain": "With many trials and a success probability that is not close to 0 or 1, the binomial count is approximately normal with mean n p and variance n p (1-p). This is the oldest form of the central limit theorem and justifies the z-test for a proportion.",
-   "onOriginalMap": false
+   "plain": "With many trials and a success probability that is not close to 0 or 1, the binomial count is approximately normal with mean $np$ and variance $np(1-p)$. This is the oldest form of the central limit theorem and justifies the z-test for a proportion.",
+   "onOriginalMap": false,
+   "plainText": "With many trials and a success probability that is not close to 0 or 1, the binomial count is approximately normal with mean np and variance np(1-p). This is the oldest form of the central limit theorem and justifies the z-test for a proportion."
   },
   {
    "id": "uniform--exponential",
@@ -1766,8 +1905,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "-\\ln U",
    "statement": "U\\sim\\mathrm U(0,1)\\ \\Rightarrow\\ -\\ln(U)/\\lambda\\sim\\mathrm{Exp}(\\lambda);\\ \\text{conversely } X\\sim\\mathrm{Exp}(\\lambda)\\Rightarrow e^{-\\lambda X}\\sim\\mathrm U(0,1).",
-   "plain": "Taking minus the log of a uniform random number and dividing by lambda produces an exponential random number. This is inverse-CDF sampling: the exponential CDF F(x) = 1 - e^{-lambda x} has inverse F^{-1}(u) = -ln(1-u)/lambda, and because 1-U is also uniform on (0,1), -ln(U)/lambda has the same distribution. In general, plugging a uniform variable into the inverse of a distribution's CDF produces a draw from that distribution.",
-   "onOriginalMap": false
+   "plain": "Taking minus the log of a uniform random number and dividing by $\\lambda$ produces an exponential random number. This is inverse-CDF sampling: the exponential CDF $F(x) = 1 - e^{-\\lambda x}$ has inverse $F^{-1}(u) = -\\ln(1 - u)/\\lambda$, and because $1 - U$ is also uniform on $(0, 1)$, $-\\ln(U)/\\lambda$ has the same distribution. In general, plugging a uniform variable into the inverse of a distribution's CDF produces a draw from that distribution.",
+   "onOriginalMap": false,
+   "plainText": "Taking minus the log of a uniform random number and dividing by λ produces an exponential random number. This is inverse-CDF sampling: the exponential CDF F(x) = 1 - e^-λ x has inverse F⁻¹(u) = -ln(1 - u)/λ, and because 1 - U is also uniform on (0, 1), -ln(U)/λ has the same distribution. In general, plugging a uniform variable into the inverse of a distribution's CDF produces a draw from that distribution."
   },
   {
    "id": "beta--uniform",
@@ -1777,8 +1917,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\alpha=\\beta=1",
    "statement": "\\mathrm{Beta}(1,1)=\\mathrm U(0,1).\\ \\text{Conversely, if } U_1,\\dots,U_n\\overset{iid}{\\sim}\\mathrm U(0,1) \\text{ and } U_{(k)} \\text{ is the } k\\text{-th smallest, then } U_{(k)}\\sim\\mathrm{Beta}(k,\\ n-k+1).",
-   "plain": "The Beta distribution with both shapes equal to 1 is flat on [0,1], which is the standard uniform. It is the usual 'no preference' prior for a probability. In the other direction, if you draw n uniform random numbers and sort them, the k-th smallest follows a Beta(k, n-k+1) distribution.",
-   "onOriginalMap": false
+   "plain": "The Beta distribution with both shapes equal to 1 is flat on $[0, 1]$, which is the standard uniform. It is the usual “no preference” prior for a probability. In the other direction, if you draw $n$ uniform random numbers and sort them, the $k$-th smallest follows a $\\mathrm{Beta}(k,\\, n - k + 1)$ distribution.",
+   "onOriginalMap": false,
+   "plainText": "The Beta distribution with both shapes equal to 1 is flat on [0, 1], which is the standard uniform. It is the usual “no preference” prior for a probability. In the other direction, if you draw n uniform random numbers and sort them, the k-th smallest follows a Beta(k, n - k + 1) distribution."
   },
   {
    "id": "uniform--discrete-uniform",
@@ -1788,8 +1929,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\lfloor\\cdot\\rfloor",
    "statement": "U\\sim\\mathrm U(0,1)\\ \\Rightarrow\\ a+\\lfloor (b-a+1)U\\rfloor\\sim\\mathrm{DUnif}\\{a,\\dots,b\\}.\\ \\text{Conversely, } X_n\\sim\\mathrm{DUnif}\\{1,\\dots,n\\}\\Rightarrow X_n/n\\xrightarrow{d}\\mathrm U(0,1) \\text{ as } n\\to\\infty.",
-   "plain": "Stretching a continuous uniform number to cover n equal bins and rounding down gives a discrete uniform integer; this is how a computer rolls a die. In the other direction, a discrete uniform on a very fine grid, rescaled to [0,1], looks like the continuous uniform.",
-   "onOriginalMap": false
+   "plain": "Stretching a continuous uniform number to cover $n$ equal bins and rounding down gives a discrete uniform integer; this is how a computer rolls a die. In the other direction, a discrete uniform on a very fine grid, rescaled to $[0, 1]$, looks like the continuous uniform.",
+   "onOriginalMap": false,
+   "plainText": "Stretching a continuous uniform number to cover n equal bins and rounding down gives a discrete uniform integer; this is how a computer rolls a die. In the other direction, a discrete uniform on a very fine grid, rescaled to [0, 1], looks like the continuous uniform."
   },
   {
    "id": "uniform--logistic",
@@ -1800,7 +1942,8 @@ export const CATALOG = deepFreeze({
    "label": "\\ln\\frac{U}{1-U}",
    "statement": "U\\sim\\mathrm U(0,1)\\ \\Rightarrow\\ \\mu+s\\ln\\frac{U}{1-U}\\sim\\mathrm{Logistic}(\\mu,s);\\ \\text{conversely } \\frac{1}{1+e^{-(X-\\mu)/s}}\\sim\\mathrm U(0,1) \\text{ for } X\\sim\\mathrm{Logistic}(\\mu,s).",
    "plain": "The log-odds (logit) of a uniform random number has a standard logistic distribution, because the logit is the inverse of the logistic CDF (the sigmoid). This connects the logistic distribution to the logit link used in logistic regression.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "The log-odds (logit) of a uniform random number has a standard logistic distribution, because the logit is the inverse of the logistic CDF (the sigmoid). This connects the logistic distribution to the logit link used in logistic regression."
   },
   {
    "id": "gumbel--logistic",
@@ -1811,7 +1954,8 @@ export const CATALOG = deepFreeze({
    "label": "G_1-G_2",
    "statement": "G_1\\sim\\mathrm{Gumbel}(\\mu_1,\\beta),\\ G_2\\sim\\mathrm{Gumbel}(\\mu_2,\\beta) \\text{ independent}\\ \\Rightarrow\\ G_1-G_2\\sim\\mathrm{Logistic}(\\mu_1-\\mu_2,\\ \\beta).",
    "plain": "The difference of two independent Gumbel variables with the same scale is logistic. In random-utility models of choice, if each option's utility has independent Gumbel noise, the probability of choosing option 1 over option 2 is a logistic function of the utility difference, which gives the logit choice rule.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "The difference of two independent Gumbel variables with the same scale is logistic. In random-utility models of choice, if each option's utility has independent Gumbel noise, the probability of choosing option 1 over option 2 is a logistic function of the utility difference, which gives the logit choice rule."
   },
   {
    "id": "exponential--gumbel",
@@ -1821,8 +1965,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "-\\ln X",
    "statement": "X\\sim\\mathrm{Exp}(1)\\Rightarrow-\\ln X\\sim\\mathrm{Gumbel}(0,1);\\ \\text{and } X_1,\\dots,X_n\\overset{iid}{\\sim}\\mathrm{Exp}(1)\\Rightarrow\\max_i X_i-\\ln n\\xrightarrow{d}\\mathrm{Gumbel}(0,1).\\ \\text{More generally } W\\sim\\mathrm{Weibull}(k,\\lambda)\\Rightarrow-\\ln W\\sim\\mathrm{Gumbel}(-\\ln\\lambda,\\ 1/k).",
-   "plain": "Minus the log of a standard exponential variable is a standard Gumbel variable. The Gumbel also describes the maximum of many independent exponential variables after subtracting log n, which is the prototype of extreme-value theory.",
-   "onOriginalMap": false
+   "plain": "Minus the log of a standard exponential variable is a standard Gumbel variable. The Gumbel also describes the maximum of many independent exponential variables after subtracting $\\ln n$, which is the prototype of extreme-value theory.",
+   "onOriginalMap": false,
+   "plainText": "Minus the log of a standard exponential variable is a standard Gumbel variable. The Gumbel also describes the maximum of many independent exponential variables after subtracting ln n, which is the prototype of extreme-value theory."
   },
   {
    "id": "exponential--laplace",
@@ -1833,7 +1978,8 @@ export const CATALOG = deepFreeze({
    "label": "X_1-X_2",
    "statement": "X_1,X_2\\overset{iid}{\\sim}\\mathrm{Exp}(\\lambda)\\ \\Rightarrow\\ X_1-X_2\\sim\\mathrm{Laplace}(0,\\ b=1/\\lambda).\\ \\text{Also } |Y-\\mu|/b\\sim\\mathrm{Exp}(1) \\text{ for } Y\\sim\\mathrm{Laplace}(\\mu,b).",
    "plain": "The difference of two independent exponential variables with the same rate is Laplace (double exponential): an exponential tail on each side of zero. Conversely, the absolute distance of a Laplace variable from its center is exponential.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "The difference of two independent exponential variables with the same rate is Laplace (double exponential): an exponential tail on each side of zero. Conversely, the absolute distance of a Laplace variable from its center is exponential."
   },
   {
    "id": "exponential--pareto",
@@ -1843,8 +1989,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "x_m e^{X}",
    "statement": "X\\sim\\mathrm{Exp}(\\alpha)\\iff x_m e^{X}\\sim\\mathrm{Pareto}(x_m,\\alpha);\\ \\text{i.e. } \\ln(Y/x_m)\\sim\\mathrm{Exp}(\\alpha) \\text{ for } Y\\sim\\mathrm{Pareto}(x_m,\\alpha).",
-   "plain": "Exponentiating an exponential variable (and multiplying by the minimum x_m) gives a Pareto variable; taking logs goes back. So the Pareto is to the exponential what the log-normal is to the normal, and its power-law tail comes from the exponential tail on the log scale.",
-   "onOriginalMap": false
+   "plain": "Exponentiating an exponential variable (and multiplying by the minimum $x_m$) gives a Pareto variable; taking logs goes back. So the Pareto is to the exponential what the log-normal is to the normal, and its power-law tail comes from the exponential tail on the log scale.",
+   "onOriginalMap": false,
+   "plainText": "Exponentiating an exponential variable (and multiplying by the minimum xm) gives a Pareto variable; taking logs goes back. So the Pareto is to the exponential what the log-normal is to the normal, and its power-law tail comes from the exponential tail on the log scale."
   },
   {
    "id": "normal--ex-gaussian",
@@ -1855,7 +2002,8 @@ export const CATALOG = deepFreeze({
    "label": "+\\,\\mathrm{Exp}",
    "statement": "X\\sim\\mathcal N(\\mu,\\sigma^2),\\ Y\\sim\\mathrm{Exp}(\\text{rate } 1/\\tau) \\text{ independent}\\ \\Rightarrow\\ X+Y\\sim\\mathrm{ExGaussian}(\\mu,\\sigma,\\tau).\\ \\text{As } \\tau\\to0 \\text{ it reduces to } \\mathcal N(\\mu,\\sigma^2).",
    "plain": "Adding an independent exponential delay to a normal variable gives an ex-Gaussian variable. In response-time research the normal part is often read as a typical processing time and the exponential part as occasional slow responses, although the components do not map cleanly onto specific mental processes.",
-   "onOriginalMap": false
+   "onOriginalMap": false,
+   "plainText": "Adding an independent exponential delay to a normal variable gives an ex-Gaussian variable. In response-time research the normal part is often read as a typical processing time and the exponential part as occasional slow responses, although the components do not map cleanly onto specific mental processes."
   },
   {
    "id": "exponential--ex-gaussian",
@@ -1865,8 +2013,9 @@ export const CATALOG = deepFreeze({
    "kind": "sum",
    "label": "+\\,\\mathcal N",
    "statement": "Y\\sim\\mathrm{Exp}(\\text{rate } 1/\\tau),\\ X\\sim\\mathcal N(\\mu,\\sigma^2) \\text{ independent}\\ \\Rightarrow\\ X+Y\\sim\\mathrm{ExGaussian}(\\mu,\\sigma,\\tau).\\ \\text{As } \\sigma\\to0 \\text{ it reduces to the shifted exponential } \\mu+Y.",
-   "plain": "Seen from the exponential side, the ex-Gaussian is an exponential waiting time blurred by normal noise and shifted by mu. Its density is the convolution of the two component densities.",
-   "onOriginalMap": false
+   "plain": "Seen from the exponential side, the ex-Gaussian is an exponential waiting time blurred by normal noise and shifted by $\\mu$. Its density is the convolution of the two component densities.",
+   "onOriginalMap": false,
+   "plainText": "Seen from the exponential side, the ex-Gaussian is an exponential waiting time blurred by normal noise and shifted by μ. Its density is the convolution of the two component densities."
   },
   {
    "id": "cauchy--half-cauchy",
@@ -1876,8 +2025,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "|X|",
    "statement": "X\\sim\\mathrm{Cauchy}(0,\\gamma)\\ \\Rightarrow\\ |X|\\sim\\mathrm{HalfCauchy}(\\gamma),\\ f(x)=\\frac{2}{\\pi\\gamma\\,(1+(x/\\gamma)^2)},\\ x\\ge0.",
-   "plain": "Folding a Cauchy distribution centered at zero onto the positive half-line gives the half-Cauchy. It is used as a prior for standard deviations because it puts most mass near zero but allows occasional large values.",
-   "onOriginalMap": false
+   "plain": "Folding a Cauchy distribution centered at zero onto the positive half-line gives the half-Cauchy. It is used as a prior for standard deviations because it puts most of its mass near zero but allows occasional large values.",
+   "onOriginalMap": false,
+   "plainText": "Folding a Cauchy distribution centered at zero onto the positive half-line gives the half-Cauchy. It is used as a prior for standard deviations because it puts most of its mass near zero but allows occasional large values."
   },
   {
    "id": "normal--multivariate-normal",
@@ -1887,8 +2037,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "d=1",
    "statement": "\\mathrm{MVN}_1(\\mu,\\sigma^2)=\\mathcal N(\\mu,\\sigma^2).\\ Z_1,\\dots,Z_d\\overset{iid}{\\sim}\\mathcal N(0,1)\\Rightarrow\\mathbf X=\\boldsymbol\\mu+L\\mathbf Z\\sim\\mathrm{MVN}_d(\\boldsymbol\\mu,LL^\\top).\\ \\text{Conversely } \\mathbf a^\\top\\mathbf X\\sim\\mathcal N(\\mathbf a^\\top\\boldsymbol\\mu,\\ \\mathbf a^\\top\\Sigma\\mathbf a), \\text{ so each margin } X_j\\sim\\mathcal N(\\mu_j,\\Sigma_{jj}).",
-   "plain": "The multivariate normal extends the normal to several correlated variables. It can be built by taking independent standard normals and applying a linear transformation; in one dimension it is the ordinary normal. Every single variable, and every weighted sum of variables, from a multivariate normal is itself normal.",
-   "onOriginalMap": false
+   "plain": "The multivariate normal extends the normal to several correlated variables. It can be built by taking independent standard normals and applying a linear transformation; in one dimension ($d = 1$) it is the ordinary normal. Every single variable, and every weighted sum of variables, from a multivariate normal is itself normal.",
+   "onOriginalMap": false,
+   "plainText": "The multivariate normal extends the normal to several correlated variables. It can be built by taking independent standard normals and applying a linear transformation; in one dimension (d = 1) it is the ordinary normal. Every single variable, and every weighted sum of variables, from a multivariate normal is itself normal."
   },
   {
    "id": "multivariate-normal--chi-squared",
@@ -1898,8 +2049,9 @@ export const CATALOG = deepFreeze({
    "kind": "transformation",
    "label": "\\text{Mahalanobis}^2",
    "statement": "\\mathbf X\\sim\\mathrm{MVN}_d(\\boldsymbol\\mu,\\Sigma),\\ \\Sigma \\text{ positive definite}\\ \\Rightarrow\\ D_M^2=(\\mathbf X-\\boldsymbol\\mu)^\\top\\Sigma^{-1}(\\mathbf X-\\boldsymbol\\mu)\\sim\\chi^2_d.",
-   "plain": "The Mahalanobis distance D_M measures how far a point x is from the mean mu after accounting for the variances and correlations in Sigma (it is ordinary distance after the data are rescaled to be uncorrelated with unit variance). The squared Mahalanobis distance of a multivariate normal point from its mean has a chi-squared distribution with d degrees of freedom. This gives confidence ellipses, multivariate outlier tests, and the large-sample chi-squared distribution of Wald tests.",
-   "onOriginalMap": false
+   "plain": "The Mahalanobis distance $D_M$ measures how far a point $\\mathbf x$ is from the mean $\\boldsymbol\\mu$ after accounting for the variances and correlations in $\\Sigma$ (it is ordinary distance after the data are rescaled to be uncorrelated with unit variance). The squared Mahalanobis distance of a multivariate normal point from its mean has a chi-squared distribution with $d$ degrees of freedom. This gives confidence ellipses, multivariate outlier tests, and the large-sample chi-squared distribution of Wald tests.",
+   "onOriginalMap": false,
+   "plainText": "The Mahalanobis distance DM measures how far a point x is from the mean μ after accounting for the variances and correlations in Σ (it is ordinary distance after the data are rescaled to be uncorrelated with unit variance). The squared Mahalanobis distance of a multivariate normal point from its mean has a chi-squared distribution with d degrees of freedom. This gives confidence ellipses, multivariate outlier tests, and the large-sample chi-squared distribution of Wald tests."
   },
   {
    "id": "von-mises--normal",
@@ -1909,8 +2061,9 @@ export const CATALOG = deepFreeze({
    "kind": "limit",
    "label": "\\kappa\\to\\infty",
    "statement": "X_\\kappa\\sim\\mathrm{VonMises}(\\mu,\\kappa),\\ \\kappa\\to\\infty\\ \\Rightarrow\\ \\sqrt\\kappa\\,(X_\\kappa-\\mu)\\xrightarrow{d}\\mathcal N(0,1),\\ \\text{i.e. approximately } \\mathcal N(\\mu,1/\\kappa).",
-   "plain": "When the von Mises distribution is highly concentrated, the angles stay close to the mean direction, the circle looks locally like a straight line, and the distribution becomes approximately normal with variance 1/kappa.",
-   "onOriginalMap": false
+   "plain": "When the von Mises distribution is highly concentrated (large $\\kappa$), the angles stay close to the mean direction, the circle looks locally like a straight line, and the distribution becomes approximately normal with variance $1/\\kappa$.",
+   "onOriginalMap": false,
+   "plainText": "When the von Mises distribution is highly concentrated (large κ), the angles stay close to the mean direction, the circle looks locally like a straight line, and the distribution becomes approximately normal with variance 1/κ."
   },
   {
    "id": "von-mises--uniform",
@@ -1920,8 +2073,9 @@ export const CATALOG = deepFreeze({
    "kind": "special-case",
    "label": "\\kappa=0",
    "statement": "\\mathrm{VonMises}(\\mu,0)=\\mathrm U(-\\pi,\\pi)\\ \\text{for any } \\mu.",
-   "plain": "With zero concentration the von Mises distribution has no preferred direction: every angle on the circle is equally likely. In working-memory mixture models this uniform component represents random guessing.",
-   "onOriginalMap": false
+   "plain": "With zero concentration ($\\kappa = 0$) the von Mises distribution has no preferred direction: every angle on the circle is equally likely. In working-memory mixture models this uniform component represents random guessing.",
+   "onOriginalMap": false,
+   "plainText": "With zero concentration (κ = 0) the von Mises distribution has no preferred direction: every angle on the circle is equally likely. In working-memory mixture models this uniform component represents random guessing."
   },
   {
    "id": "normal--wald",
@@ -1931,8 +2085,9 @@ export const CATALOG = deepFreeze({
    "kind": "other",
    "label": "\\text{first passage}",
    "statement": "W(t)=v t+\\sigma B(t),\\ v>0\\ (\\text{increments } W(t+h)-W(t)\\sim\\mathcal N(vh,\\sigma^2 h)).\\ T=\\inf\\{t:W(t)=a\\},\\ a>0\\ \\Rightarrow\\ T\\sim\\mathrm{IG}\\big(\\mu=a/v,\\ \\lambda=a^2/\\sigma^2\\big).\\ \\text{Also } \\frac{X-\\mu}{\\sqrt{\\mu^3/\\lambda}}\\xrightarrow{d}\\mathcal N(0,1) \\text{ for } X\\sim\\mathrm{IG}(\\mu,\\lambda) \\text{ as } \\lambda/\\mu\\to\\infty.",
-   "plain": "Accumulate evidence in many small, normally distributed steps that drift on average at rate v toward a threshold a, with noise of standard deviation sigma per unit time (B(t) is standard Brownian motion, a continuous random walk). The time at which the running total first reaches the threshold has a Wald (inverse Gaussian) distribution with mean a/v. This is the single-boundary version of the drift-diffusion model of response times. When the shape lambda is large relative to the mean, the Wald itself is approximately normal.",
-   "onOriginalMap": false
+   "plain": "Accumulate evidence in many small, normally distributed steps that drift on average at rate $v$ toward a threshold $a$, with noise of standard deviation $\\sigma$ per unit time ($B(t)$ is standard Brownian motion, a continuous random walk). The time at which the running total first reaches the threshold has a Wald (inverse Gaussian) distribution with mean $a/v$. This is the single-boundary version of the drift-diffusion model of response times. When the shape $\\lambda$ is large relative to the mean, the Wald itself is approximately normal.",
+   "onOriginalMap": false,
+   "plainText": "Accumulate evidence in many small, normally distributed steps that drift on average at rate v toward a threshold a, with noise of standard deviation σ per unit time (B(t) is standard Brownian motion, a continuous random walk). The time at which the running total first reaches the threshold has a Wald (inverse Gaussian) distribution with mean a/v. This is the single-boundary version of the drift-diffusion model of response times. When the shape λ is large relative to the mean, the Wald itself is approximately normal."
   },
   {
    "id": "logistic--bernoulli",
@@ -1942,8 +2097,9 @@ export const CATALOG = deepFreeze({
    "kind": "other",
    "label": "\\mathbb 1[\\eta+\\varepsilon>0]",
    "statement": "\\varepsilon\\sim\\mathrm{Logistic}(0,1),\\ Y=\\mathbb 1[\\eta+\\varepsilon>0]\\ \\Rightarrow\\ Y\\sim\\mathrm{Bernoulli}\\big(\\tfrac{1}{1+e^{-\\eta}}\\big).\\ \\text{(With } \\varepsilon\\sim\\mathcal N(0,1):\\ Y\\sim\\mathrm{Bernoulli}(\\Phi(\\eta)), \\text{ the probit model.)}",
-   "plain": "Logistic regression can be written as a latent-variable model: a hidden continuous score eta plus logistic noise is compared with zero, and the binary response is 1 when the score is positive. The probability of a 1 is then the logistic (sigmoid) function of eta. Using normal noise instead gives probit regression.",
-   "onOriginalMap": false
+   "plain": "Logistic regression can be written as a latent-variable model: a hidden continuous score $\\eta$ plus logistic noise $\\varepsilon$ is compared with zero, and the binary response is 1 when the result is positive. The probability of a 1 is then the logistic (sigmoid) function of $\\eta$. Using normal noise instead gives probit regression.",
+   "onOriginalMap": false,
+   "plainText": "Logistic regression can be written as a latent-variable model: a hidden continuous score η plus logistic noise ε is compared with zero, and the binary response is 1 when the result is positive. The probability of a 1 is then the logistic (sigmoid) function of η. Using normal noise instead gives probit regression."
   },
   {
    "id": "gumbel--categorical",
@@ -1953,173 +2109,273 @@ export const CATALOG = deepFreeze({
    "kind": "other",
    "label": "\\arg\\max",
    "statement": "G_1,\\dots,G_K\\overset{iid}{\\sim}\\mathrm{Gumbel}(0,1)\\ \\Rightarrow\\ \\arg\\max_j(\\ln p_j+G_j)\\sim\\mathrm{Categorical}(\\mathbf p);\\ \\text{with utilities } u_j \\text{ and noise } \\mathrm{Gumbel}(0,\\beta):\\ \\arg\\max_j(u_j+G_j)\\sim\\mathrm{Categorical}\\Big(\\frac{e^{u_j/\\beta}}{\\sum_i e^{u_i/\\beta}}\\Big).",
-   "plain": "If each option's value is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax rule. The Gumbel scale beta plays the role of the softmax temperature. This links random-utility theory, reinforcement-learning choice models and the Gumbel-max sampling trick.",
-   "onOriginalMap": false
+   "plain": "If each option's value is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax rule. The Gumbel scale $\\beta$ plays the role of the softmax temperature. This links random-utility theory, reinforcement-learning choice models and the Gumbel-max sampling trick.",
+   "onOriginalMap": false,
+   "plainText": "If each option's value is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax rule. The Gumbel scale β plays the role of the softmax temperature. This links random-utility theory, reinforcement-learning choice models and the Gumbel-max sampling trick."
   }
  ],
  "notation": [
   {
    "sym": "X\\sim D",
-   "plain": "X is a random variable with distribution D",
+   "plain": "$X$ is a random variable with distribution $D$.",
    "match": [
     "\\sim"
-   ]
+   ],
+   "plainText": "X is a random variable with distribution D."
   },
   {
    "sym": "\\overset{iid}{\\sim}",
-   "plain": "independent and identically distributed: each variable has the same distribution and none affects the others",
+   "plain": "Independent and identically distributed: each variable has the same distribution and none affects the others.",
    "match": [
     "\\overset{iid}"
-   ]
+   ],
+   "plainText": "Independent and identically distributed: each variable has the same distribution and none affects the others."
   },
   {
    "sym": "\\xrightarrow{d}",
-   "plain": "converges in distribution: as the indicated quantity grows, probabilities computed from the left side get arbitrarily close to those from the right side",
+   "plain": "Converges in distribution: as the indicated quantity grows, probabilities computed from the left side get arbitrarily close to those from the right side.",
    "match": [
     "\\xrightarrow{d}"
-   ]
+   ],
+   "plainText": "Converges in distribution: as the indicated quantity grows, probabilities computed from the left side get arbitrarily close to those from the right side."
   },
   {
    "sym": "\\Rightarrow",
-   "plain": "implies",
+   "plain": "Implies.",
    "match": [
     "\\Rightarrow"
-   ]
+   ],
+   "plainText": "Implies."
   },
   {
    "sym": "\\iff",
-   "plain": "if and only if (each statement implies the other)",
+   "plain": "If and only if (each statement implies the other).",
    "match": [
     "\\iff"
-   ]
+   ],
+   "plainText": "If and only if (each statement implies the other)."
   },
   {
    "sym": "X\\mid Y=y",
-   "plain": "the distribution of X once we know that Y equals y (conditioning)",
+   "plain": "The distribution of $X$ once we know that $Y$ equals $y$ (conditioning).",
    "match": [
     "\\mid"
-   ]
+   ],
+   "plainText": "The distribution of X once we know that Y equals y (conditioning)."
   },
   {
    "sym": "\\mathbb 1[A]",
-   "plain": "indicator: 1 if statement A is true, 0 otherwise",
+   "plain": "Indicator: 1 if statement $A$ is true, 0 otherwise.",
    "match": [
     "\\mathbb 1["
-   ]
+   ],
+   "plainText": "Indicator: 1 if statement A is true, 0 otherwise."
   },
   {
    "sym": "\\lfloor x\\rfloor",
-   "plain": "floor: x rounded down to a whole number",
+   "plain": "Floor: $x$ rounded down to a whole number.",
    "match": [
     "\\lfloor"
-   ]
+   ],
+   "plainText": "Floor: x rounded down to a whole number."
   },
   {
    "sym": "\\binom nk\\text{ or }C(n,k)",
-   "plain": "number of ways to choose k items from n",
+   "plain": "The number of ways to choose $k$ items from $n$.",
    "match": [
     "\\binom",
     "C(k"
-   ]
+   ],
+   "plainText": "The number of ways to choose k items from n."
   },
   {
    "sym": "\\Gamma(a)",
-   "plain": "gamma function, which extends the factorial: Gamma(n) = (n-1)!",
+   "plain": "The gamma function, which extends the factorial to non-integers: $\\Gamma(n) = (n-1)!$ for whole numbers $n$.",
    "match": [
     "\\Gamma("
-   ]
+   ],
+   "plainText": "The gamma function, which extends the factorial to non-integers: Γ(n) = (n-1)! for whole numbers n."
   },
   {
    "sym": "B(a,b)",
-   "plain": "beta function, Gamma(a)Gamma(b)/Gamma(a+b); makes the Beta density integrate to 1",
+   "plain": "The beta function, $\\Gamma(a)\\Gamma(b)/\\Gamma(a+b)$; it makes the Beta density integrate to 1.",
    "match": [
     "B(k",
     "B(\\alpha"
-   ]
+   ],
+   "plainText": "The beta function, Γ(a)Γ(b)/Γ(a+b); it makes the Beta density integrate to 1."
   },
   {
    "sym": "\\Phi(z)",
-   "plain": "CDF of the standard normal: probability that Z <= z",
+   "plain": "The CDF of the standard normal: the probability that $Z \\le z$.",
    "match": [
     "\\Phi("
-   ]
+   ],
+   "plainText": "The CDF of the standard normal: the probability that Z ≤ z."
   },
   {
    "sym": "I_0(\\kappa)",
-   "plain": "modified Bessel function of order 0; makes the von Mises density integrate to 1",
+   "plain": "The modified Bessel function of order 0; it makes the von Mises density integrate to 1.",
    "match": [
     "I_0"
-   ]
+   ],
+   "plainText": "The modified Bessel function of order 0; it makes the von Mises density integrate to 1."
   },
   {
    "sym": "\\Delta^{K-1}",
-   "plain": "the simplex: all lists of K non-negative numbers that add up to 1",
+   "plain": "The simplex: all lists of $K$ non-negative numbers that add up to 1.",
    "match": [
     "\\Delta^"
-   ]
+   ],
+   "plainText": "The simplex: all lists of K non-negative numbers that add up to 1."
   },
   {
    "sym": "X_{(k)}",
-   "plain": "k-th smallest value in a sample (order statistic)",
+   "plain": "The $k$-th smallest value in a sample (an order statistic).",
    "match": [
     "_{(k)}"
-   ]
+   ],
+   "plainText": "The k-th smallest value in a sample (an order statistic)."
   },
   {
    "sym": "\\arg\\max_j",
-   "plain": "the index j at which the expression is largest",
+   "plain": "The index $j$ at which the expression is largest.",
    "match": [
     "\\arg\\max"
-   ]
+   ],
+   "plainText": "The index j at which the expression is largest."
   },
   {
    "sym": "\\inf\\{t: ...\\}",
-   "plain": "the first (smallest) time t at which the condition holds",
+   "plain": "The first (smallest) time $t$ at which the condition holds.",
    "match": [
     "\\inf\\{"
-   ]
+   ],
+   "plainText": "The first (smallest) time t at which the condition holds."
   },
   {
    "sym": "B(t)",
-   "plain": "standard Brownian motion: a continuous random walk whose change over a time step h is N(0, h)",
+   "plain": "Standard Brownian motion: a continuous random walk whose change over a time step $h$ is $\\mathcal N(0, h)$.",
    "match": [
     "B(t)"
-   ]
+   ],
+   "plainText": "Standard Brownian motion: a continuous random walk whose change over a time step h is N(0, h)."
   },
   {
    "sym": "\\mathbb Z,\\ \\mathbb R",
-   "plain": "the integers; the real numbers",
+   "plain": "The integers; the real numbers.",
    "match": [
     "\\mathbb{Z}",
     "\\mathbb{R}",
     "\\mathbb Z",
     "\\mathbb R"
-   ]
+   ],
+   "plainText": "The integers; the real numbers."
   },
   {
    "sym": "\\#\\{\\dots\\}",
-   "plain": "the number of items satisfying the condition",
+   "plain": "The number of items satisfying the condition.",
    "match": [
     "\\#"
-   ]
+   ],
+   "plainText": "The number of items satisfying the condition."
   },
   {
-   "sym": "\\mathrm{DUnif},\\ \\mathrm{U},\\ \\mathrm{Bin},\\ \\mathrm{Geom},\\ \\mathrm{NegBin},\\ \\mathrm{Exp},\\ \\mathrm{Dir},\\ \\mathrm{IG},\\ \\mathrm{MVN}_d,\\ t_\\nu,\\ \\chi^2_k,\\ \\mathcal N",
-   "plain": "short names for discrete uniform, continuous uniform, binomial, geometric, negative binomial, exponential, Dirichlet, inverse Gaussian (Wald), d-dimensional multivariate normal, Student t with nu df, chi-squared with k df, normal",
+   "sym": "\\mathrm{DUnif}",
+   "plain": "Short name for the discrete uniform distribution.",
    "match": [
-    "\\mathrm{DUnif}",
+    "\\mathrm{DUnif}"
+   ],
+   "plainText": "Short name for the discrete uniform distribution."
+  },
+  {
+   "sym": "\\mathrm{U}",
+   "plain": "Short name for the continuous uniform distribution.",
+   "match": [
     "\\mathrm U(",
-    "\\mathrm{Bin}",
-    "\\mathrm{Geom}",
-    "\\mathrm{NegBin}",
-    "\\mathrm{Exp}",
-    "\\mathrm{Dir}",
-    "\\mathrm{IG}",
-    "\\mathrm{MVN}",
-    "t_\\nu",
-    "\\chi^2",
+    "\\mathrm{U}("
+   ],
+   "plainText": "Short name for the continuous uniform distribution."
+  },
+  {
+   "sym": "\\mathrm{Bin}",
+   "plain": "Short name for the binomial distribution.",
+   "match": [
+    "\\mathrm{Bin}"
+   ],
+   "plainText": "Short name for the binomial distribution."
+  },
+  {
+   "sym": "\\mathrm{Geom}",
+   "plain": "Short name for the geometric distribution.",
+   "match": [
+    "\\mathrm{Geom}"
+   ],
+   "plainText": "Short name for the geometric distribution."
+  },
+  {
+   "sym": "\\mathrm{NegBin}",
+   "plain": "Short name for the negative binomial distribution.",
+   "match": [
+    "\\mathrm{NegBin}"
+   ],
+   "plainText": "Short name for the negative binomial distribution."
+  },
+  {
+   "sym": "\\mathrm{Exp}",
+   "plain": "Short name for the exponential distribution.",
+   "match": [
+    "\\mathrm{Exp}"
+   ],
+   "plainText": "Short name for the exponential distribution."
+  },
+  {
+   "sym": "\\mathrm{Dir}",
+   "plain": "Short name for the Dirichlet distribution.",
+   "match": [
+    "\\mathrm{Dir}"
+   ],
+   "plainText": "Short name for the Dirichlet distribution."
+  },
+  {
+   "sym": "\\mathrm{IG}",
+   "plain": "Short name for the inverse Gaussian (Wald) distribution.",
+   "match": [
+    "\\mathrm{IG}"
+   ],
+   "plainText": "Short name for the inverse Gaussian (Wald) distribution."
+  },
+  {
+   "sym": "\\mathrm{MVN}_d",
+   "plain": "The $d$-dimensional multivariate normal distribution.",
+   "match": [
+    "\\mathrm{MVN}"
+   ],
+   "plainText": "The d-dimensional multivariate normal distribution."
+  },
+  {
+   "sym": "t_\\nu",
+   "plain": "Student's $t$ distribution with $\\nu$ degrees of freedom.",
+   "match": [
+    "t_\\nu"
+   ],
+   "plainText": "Student's t distribution with ν degrees of freedom."
+  },
+  {
+   "sym": "\\chi^2_k",
+   "plain": "The chi-squared distribution with $k$ degrees of freedom.",
+   "match": [
+    "\\chi^2"
+   ],
+   "plainText": "The chi-squared distribution with k degrees of freedom."
+  },
+  {
+   "sym": "\\mathcal N",
+   "plain": "The normal distribution; $\\mathcal N(\\mu, \\sigma^2)$ has mean $\\mu$ and variance $\\sigma^2$.",
+   "match": [
     "\\mathcal N"
-   ]
+   ],
+   "plainText": "The normal distribution; N(μ, σ²) has mean μ and variance σ²."
   }
  ],
  "edgeKinds": {
@@ -2154,7 +2410,20 @@ export const CATALOG = deepFreeze({
   "Bayesian priors",
   "response times and circular data"
  ],
- "conventions": "Geometric = number of FAILURES before the first success (support 0,1,2,...), so Geometric(p) = NegBin(1,p); NegBin = failures before the r-th success, r allowed to be any positive real (slider 0.2-30, non-integer). Exponential uses RATE lambda. Gamma uses shape alpha / RATE beta (BDA/Stan); pages should show the scale form theta = 1/beta as an alternative (Wikipedia/SciPy). Inverse-gamma uses shape alpha / SCALE beta, so 1/Gamma(alpha, rate beta) = InvGamma(alpha, scale beta). Weibull uses shape k / SCALE lambda (k = 2 is Rayleigh with sigma = lambda/sqrt(2)). Log-normal mu, sigma are the parameters of ln X. Ex-Gaussian tau is the exponential MEAN (rate 1/tau). Wald uses mean mu / shape lambda; drift-diffusion drift rate is v (mu = a/v, lambda = a^2/sigma^2). Gumbel is the maximum type. Student t is the standard (location 0, scale 1) form; mention location-scale t on its page. Symbol clashes to explain on pages: lambda is a Poisson mean, an exponential rate, a Weibull scale and a Wald shape; alpha/beta denote Beta shapes, Gamma shape/rate and Inverse-gamma shape/scale. K is the number of categories (Categorical, Multinomial, Dirichlet), the number of successes in the population (Hypergeometric) and, written as a random variable, the failure count (Geometric, NegBin); each page states which. nu is reserved for degrees of freedom (Student t); the Wald/drift-diffusion drift rate is written v.",
+ "conventions": [
+  "Geometric = the number of <b>failures</b> before the first success (support $0, 1, 2, \\dots$), so $\\mathrm{Geometric}(p) = \\mathrm{NegBin}(1, p)$.",
+  "Negative binomial = the number of failures before the $r$-th success, where $r$ may be any positive real number.",
+  "The exponential uses the <b>rate</b> $\\lambda$ (mean $1/\\lambda$).",
+  "The gamma uses shape $\\alpha$ and <b>rate</b> $\\beta$ (as in <i>Bayesian Data Analysis</i> and Stan); its page also shows the scale form $\\theta = 1/\\beta$ used by Wikipedia and SciPy.",
+  "The inverse-gamma uses shape $\\alpha$ and <b>scale</b> $\\beta$, so if $X \\sim \\mathrm{Gamma}(\\alpha,\\ \\text{rate } \\beta)$ then $1/X \\sim \\mathrm{InvGamma}(\\alpha,\\ \\text{scale } \\beta)$.",
+  "The Weibull uses shape $k$ and <b>scale</b> $\\lambda$ ($k = 2$ is the Rayleigh distribution with $\\sigma = \\lambda/\\sqrt 2$).",
+  "For the log-normal, $\\mu$ and $\\sigma$ are the mean and standard deviation of $\\ln X$.",
+  "For the ex-Gaussian, $\\tau$ is the <b>mean</b> of the exponential part (its rate is $1/\\tau$).",
+  "The Wald (inverse Gaussian) uses mean $\\mu$ and shape $\\lambda$; in drift-diffusion terms the drift rate is $v$, with $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$.",
+  "The Gumbel is the maximum type.",
+  "Student's $t$ is the standard form (location 0, scale 1); its page also describes the location–scale $t$.",
+  "Some letters mean different things on different pages. $\\lambda$ is a Poisson mean, an exponential rate, a Weibull scale and a Wald shape. $\\alpha$ and $\\beta$ are the Beta shapes, the gamma shape and rate, and the inverse-gamma shape and scale. $K$ is the number of categories (categorical, multinomial, Dirichlet), the number of successes in the population (hypergeometric) and, written as a random variable, the failure count (geometric, negative binomial); each page says which. $\\nu$ is used only for degrees of freedom (Student's $t$); the drift rate of the Wald and drift-diffusion models is written $v$."
+ ],
  "notes": "CATALOG SUMMARY: 32 distributions (15 from the original map + 17 added) and 58 relations (18 original arrows made precise + 40 new). Changes from the draft after review: Normal<->Student t merged into one two-way edge (ratio construction one way, nu->infinity limit the other); gamma--normal and chi-squared--exponential edges removed to reduce clutter around Normal and Exponential (their content moves to page text, see PAGE-ONLY FACTS); multinomial--chi-squared (Pearson chi-squared test) added; Categorical->Bernoulli and Beta<->Uniform re-pointed so that one-way special-case arrows always run from the general family to the special case; conjugate-prior labels now read 'prior for p / lambda / p-vector / sigma^2'; several map labels shortened; Wald drift renamed v; jargon in whyAdded texts explained. Reviewer suggestions were all judged correct and applied, with two adjustments: the Gumbel domain-of-attraction wording says 'tails lighter than any power law' (log-normal is in the Gumbel domain but does not have exponential tails), and the requested 'notation' and 'edgeKinds' top-level fields are given below as JSON blocks inside these notes because the output schema only has distributions/relations/notes. The site build should lift them into data files.\n\nCONVENTIONS (declare these site-wide and repeat on each page): Geometric = number of FAILURES before the first success (support 0,1,2,...), so Geometric(p) = NegBin(1,p); NegBin = failures before the r-th success, r allowed to be any positive real (slider 0.2-30, non-integer). Exponential uses RATE lambda. Gamma uses shape alpha / RATE beta (BDA/Stan); pages should show the scale form theta = 1/beta as an alternative (Wikipedia/SciPy). Inverse-gamma uses shape alpha / SCALE beta, so 1/Gamma(alpha, rate beta) = InvGamma(alpha, scale beta). Weibull uses shape k / SCALE lambda (k = 2 is Rayleigh with sigma = lambda/sqrt(2)). Log-normal mu, sigma are the parameters of ln X. Ex-Gaussian tau is the exponential MEAN (rate 1/tau). Wald uses mean mu / shape lambda; drift-diffusion drift rate is v (mu = a/v, lambda = a^2/sigma^2). Gumbel is the maximum type. Student t is the standard (location 0, scale 1) form; mention location-scale t on its page. Symbol clashes to explain on pages: lambda is a Poisson mean, an exponential rate, a Weibull scale and a Wald shape; alpha/beta denote Beta shapes, Gamma shape/rate and Inverse-gamma shape/scale. K is the number of categories (Categorical, Multinomial, Dirichlet), the number of successes in the population (Hypergeometric) and, written as a random variable, the failure count (Geometric, NegBin); each page states which. nu is reserved for degrees of freedom (Student t); the Wald/drift-diffusion drift rate is written v.\n\nNOTATION GLOSSARY (render as a site-wide glossary page and as hover tooltips in every formula; JSON):\n[{\"sym\":\"X\\\\sim D\",\"plain\":\"X is a random variable with distribution D\"},{\"sym\":\"\\\\overset{iid}{\\\\sim}\",\"plain\":\"independent and identically distributed: each variable has the same distribution and none affects the others\"},{\"sym\":\"\\\\xrightarrow{d}\",\"plain\":\"converges in distribution: as the indicated quantity grows, probabilities computed from the left side get arbitrarily close to those from the right side\"},{\"sym\":\"\\\\Rightarrow\",\"plain\":\"implies\"},{\"sym\":\"\\\\iff\",\"plain\":\"if and only if (each statement implies the other)\"},{\"sym\":\"X\\\\mid Y=y\",\"plain\":\"the distribution of X once we know that Y equals y (conditioning)\"},{\"sym\":\"\\\\mathbb 1[A]\",\"plain\":\"indicator: 1 if statement A is true, 0 otherwise\"},{\"sym\":\"\\\\lfloor x\\\\rfloor\",\"plain\":\"floor: x rounded down to a whole number\"},{\"sym\":\"\\\\binom nk\\\\text{ or }C(n,k)\",\"plain\":\"number of ways to choose k items from n\"},{\"sym\":\"\\\\Gamma(a)\",\"plain\":\"gamma function, which extends the factorial: Gamma(n) = (n-1)!\"},{\"sym\":\"B(a,b)\",\"plain\":\"beta function, Gamma(a)Gamma(b)/Gamma(a+b); makes the Beta density integrate to 1\"},{\"sym\":\"\\\\Phi(z)\",\"plain\":\"CDF of the standard normal: probability that Z <= z\"},{\"sym\":\"I_0(\\\\kappa)\",\"plain\":\"modified Bessel function of order 0; makes the von Mises density integrate to 1\"},{\"sym\":\"\\\\Delta^{K-1}\",\"plain\":\"the simplex: all lists of K non-negative numbers that add up to 1\"},{\"sym\":\"X_{(k)}\",\"plain\":\"k-th smallest value in a sample (order statistic)\"},{\"sym\":\"\\\\arg\\\\max_j\",\"plain\":\"the index j at which the expression is largest\"},{\"sym\":\"\\\\inf\\\\{t: ...\\\\}\",\"plain\":\"the first (smallest) time t at which the condition holds\"},{\"sym\":\"B(t)\",\"plain\":\"standard Brownian motion: a continuous random walk whose change over a time step h is N(0, h)\"},{\"sym\":\"\\\\mathbb Z,\\\\ \\\\mathbb R\",\"plain\":\"the integers; the real numbers\"},{\"sym\":\"\\\\#\\\\{\\\\dots\\\\}\",\"plain\":\"the number of items satisfying the condition\"},{\"sym\":\"\\\\mathrm{DUnif},\\\\ \\\\mathrm{U},\\\\ \\\\mathrm{Bin},\\\\ \\\\mathrm{Geom},\\\\ \\\\mathrm{NegBin},\\\\ \\\\mathrm{Exp},\\\\ \\\\mathrm{Dir},\\\\ \\\\mathrm{IG},\\\\ \\\\mathrm{MVN}_d,\\\\ t_\\\\nu,\\\\ \\\\chi^2_k,\\\\ \\\\mathcal N\",\"plain\":\"short names for discrete uniform, continuous uniform, binomial, geometric, negative binomial, exponential, Dirichlet, inverse Gaussian (Wald), d-dimensional multivariate normal, Student t with nu df, chi-squared with k df, normal\"}]\n\nEDGE KINDS (render as a map legend and as distinct line styles; JSON):\n{\"special-case\":\"solid; a one-way arrow points from the general family to the special case named in the label; a two-headed arrow means each side can be obtained from the other (popup explains both directions)\",\"transformation\":\"solid; applying the labelled function to a variable from the source gives the target\",\"sum\":\"solid; adding independent copies (or the labelled variables) of the source gives the target\",\"ratio\":\"solid; ratio of independent source variables gives the target\",\"limit\":\"dashed; the source approaches the target as the labelled quantity goes to its limit (an approximation)\",\"mixture\":\"dotted; a parameter of the source is itself random with the labelled distribution (Inverse-gamma -> Student t is drawn from the mixing distribution; its popup says so)\",\"conditioning\":\"dotted; the source conditioned on the labelled event gives the target\",\"conjugate-prior\":\"colored dash-dot, different hue; arrow points from the prior distribution to the data (likelihood) distribution whose parameter it is a prior for; the posterior is again in the prior's family\",\"other\":\"thin solid; read the popup for the exact meaning\"}\n\nPAGE-ONLY FACTS (removed as edges, must appear on pages): Gamma page, Limits: as alpha -> infinity, (X - alpha/beta)/(sqrt(alpha)/beta) -> N(0,1) (CLT, since Gamma with large shape is a sum of many independent pieces). Chi-squared page, Limits: (chi^2_k - k)/sqrt(2k) -> N(0,1) as k -> infinity; Special values: k = 2 gives Exponential with rate 1/2 (mean 2), e.g. squared distance from the origin of a standard 2D normal point. Exponential page: Exp(1/2) = chi^2_2. Student t page: t_nu -> N(0,1) as nu -> infinity (also on the merged Normal<->t edge). Weibull page: Rayleigh relation with sigma = lambda/sqrt(2).\n\nUI NOTES: Categorical and Multinomial have a probability vector p that is not a scalar slider; render as draggable bars (default uniform, renormalized). Multinomial: for K = 3 show the joint pmf as a triangular (ternary) grid of points sized by probability; for K = 2 show the binomial bar chart; for K >= 4 show the K marginal Binomial(n, p_j) bar charts side by side plus one sampled count vector that can be resampled. Dirichlet is shown for K = 3 on a triangle (alpha_1..alpha_3). Multivariate normal is shown bivariate (mu1, mu2, sigma1, sigma2, rho). For discrete-uniform enforce a <= b; for uniform enforce a < b; for hypergeometric enforce K <= N and n <= N. Student t nu, NegBin r and Chi-squared/F degrees of freedom benefit from a log-scaled slider. Map renderer: Normal has the most edges (hypergeometric, poisson, binomial, log-normal, student-t, chi-squared, cauchy, inverse-gamma, ex-gaussian, MVN, von-mises, wald); place Normal at the center of the normal/sampling cluster with a larger tile and route the limit edges into Normal (hypergeometric, binomial, poisson, student-t, von-mises) from one side so they bundle together. No pair of tiles now has two separate edges.\n\nORIGINAL ARROWS THAT NEEDED INTERPRETATION: Uniform<->Bernoulli is the single overlap point Bernoulli(1/2) = DUnif{0,1}. Binomial<->Geometric has no special-case/limit relation; it is interpreted as the duality between counting successes in fixed trials and waiting for a success in the same Bernoulli sequence (P(K >= k) = P(Bin(k,p) = 0)); map label 'count vs. wait'. Hypergeometric->Normal is the finite-population CLT (with the (N-n)/(N-1) correction). Hypergeometric<->Binomial: forward = N -> infinity limit; backward = conditioning two binomials on their total (Fisher's exact test); label shows both. Chi-squared->Gamma is drawn as special case with the 2*beta*X rescaling as the converse. Poisson<->Exponential is the Poisson process (needs independent stationary increments for the 'iff'). Normal->Student t is now two-way (ratio construction and nu -> infinity limit).\n\nADDED (17): continuous uniform, categorical, multinomial, beta-binomial, F, Cauchy, half-Cauchy, Laplace, logistic, Gumbel, inverse-gamma, Dirichlet, multivariate normal, von Mises, ex-Gaussian, Wald, Pareto. Gumbel was added beyond the candidate list because it supplies the random-utility/softmax link (Gumbel -> Logistic, Gumbel -> Categorical) that matters for computational modeling of choice. Half-Cauchy was kept as the scale-prior tile (it connects to the map via Cauchy); its page presents half-normal, half-t and exponential as the alternatives that current Stan guidance often prefers.\n\nCONSIDERED AND NOT GIVEN TILES (cover on related pages instead): half-normal (alternative scale prior; mention on Half-Cauchy and Normal pages); Rayleigh (Weibull k = 2 with sigma = lambda/sqrt(2); mention on Weibull page); noncentral t / chi-squared / F (power analysis; best as an optional 'effect size / power' overlay on the t, chi-squared and F pages); Wishart / inverse-Wishart / LKJ (covariance and correlation priors; mention on Multivariate normal page); generalized extreme value and generalized Pareto (mention on Gumbel and Pareto pages); skew-normal, zero-inflated Poisson, Dirichlet-multinomial, Erlang (Erlang = Gamma with integer shape), shifted Wald / full drift-diffusion first-passage distribution (mention on Wald page), wrapped normal (mention on von Mises page).\n\nOTHER CONJUGACY FACTS FOR PAGES (not drawn as arrows to keep the map readable): Normal prior is conjugate for a normal mean with known variance (self-conjugate); Normal-inverse-gamma for unknown mean and variance, with Student-t marginal posterior for the mean; Gamma conjugate for exponential and Poisson rates and for normal precision; Beta conjugate for Bernoulli, binomial, geometric and negative-binomial p; Dirichlet conjugate for categorical and multinomial; Pareto conjugate for the upper bound of a Uniform(0, theta). Closure facts: sums of independent Poissons, Gammas (same rate), Normals, Binomials (same p), chi-squareds and NegBins (same p) stay in family; minimum of independent exponentials is Exp(sum of rates).\n\nLAYOUT SUGGESTION: discrete Bernoulli-trial family on the left/top (DUnif, Bernoulli, Categorical, Binomial, Multinomial, Hypergeometric, Geometric, NegBin, Beta-binomial, Poisson); waiting-time family in the middle (Uniform, Exponential, Gamma, Weibull, Pareto, Gumbel, Laplace, Logistic); normal/sampling family on the right (Normal at its center, MVN, Log-normal, Chi-squared, t, F, Cauchy, Half-Cauchy); Bayesian prior cluster (Beta, Dirichlet, Inverse-gamma) near the discrete family because of conjugacy arrows; 'response times and circular data' cluster (Ex-Gaussian, Wald, Von Mises) at the bottom. Original-map edges can be styled distinctly (onOriginalMap = true) so the reference map is still recognizable.\n\nREFERENCES: Leemis and McQueston (2008), Univariate Distribution Relationships, The American Statistician 62(1):45-53; Casella and Berger, Statistical Inference (2nd ed.); Gelman et al., Bayesian Data Analysis (3rd ed.), Appendix A; Gelman (2006) on half-Cauchy priors; Stan prior choice recommendations (wiki); Wand et al. (2011) half-Cauchy as inverse-gamma mixture; Wikipedia articles for each distribution; Luce (1959)/McFadden (1974) for Gumbel random utility; Matzke and Wagenmakers (2009) on ex-Gaussian and shifted Wald for response times; Zhang and Luck (2008) for von Mises mixture models of working memory; Vehtari, Gelman and Gabry (2017) for PSIS-LOO. Checks made by hand: gamma-Poisson gives NegBin with p = beta/(1+beta) (mean r/beta matches); floor of Exp(lambda) is Geom(1-e^{-lambda}) in the failures convention; -ln Weibull(k,lambda) is Gumbel(-ln lambda, 1/k); F to Beta(d1/2, d2/2) via U/(U+V); Weibull(2, lambda) = Rayleigh(lambda/sqrt 2); SciPy invgauss(mu/lambda, scale=lambda) = IG(mu, lambda)."
 });
 

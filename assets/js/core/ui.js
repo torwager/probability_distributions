@@ -91,6 +91,24 @@ export function richToHtml(text) {
   return out;
 }
 
+/**
+ * The first sentence of a rich-text string. Periods inside $...$ and in "e.g." / "i.e." do not end a sentence.
+ */
+export function firstSentence(text) {
+  const s = String(text ?? '');
+  let inTex = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\') { i++; continue; }
+    if (c === '$') { inTex = !inTex; continue; }
+    if (inTex || !'.!?'.includes(c)) continue;
+    if (i + 1 < s.length && !/\s/.test(s[i + 1])) continue;
+    if (/\b(e\.g|i\.e|etc|vs|cf)$/i.test(s.slice(Math.max(0, i - 4), i))) continue;
+    return s.slice(0, i + 1);
+  }
+  return s;
+}
+
 /** Fill an element with rich text (see richToHtml). */
 export function renderRich(target, text) { target.innerHTML = richToHtml(text); return target; }
 /** Element of the given tag with rich-text content. */
@@ -242,7 +260,18 @@ export function paramPanel(container, params, opts) {
     const msgId = id + '-msg';
     const symEl = h('span', { class: 'param-sym' });
     renderTex(symEl, prm.sym);
-    const info = h('button', { type: 'button', class: 'info-tip', 'aria-label': `About ${prm.name}: ${prm.meaning}`, 'data-tip': prm.meaning }, 'i');
+    // the "i" button shows the parameter's meaning (rich text, so symbols render) on hover, focus or tap
+    const tipId = id + '-tip';
+    const info = h('button', { type: 'button', class: 'info-tip', 'aria-label': `About ${prm.name}`, 'aria-describedby': tipId, 'aria-expanded': 'false' }, 'i');
+    const tip = rich('span', prm.meaning, { class: 'param-tip', id: tipId, role: 'tooltip', hidden: true });
+    const showTip = on => { tip.hidden = !on; info.setAttribute('aria-expanded', String(on)); };
+    let pinned = false;
+    info.addEventListener('mouseenter', () => showTip(true));
+    info.addEventListener('mouseleave', () => { if (!pinned) showTip(false); });
+    info.addEventListener('focus', () => showTip(true));
+    info.addEventListener('blur', () => { pinned = false; showTip(false); });
+    info.addEventListener('click', () => { pinned = !pinned; showTip(pinned); });
+    info.addEventListener('keydown', e => { if (e.key === 'Escape') { pinned = false; showTip(false); } });
     const input = h('input', {
       id, type: 'text', inputmode: prm.integer ? 'numeric' : 'decimal', autocomplete: 'off', spellcheck: 'false',
       class: 'param-input', 'aria-describedby': msgId, 'data-param': prm.key,
@@ -265,7 +294,7 @@ export function paramPanel(container, params, opts) {
       return Math.max(prm.min, Math.min(prm.max, v));
     };
     const row = h('div', { class: 'param-row' },
-      h('div', { class: 'param-head' }, label, info),
+      h('div', { class: 'param-head' }, label, info, tip),
       h('div', { class: 'param-ctl' }, input, slider),
       msg);
     root.appendChild(row);

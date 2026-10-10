@@ -26,7 +26,7 @@ export default {
   sample: (rng, { mu, sigma }) => rng.normal(mu, sigma),
 
   /** Extra parameter sets checked by the node tests (defaults are always checked). */
-  testParams: [{ mu: -3, sigma: 0.25 }, { mu: 7, sigma: 4 }],
+  testParams: [{ mu: -3, sigma: 0.25 }, { mu: 7, sigma: 4 }, { mu: 9.5, sigma: 0.1 }],
 
   /** True support (may be infinite). */
   range: () => [-Infinity, Infinity],
