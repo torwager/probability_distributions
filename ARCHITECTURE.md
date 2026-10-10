@@ -17,7 +17,7 @@ GitHub Pages at `https://torwager.github.io/probability_distributions/`. **Use r
 (`distribution.html?d=normal`, `assets/...`), never a leading `/`.
 
 ```
-index.html                 home (map; currently a placeholder grid, replaced by the map builder)
+index.html                 home: the map (assets/js/map/*, assets/css/map.css)
 distribution.html          template, ?d=<distribution id>  -> assets/js/pages/distribution.js
 relation.html              template, ?r=<relation id>      -> assets/js/pages/relation.js
 distributions.html         all distributions by family
@@ -176,7 +176,7 @@ access at import time; only `customExplorer` may touch the DOM).
 | `stats(p)` | yes | `{ mean, variance, sd, median, mode, skewness, exKurtosis, entropy }`, **all numbers**. Use `NaN` for undefined values (Cauchy mean) and `Infinity` for infinite ones, and explain these in `content.properties`. Entropy in nats. If the median has no closed form, use `quantile(0.5, p)` |
 | `handles` | yes* | array of handle specs, or `p => array` (see below) |
 | `normalize(p, changedKey)` | no | return a corrected params object after any change (enforce `a <= b`, resize vectors, ...). Called with `changedKey = null` for the defaults |
-| `check(p)` | no | return an error message string if `p` is invalid (cross-parameter rules), else `null`. Typed values that fail are shown as an inline message and not applied; drags that fail are ignored |
+| `check(p)` | no | return an error message string if `p` is invalid (cross-parameter rules), else `null`. It is applied after `normalize`, so a typed value can push another parameter along. Typed values that fail are shown as an inline message and not applied; drags that fail are ignored |
 | `testParams` | no, recommended | extra parameter sets (partial objects) for the node tests; include edge-ish but valid values (small and large shapes, a shape below 1 if allowed) |
 | `explorer` | no | explorer options (below) |
 | `content` | yes | page text (below) |
@@ -209,9 +209,20 @@ edge of the current view; a second drag can go further.
 | `xPoint` | `x(p)`, optional `lineTo(p)` (dashed line up to that y) | `{[param]: pt.x}` | triangle under the x axis | an endpoint or a count: n of a binomial, a or b of a uniform, x_m of a Pareto |
 
 Optional on every handle: `id` (default `type-param`), `label` (short unicode text drawn next to the knob,
-default the param's unicode label), `ariaLabel`, `color: 'steel'` (rarely), `cls`, `keyX`/`keyY` (which param
-the arrow keys change for `point` handles; default `param`). A handle whose position is not finite at the
-current parameters is hidden until the position is defined again.
+default the param's unicode label), `ariaLabel`, `color: 'steel'` (rarely; colors the knob, line and arrow),
+`cls`, `keyX`/`keyY` (which param the arrow keys change for `point` handles; default `param`). A handle whose
+position is not finite at the current parameters is hidden until the position is defined again.
+
+Arrow keys. By default a focused handle's arrow keys step its `param` (or `keyX`/`keyY`) by the param's `step`.
+When the handle sits at a function of several parameters (a mean line that keeps α + β, a standard-deviation
+arrow that keeps the mean, a knob that slides a whole interval), that moves the knob the wrong way or changes
+the wrong thing. Then use one of:
+
+* `key: 'drag'`: each key press moves the knob by 1% of the view (10% with Shift) and applies the handle's
+  `set`, exactly as if it had been dragged that far. This is the usual choice.
+* `key: (steps, axis, p) => patch`: full control (`steps` is ±1 or ±10, `axis` is `'x'` or `'y'`).
+* `keySign: -1`: keep the default behavior but reverse the direction (for a knob that moves opposite to its
+  parameter).
 
 Mapping rules:
 
@@ -278,6 +289,8 @@ parameter is set only with its number box and slider.
 ```js
 explorer: {
   xLabel: 'k',                       // axis variable name (default 'x' / 'k' for discrete)
+  varName: 'K',                      // name of the random variable in captions and the area readout (default 'X')
+  areaLabels: ['c', 'd'],            // labels of the two "Between" boundaries of the area tool (default a, b)
   pdfCaption, cdfCaption,            // override the plot captions (plain text)
   readouts: [                        // the "Summary at these parameters" list
     { key: 'mean', label: 'Mean' },  // value read from stats(p)[key]
@@ -285,8 +298,13 @@ explorer: {
   ],
   overlays: p => [                   // extra curves with a legend (e.g. normal approximation)
     { id: 'normal', label: 'Normal approximation', pdf: x => ..., cdf: x => ..., cls: 'curve-ref' },
+    // on a discrete page, stems: true draws a reference PMF as grey stems (optional offset shifts them sideways)
+    { id: 'binom', label: 'Binomial with the same mean', pdf: k => ..., stems: true, offset: 0.25 },
   ],
-  extraLayers: (p, view) => [ /* plot layers, see plot.js header; e.g. a mean marker */ ],
+  // plot layers (see the plot.js header), e.g. a mean marker. `state` = { area: {on, mode, a, b}, dragging }
+  // (dragging is the id of the handle being dragged, or null). A layer with `under: true` is drawn below the
+  // curve and its fill instead of on top.
+  extraLayers: (p, view, state) => [ ... ],
   areaDefault: p => x,               // initial threshold for the area tool (default: median)
   yMax: p => number,                 // cap the y axis (e.g. densities that are infinite at 0)
 }
@@ -294,7 +312,12 @@ explorer: {
 
 Layer classes available in CSS: `curve-main`, `curve-ref` (dashed warm grey), `curve-2`, `curve-thin`,
 `pdf-fill`, `area-shade`, `fill-steel`, `bars-strong`, `pmf`, `pmf-on`, `pmf-ref`, `ref-line`, `guide`,
-`mean-line`, `marker`, `outline` (polygons without fill).
+`mean-line`, `marker`, `outline` (polygons without fill), `muted` (smaller grey text labels and grey dots;
+`mean-label` is an alias for text).
+
+Discrete pages draw stems only on the true support `range(p)`, so the room left for dragging past `n` stays
+empty. The x window shrinks back when a count such as `n` gets smaller, and the y axis shrinks when the peak
+falls below 60% of its height.
 
 ### Content
 
@@ -558,6 +581,9 @@ demos.compareDemo(container, null, {
 });
 ```
 
+Both also accept `check(p)` (an error message, or null) and `normalize(p, changedKey)` (a corrected params
+object, applied before `check`; use it to push another parameter along, e.g. raise n when λ is typed above it).
+In `simulationDemo`, the `s` passed to `readout` and `onUpdate` also has `xs` (the draws in order) and `sorted`.
 Both return `{ store, redraw, plots }` for additions. Param specs use the catalog format and the same keys and
 symbols as the distribution pages. Legend labels are plain text: write `Gamma(α = 3, β = 1)`, not TeX.
 
@@ -587,16 +613,19 @@ constant for large κ (`besselI0e`); binomial, Poisson and negative binomial CDF
 functions, not sums, for large n or λ).
 
 **plot.js**: `new Plot(container, { xLabel, yLabel, height, margin, equalAspect, xTicks, yTicks, onBackground })`,
-`plot.render(scene)` (layer types `line, area, stems, bars, step, vline, hline, segment, dot, text, bracket,
-polygon, heatmap`; handle types `vline, hArrow, vArrow, point, xPoint`; see the comment block at the top of
-plot.js), `DomainAnimator`, `sampleFn(f, a, b, n)`, `niceTicks`, `formatTick`. `render` is cheap; call it on
+`plot.render(scene)` (layer types `line, area, stems, bars, step, vline, hline, segment, dot, dots, text,
+bracket, polygon, heatmap`; `dots` draws many points in one layer, for scatter plots; handle types `vline,
+hArrow, vArrow, point, xPoint`; see the comment block at the top of plot.js). Plot option `bare: true` draws no
+axes, grid or axis labels (polar plots, simplex triangles). Legend items take an optional `shape` (`'line'`,
+`'box'`, `'dot'`, `'stem'`) for the swatch; the classes `pmf`, `pmf-ref` and `pmf-on` get stem swatches. `DomainAnimator`, `sampleFn(f, a, b, n)`, `niceTicks`, `formatTick`. `render` is cheap; call it on
 every change. DOM nodes are reused by `id`. A finger on a handle drags the handle (page scrolling is blocked
 only then); a swipe elsewhere on a plot scrolls the page.
 
 **ui.js**: `h(tag, attrs, ...children)`, `renderTex(el, tex, display)`, `tex(src)`, `texToHtml`, `rich(tag, text)`,
 `renderRich(el, text)`, `firstSentence(rich)`, `renderTexLines`, `fmt(v, digits)`, `fmtInput`, `parseNumber`,
 `createStore`, `paramPanel`, `toggleSwitch(label, on, onChange)`, `segmented(options, value, onChange)`,
-`openModal({ title, body, wide, footer })` (accessible dialog: Esc closes, focus is trapped, returns `close`),
+`openModal({ title, body, wide, footer, initialFocus })` (accessible dialog: Esc closes, focus is trapped and
+starts on `initialFocus` or the close button, returns `close`),
 `section(id, title, intro)`, `glossaryList(items)`, `referenceList(refs)`, `texLabel(sym)`.
 
 **explorer.js**: `mountExplorer(container, mod, { store })`, `defaultParams(mod)`.
@@ -637,6 +666,10 @@ target), and the map must be usable at 390 px (pan and zoom, or a scrollable con
 * `npm run interact`: Playwright interaction test of the Normal page (mouse drags, typing, validation, the area
   tool and its keyboard control, real touch events on a phone), the binomial→normal demo and the two demo
   helpers.
+* `npm run map`: Playwright test of the map: `window.__map.checkLayout()` must report no overlaps (labels on
+  tiles, labels on labels, tiles on tiles, labels on other arrows, arrows through tiles), every arrow starts and
+  ends at its tiles, every label and arrow opens the right dialog with a link to its relation page, and focus
+  returns to the label when the dialog closes.
 
 Playwright is used from the global install (`/opt/node22/lib/node_modules/playwright`) and Chromium from
 `/opt/pw-browsers`; override with `PLAYWRIGHT_PATH` and `CHROMIUM_PATH`.

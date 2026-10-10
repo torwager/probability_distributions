@@ -171,6 +171,7 @@ await check('area tool: arrow keys move a focused threshold by one step per key 
   const a0 = Number(txt0.match(/P\(([−\-\d.]+) < X/)[1].replace('−', '-'));
   await page.locator('.fig-pdf .handle[data-handle="area-a"]').focus();
   for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowLeft'); // pressed faster than the screen redraws
+  await page.waitForTimeout(150); // the readout is redrawn on the next animation frame
   const txt1 = await page.locator('.area-readout').textContent();
   const a1 = Number(txt1.match(/P\(([−\-\d.]+) < X/)[1].replace('−', '-'));
   assert.ok(a0 - a1 > 0.3, `threshold a moved from ${a0} to ${a1}`);

@@ -1136,7 +1136,7 @@ export const CATALOG = deepFreeze({
     },
     {
      "sym": "\\sigma_1",
-     "name": "SD of X₁",
+     "name": "standard deviation of X₁",
      "meaning": "Spread (standard deviation) of the first variable.",
      "domain": "\\sigma_1>0",
      "default": 1,
@@ -1149,7 +1149,7 @@ export const CATALOG = deepFreeze({
     },
     {
      "sym": "\\sigma_2",
-     "name": "SD of X₂",
+     "name": "standard deviation of X₂",
      "meaning": "Spread (standard deviation) of the second variable.",
      "domain": "\\sigma_2>0",
      "default": 1,
@@ -1250,7 +1250,7 @@ export const CATALOG = deepFreeze({
     },
     {
      "sym": "\\sigma",
-     "name": "normal SD",
+     "name": "normal standard deviation",
      "meaning": "Spread of the Gaussian component.",
      "domain": "\\sigma>0",
      "default": 0.05,

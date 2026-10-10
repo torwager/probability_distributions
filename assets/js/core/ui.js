@@ -312,6 +312,7 @@ export function paramPanel(container, params, opts) {
     const setMsg = text => {
       msg.textContent = text || '';
       row.classList.toggle('invalid', !!text);
+      row.classList.remove('reverted');
       input.setAttribute('aria-invalid', text ? 'true' : 'false');
     };
     input.addEventListener('input', () => {
@@ -321,9 +322,18 @@ export function paramPanel(container, params, opts) {
       opts.apply(prm.key, r.value);
     });
     input.addEventListener('blur', () => {
-      // on leaving the box, show the value actually in use
+      // on leaving the box, show the value actually in use; if the typed text was not accepted,
+      // keep a short note saying so (it disappears with the next edit)
+      const wasInvalid = row.classList.contains('invalid');
+      const typed = input.value.trim();
+      const why = msg.textContent;
       setMsg('');
-      input.value = fmtInput(opts.get()[prm.key], prm);
+      const used = fmtInput(opts.get()[prm.key], prm);
+      input.value = used;
+      if (wasInvalid) {
+        msg.textContent = `${typed ? `“${typed}” was not used. ` : ''}${why} The value in use is ${used.replace(/-/g, '−')}.`;
+        row.classList.add('reverted');
+      }
     });
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { input.blur(); return; }
@@ -408,10 +418,11 @@ export function segmented(options, value, onChange, ariaLabel = 'Options') {
 
 /**
  * Open an accessible modal dialog.
- * @param {{title: string, body: Node|string, wide?: boolean, footer?: Node}} o  body string is rich text
+ * @param {{title: string, body: Node|string, wide?: boolean, footer?: Node, initialFocus?: Element|function}} o
+ *   body string is rich text; initialFocus is the element focused when the dialog opens (default: the close button)
  * @returns {function} close
  */
-export function openModal({ title, body, wide = false, footer = null, titleTex = false }) {
+export function openModal({ title, body, wide = false, footer = null, titleTex = false, initialFocus = null }) {
   const prevFocus = document.activeElement;
   const titleId = 'modal-title-' + Math.random().toString(36).slice(2, 8);
   const closeBtn = h('button', { type: 'button', class: 'modal-close', 'aria-label': 'Close' }, '×');
@@ -450,7 +461,12 @@ export function openModal({ title, body, wide = false, footer = null, titleTex =
   document.addEventListener('keydown', onKey, true);
   closeBtn.addEventListener('click', close);
   backdrop.addEventListener('mousedown', e => { if (e.target === backdrop) close(); });
-  setTimeout(() => (focusables()[0] || dialog).focus({ preventScroll: true }), 30);
+  // focus `initialFocus` (an element inside the dialog, or a function returning one) if given, else the first focusable
+  setTimeout(() => {
+    let target = typeof initialFocus === 'function' ? initialFocus(dialog) : initialFocus;
+    if (!(target && dialog.contains(target))) target = focusables()[0] || dialog;
+    target.focus({ preventScroll: true });
+  }, 30);
   return close;
 }
 

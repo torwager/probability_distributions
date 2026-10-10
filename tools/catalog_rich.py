@@ -80,7 +80,8 @@ PARAM_MEANING = {
 
 PARAM_NAME = {
  'multivariate-normal.mu1': 'mean of X₁', 'multivariate-normal.mu2': 'mean of X₂',
- 'multivariate-normal.sigma1': 'SD of X₁', 'multivariate-normal.sigma2': 'SD of X₂',
+ 'multivariate-normal.sigma1': 'standard deviation of X₁', 'multivariate-normal.sigma2': 'standard deviation of X₂',
+ 'ex-gaussian.sigma': 'normal standard deviation',
 }
 
 RELATION_PLAIN = {

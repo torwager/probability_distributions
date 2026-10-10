@@ -1,13 +1,14 @@
-// Temporary home page: a grid of all distributions. The interactive map replaces this.
-import { DISTRIBUTIONS, GROUP_ORDER } from '../catalog.js';
-import { h } from '../core/ui.js';
-import { groupLabel } from '../core/layout.js';
-import { distTile } from './common.js';
+// Home page: the interactive map of distributions, its legend and filters, and the list view below it.
+import { buildMap } from '../map/map.js';
+import { buildLegend } from '../map/legend.js';
+import { buildList } from '../map/list.js';
 
-const root = document.getElementById('dist-grid');
-for (const g of GROUP_ORDER) {
-  const ds = DISTRIBUTIONS.filter(d => d.group === g);
-  if (!ds.length) continue;
-  root.append(h('h2', { class: 'group-title' }, groupLabel(g), h('span', { class: 'muted' }, `${ds.length} distribution${ds.length > 1 ? 's' : ''}`)));
-  root.append(h('div', { class: 'tiles' }, ds.map(distTile)));
-}
+const root = document.getElementById('map-root');
+const map = buildMap(root, {
+  onReady: () => { document.documentElement.dataset.mapReady = '1'; },
+});
+buildLegend(root, map);
+buildList(document.getElementById('map-list'));
+
+// exposed for the browser checks in tests (read-only use)
+window.__map = map;

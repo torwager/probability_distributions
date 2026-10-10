@@ -10,7 +10,9 @@
     "interact": "node tests/interact.mjs",
     "serve": "node tests/server.mjs 8000",
     "manifest": "node tools/update-manifest.mjs",
-    "catalog": "python3 tools/build_catalog.py"
+    "catalog": "python3 tools/build_catalog.py",
+    "map": "node tests/map.mjs",
+    "subpath": "node tests/subpath.mjs"
   },
   "license": "MIT"
 }

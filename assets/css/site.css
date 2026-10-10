@@ -147,6 +147,11 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 /* segmented control */
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); margin: .6rem 0 .2rem; }
 .segmented[hidden] { display: none; }
+@media (max-width: 520px) {
+  /* on phones a long control may wrap onto two lines; a smaller corner radius keeps that tidy */
+  .segmented { border-radius: 16px; max-width: 100%; }
+  .segmented button { padding: .32rem .65rem; }
+}
 .segmented button { font: inherit; font-size: .8rem; font-weight: 600; border: none; background: transparent; color: var(--ink-2); padding: .32rem .8rem; border-radius: 999px; cursor: pointer; }
 .segmented button[aria-checked="true"] { background: var(--amber); color: #1a2332; }
 .segmented button:hover:not([aria-checked="true"]) { background: var(--surface); }
@@ -209,6 +214,7 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .param-row.invalid .param-input { border-color: var(--nocebo); box-shadow: 0 0 0 3px var(--nocebo-soft); }
 .param-msg { font-size: .78rem; color: var(--nocebo); min-height: 0; margin-top: .2rem; }
 .param-msg:empty { display: none; }
+.param-row.reverted .param-msg { color: var(--muted); }
 .param-slider { flex: 1; min-width: 0; height: 24px; cursor: pointer; background: transparent; -webkit-appearance: none; appearance: none; margin: 0; }
 .param-slider::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: var(--line-2); }
 .param-slider::-moz-range-track { height: 4px; border-radius: 999px; background: var(--line-2); }
@@ -262,6 +268,11 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .layer .dot { fill: var(--curve); }
 .layer.marker .dot { fill: var(--amber); stroke: var(--amber-deep); stroke-width: 1.5; }
 .layer .label { fill: var(--ink-2); font-size: 12px; font-family: var(--sans); }
+.layer.muted .label, .layer.mean-label .label { fill: var(--muted); font-size: 11px; }
+.layer .dots { fill: var(--curve); fill-opacity: .55; }
+.layer.marker .dots { fill: var(--amber); fill-opacity: .9; stroke: var(--amber-deep); stroke-width: .8; }
+.layer.muted .dots { fill: var(--muted); fill-opacity: .5; }
+.plot-bare .plot-bg { fill: none; }
 .layer .poly { fill: var(--curve-fill); stroke: var(--curve); stroke-width: 1.6; stroke-linejoin: round; }
 .layer.outline .poly { fill: none; }
 .layer.fill-steel .poly { fill: rgba(111,143,176,.28); }
@@ -286,6 +297,8 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .handle:focus-visible .knob { stroke: var(--ink); stroke-width: 2.5; }
 .handle:focus-visible .knob { filter: drop-shadow(0 0 4px var(--amber)); }
 .handle.is-steel .knob { fill: var(--steel); }
+.handle.is-steel .handle-line, .handle.is-steel .handle-arrow, .handle.is-steel .handle-tick, .handle.is-steel .handle-guide { stroke: var(--steel-deep); }
+.arrowhead-steel { fill: var(--steel-deep); }
 .handle.threshold .knob { fill: var(--amber); stroke: var(--amber-deep); stroke-width: 1.4; }
 .plot-legend { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .8rem; color: var(--ink-2); margin: .3rem 0 0 .3rem; }
 .plot-legend[hidden] { display: none; }
@@ -295,6 +308,15 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .swatch.curve-2 { border-top-color: var(--steel); }
 .swatch.area-shade { height: 10px; border: none; background: var(--area-fill); border-radius: 2px; }
 .swatch.bars-strong, .swatch.bars { height: 10px; border: 1px solid var(--steel); background: var(--curve-fill); }
+.swatch.pmf, .swatch.pmf-ref, .swatch.pmf-on, .swatch.swatch-stem { width: 10px; height: 14px; border: none;
+  background: radial-gradient(circle at 50% 3.5px, var(--sw-c) 3px, transparent 3.5px), linear-gradient(var(--sw-c), var(--sw-c)) 50% 100% / 2.4px 11px no-repeat; --sw-c: var(--curve); }
+.swatch.pmf-ref { --sw-c: var(--curve-ref); }
+.swatch.pmf-on { --sw-c: var(--amber-deep); }
+.swatch.swatch-dot { width: 10px; height: 10px; border: none; border-radius: 50%; background: var(--curve); opacity: .75; }
+.swatch.swatch-dot.marker { background: var(--amber); border: 1px solid var(--amber-deep); opacity: 1; }
+.swatch.swatch-dot.muted { background: var(--muted); }
+.swatch.swatch-box { height: 10px; border: 1px solid var(--steel); background: var(--curve-fill); }
+.swatch.swatch-line { height: 0; }
 
 /* ------------------------------------------------------------------ Formulas, glossary, tables */
 .formula { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: .6rem 1rem; overflow-x: auto; overflow-y: hidden; max-width: 100%; }

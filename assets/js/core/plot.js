@@ -20,6 +20,9 @@
 //   step    {points:[[k,F],...], cls, x0?}          right-continuous step function (discrete CDF)
 //   vline   {x, cls}   hline {y, cls}   segment {x1,y1,x2,y2,cls}
 //   dot     {x, y, r=4, cls}    text {x, y, text, cls, anchor='middle', dx=0, dy=0}
+//   dots    {points:[[x,y],...], r=2.5, cls}       many small dots in one layer (scatter plots, data rugs);
+//                                                    CSS classes: default steel, 'marker' (amber), 'muted'
+//   text layers with cls 'muted' (or 'mean-label') are drawn smaller in the muted color
 //   bracket {x, y1, y2, cls, side='right', label?}   vertical bracket at data x between y1 and y2 (px-sized caps)
 //   polygon {points:[[x,y],...], cls, closed=true}  closed (filled) polygon, e.g. a simplex triangle or a
 //                                                    probability ellipse; CSS classes: 'outline' (no fill),
@@ -31,8 +34,12 @@
 //           Use about 60-120 cells per side; the image is re-rendered on every render() call.
 //
 // Plot options also include `equalAspect: true` (one data unit is the same length on both axes; the
-// shorter domain is widened around its center) for 2-D views such as contour plots and simplexes, and
-// `xTicks: false` / `yTicks: false` to hide tick labels.
+// shorter domain is widened around its center) for 2-D views such as contour plots and simplexes,
+// `xTicks: false` / `yTicks: false` to hide tick labels, and `bare: true` to draw no axes, grid lines or
+// axis labels at all (polar plots, simplex triangles).
+//
+// Legend items are { label, cls, shape? }; shape 'line' (default for curves), 'box' (bars), 'dot'
+// (scatter points) or 'stem' (PMF lollipops) picks the swatch drawn next to the label.
 //
 // Handle types (see ARCHITECTURE.md). Each handle descriptor has:
 //   id, type, label (short text such as 'μ'), ariaLabel, valueText,
@@ -44,7 +51,8 @@
 //   vArrow {from:{x,y}, to:{x,y}}   vertical arrow; drag the knob at `to` vertically
 //   point  {at:{x,y}}         free 2-D knob
 //   xPoint {x, lineTo?}       knob sitting on the x-axis (optionally a dashed line up to y = lineTo); drag horizontally
-// Optional on any handle: cls (extra class), color ('amber' default | 'steel').
+// Optional on any handle: cls (extra class), color ('amber' default | 'steel'; steel colors the knob,
+// line and arrow, for a handle that moves something secondary).
 
 import { niceStep } from './math.js';
 
@@ -112,6 +120,10 @@ export class Plot {
     const mk = el('marker', { id: `arrow-${this.id}`, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '5', markerHeight: '5', orient: 'auto-start-reverse' }, defs);
     el('path', { d: 'M0,0 L10,5 L0,10 z', class: 'arrowhead' }, mk);
     this.markerId = `arrow-${this.id}`;
+    const mk2 = el('marker', { id: `arrow-steel-${this.id}`, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '5', markerHeight: '5', orient: 'auto-start-reverse' }, defs);
+    el('path', { d: 'M0,0 L10,5 L0,10 z', class: 'arrowhead arrowhead-steel' }, mk2);
+    this.markerSteelId = `arrow-steel-${this.id}`;
+    if (opts.bare) this.root.classList.add('plot-bare');
 
     this.bg = el('rect', { class: 'plot-bg' }, this.svg);
     this.gGrid = el('g', { class: 'grid' }, this.svg);
@@ -139,6 +151,7 @@ export class Plot {
     const narrow = this.width < 420;
     // left margin: room for the widest y tick label (11px monospace, about 6.7px per character),
     // an 8px gap and the rotated axis label
+    if (this.opts.bare) return { t: m.t ?? 12, r: m.r ?? 12, b: m.b ?? 12, l: m.l ?? 12 };
     const tickW = this.opts.yTicks === false ? 0 : 6.7 * (this._yTickChars || 4);
     const auto = Math.ceil(tickW + 8 + (this.opts.yLabel ? 20 : 4));
     return { t: m.t ?? 26, r: m.r ?? (narrow ? 12 : 18), b: m.b ?? 44, l: m.l ?? Math.max(narrow ? 40 : 52, auto) };
@@ -206,6 +219,7 @@ export class Plot {
   _axes(scene) {
     const I = this.inner, g = this.gAxes, grid = this.gGrid;
     g.textContent = ''; grid.textContent = '';
+    if (this.opts.bare) return;
     const xt = niceTicks(this.xd[0], this.xd[1], this.opts.xTickCount || (this.width < 420 ? 5 : 8), !!scene.discreteX);
     const yt = niceTicks(this.yd[0], this.yd[1], this.opts.yTickCount || 5);
     for (const v of yt) {
@@ -377,6 +391,18 @@ export class Plot {
       case 'dot': {
         const c = this._ensure(rec, 'p', 'circle', 'dot');
         c.setAttribute('cx', f2(this.sx(L.x))); c.setAttribute('cy', f2(clampPx(this.sy(L.y)))); c.setAttribute('r', L.r ?? 4);
+        break;
+      }
+      case 'dots': {
+        const r = L.r ?? 2.5;
+        let d = '';
+        for (const [x, y] of L.points || []) {
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+          const px = this.sx(x), py = this.sy(y);
+          if (Math.abs(px) > 1e5 || Math.abs(py) > 1e5) continue;
+          d += `M${f2(px - r)},${f2(py)}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`;
+        }
+        this._ensure(rec, 'p', 'path', 'dots').setAttribute('d', d);
         break;
       }
       case 'text': {
@@ -560,7 +586,7 @@ export class Plot {
       parts.line.setAttribute('x2', f2(A.x)); parts.line.setAttribute('y2', f2(A.y));
       // hide arrowheads if the arrow is too short to show them
       const len = Math.hypot(A.x - fxc, A.y - fyc);
-      parts.line.setAttribute('marker-start', len > 18 ? `url(#${this.markerId})` : '');
+      parts.line.setAttribute('marker-start', len > 18 ? `url(#${H.color === 'steel' ? this.markerSteelId : this.markerId})` : '');
       parts.line.setAttribute('marker-end', '');
       if (H.type === 'hArrow') {
         parts.tick.setAttribute('x1', f2(fxc)); parts.tick.setAttribute('x2', f2(fxc));
@@ -705,7 +731,7 @@ export class Plot {
       const s = document.createElement('span');
       s.className = 'legend-item';
       const sw = document.createElement('i');
-      sw.className = 'swatch ' + (it.cls || '');
+      sw.className = 'swatch ' + (it.cls || '') + (it.shape ? ' swatch-' + it.shape : '');
       s.appendChild(sw);
       s.appendChild(document.createTextNode(it.label));
       this.legendEl.appendChild(s);

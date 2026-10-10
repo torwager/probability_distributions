@@ -26,10 +26,14 @@ export function mountExplorer(container, mod, { store }) {
   const paramByKey = Object.fromEntries(mod.params.map(p => [p.key, p]));
   const X = mod.explorer || {};
   const xName = X.xLabel || (discrete ? 'k' : 'x');
+  // name of the random variable in captions and readouts (geometric and negative binomial pages use K)
+  const vName = X.varName || 'X';
+  // labels of the two boundaries in the "Between" mode of the area tool (default a, b)
+  const [aLab, bLab] = X.areaLabels || ['a', 'b'];
 
   // ------------------------------------------------------------ DOM
-  const pdfCap = discrete ? `Probability mass  P(X = ${xName})` : `Probability density  f(${xName})`;
-  const cdfCap = `Cumulative probability  F(${xName}) = P(X ≤ ${xName})`;
+  const pdfCap = discrete ? `Probability mass  P(${vName} = ${xName})` : `Probability density  f(${xName})`;
+  const cdfCap = `Cumulative probability  F(${xName}) = P(${vName} ≤ ${xName})`;
   const pdfBox = h('div', { class: 'plot-box' });
   const cdfBox = h('div', { class: 'plot-box' });
   const areaReadout = h('p', { class: 'area-readout', 'aria-live': 'polite', hidden: true });
@@ -61,7 +65,13 @@ export function mountExplorer(container, mod, { store }) {
   const panel = paramPanel(panelBox, mod.params, {
     get: () => store.get().p,
     apply: (key, v) => { applyParams({ [key]: v }, 'input'); },
-    check: (key, v) => (mod.check ? mod.check({ ...store.get().p, [key]: v }) : null),
+    // a typed value is checked after normalize, so a rule such as a < b can push the other parameter along
+    check: (key, v) => {
+      if (!mod.check) return null;
+      let next = { ...store.get().p, [key]: v };
+      if (mod.normalize) { try { next = mod.normalize(next, key) || next; } catch (_) { /* check the raw values */ } }
+      return mod.check(next);
+    },
     onReset: () => {
       forceFit = true;
       if (!applyParams(defaultParams(mod), 'reset')) { forceFit = false; refitX(true); refitY(true); request(); }
@@ -139,7 +149,7 @@ export function mountExplorer(container, mod, { store }) {
         if (!Number.isFinite(v)) continue;
         v = clamp(v, prm.min, prm.max);
         if (prm.integer) v = Math.round(v);
-        else if (source === 'drag') v = roundTo(v, isLogParam(prm) ? niceStep(Math.abs(v) / 300) : dragResolution(prm));
+        else if (source === 'drag') v = roundTo(v, prm.dragStep || (isLogParam(prm) ? niceStep(Math.abs(v) / 300) : dragResolution(prm)));
         v = clamp(v, prm.min, prm.max);
       }
       if (next[k] !== v) { next[k] = v; changed.push(k); }
@@ -191,7 +201,9 @@ export function mountExplorer(container, mod, { store }) {
     const D = anim.target.x;
     const wd = D[1] - D[0], ww = W[1] - W[0];
     const tol = 0.02 * wd;
-    if (force || ww < 0.4 * wd) { anim.setTarget({ x: W }); return; }
+    // jump to the new window when it is much narrower than the view; for counts (discrete) a smaller
+    // shrink is enough, so that lowering n does not leave a row of empty positions
+    if (force || ww < (discrete ? 0.7 : 0.4) * wd) { anim.setTarget({ x: W }); return; }
     if (W[0] < D[0] - tol || W[1] > D[1] + tol) {
       // the curve left the view: widen the view to include both, so the move stays visible,
       // unless that would make the curve too small; then jump to the new window
@@ -206,7 +218,7 @@ export function mountExplorer(container, mod, { store }) {
     const cur = anim.target.y[1];
     let top = cur;
     if (force || peak > cur * 0.97) top = peak * (dragging ? 1.3 : 1.15);
-    else if (peak < cur * 0.45) top = peak * 1.15;
+    else if (peak < cur * 0.6) top = peak * 1.15;
     if (discrete) top = Math.min(top, 1.08);
     if (top !== cur) anim.setTarget({ y: [0, top] });
   }
@@ -276,6 +288,30 @@ export function mountExplorer(container, mod, { store }) {
   }
 
   function onHandleKey(spec, steps, axis) {
+    if (spec.keySign) steps *= spec.keySign;
+    if (spec.key === 'drag') {
+      // move the knob itself by 1% of the view per step (10% with Shift) and apply the handle's `set`,
+      // as if it had been dragged; for handles that sit at a function of several parameters
+      const p = store.get().p;
+      const d = describe(spec, 0, p);
+      if (!d) return;
+      const A = d.type === 'vline' || d.type === 'xPoint' ? { x: d.x, y: 0 } : d.type === 'point' ? d.at : d.to;
+      const [x0, x1] = anim.cur.x, [y0, y1] = anim.cur.y;
+      const pt = axis === 'y' ? { x: A.x, y: A.y + steps * (y1 - y0) / 100 } : { x: A.x + steps * (x1 - x0) / 100, y: A.y };
+      let patch = null;
+      try { patch = spec.set ? spec.set(pt, p, p) : defaultSet(spec, pt, p); } catch (e) { console.warn(e); }
+      if (patch) applyParams(patch, 'drag');
+      refitX(); refitY(); request();
+      return;
+    }
+    if (typeof spec.key === 'function') {
+      // the module supplies its own arrow-key behavior: key(steps, axis, p) returns a patch
+      let patch = null;
+      try { patch = spec.key(steps, axis, store.get().p); } catch (e) { console.warn(e); }
+      if (patch) applyParams(patch, 'key');
+      refitX(); refitY(); request();
+      return;
+    }
     const key = axis === 'y' ? (spec.keyY || spec.param) : (spec.keyX || spec.param);
     const prm = paramByKey[key];
     if (!prm) return;
@@ -314,9 +350,9 @@ export function mountExplorer(container, mod, { store }) {
     const out = [];
     const mk = (which, x) => ({
       id: `area-${which}`, type: 'xPoint', x, cls: 'threshold',
-      label: s.area.mode === 'between' ? which : xName,
+      label: s.area.mode === 'between' ? (which === 'a' ? aLab : bLab) : xName,
       lineTo: forCdf ? safeCdf(x, p) : (discrete ? safePdf(Math.round(x), p) : safePdf(x, p)),
-      ariaLabel: `Area boundary ${s.area.mode === 'between' ? which : xName}. Drag, or use the arrow keys.`,
+      ariaLabel: `Area boundary ${s.area.mode === 'between' ? (which === 'a' ? aLab : bLab) : xName}. Drag, or use the arrow keys.`,
       valueText: fmt(x), valueNow: x,
       onDrag: (pt, phase) => { if (pt) moveThreshold(which, pt.x); if (phase === 'end') request(); },
       onKey: steps => {
@@ -363,9 +399,27 @@ export function mountExplorer(container, mod, { store }) {
     const layers = [], cdfLayers = [];
     const legend = [];
     const area = s.area;
+    // module layers: extraLayers(p, view, state); a layer with `under: true` is drawn below the main curve
+    let extra = [];
+    if (X.extraLayers) {
+      try { extra = X.extraLayers(p, { x: [lo, hi], y: yd }, { area: { ...area }, dragging: dragging ? (dragging.spec.id || dragging.spec.param || true) : null }) || []; }
+      catch (e) { console.warn(e); }
+    }
+    const under = extra.filter(L => L && L.under), over = extra.filter(L => L && !L.under);
+    const overlayLayer = ov => {
+      // discrete pages draw a reference PMF as grey stems when the overlay asks for it (stems: true)
+      if (discrete && ov.stems) {
+        const pts = [];
+        for (let k = Math.ceil(lo); k <= Math.floor(hi); k++) { let v; try { v = ov.pdf(k); } catch (_) { v = NaN; } pts.push([k + (ov.offset || 0), v]); }
+        return { id: 'ov-' + ov.id, type: 'stems', points: pts, cls: ov.cls || 'pmf-ref' };
+      }
+      return { id: 'ov-' + ov.id, type: 'line', points: sampleFn(ov.pdf, lo, hi, N_PDF), cls: ov.cls || 'curve-ref' };
+    };
+    const overlayLegend = ov => ({ label: ov.label, cls: ov.cls || (discrete && ov.stems ? 'pmf-ref' : 'curve-ref') });
 
     if (!discrete) {
       const pts = sampleFn(x => safePdf(x, p), lo, hi, N_PDF);
+      layers.push(...under);
       layers.push({ id: 'pdf-fill', type: 'area', points: pts, cls: 'pdf-fill' });
       if (area.on) {
         let a0, a1;
@@ -375,25 +429,23 @@ export function mountExplorer(container, mod, { store }) {
         if (a1 > a0) layers.push({ id: 'area-shade', type: 'area', points: sampleFn(x => safePdf(x, p), a0, a1, N_AREA), cls: 'area-shade' });
         else layers.push({ id: 'area-shade', type: 'area', points: [], cls: 'area-shade' });
       }
-      for (const ov of (X.overlays ? X.overlays(p) : [])) {
-        layers.push({ id: 'ov-' + ov.id, type: 'line', points: sampleFn(ov.pdf, lo, hi, N_PDF), cls: ov.cls || 'curve-ref' });
-        legend.push({ label: ov.label, cls: ov.cls || 'curve-ref' });
-      }
+      for (const ov of (X.overlays ? X.overlays(p) : [])) { layers.push(overlayLayer(ov)); legend.push(overlayLegend(ov)); }
       layers.push({ id: 'pdf', type: 'line', points: pts, cls: 'curve-main' });
     } else {
+      // stems only on the true support: no row of zero-probability dots in the room left for dragging
+      let rlo = -Infinity, rhi = Infinity;
+      try { if (mod.range) [rlo, rhi] = mod.range(p); } catch (_) { /* draw the whole window */ }
       const ks = [];
-      for (let k = Math.ceil(lo); k <= Math.floor(hi); k++) ks.push(k);
+      for (let k = Math.max(Math.ceil(lo), Math.ceil(rlo)); k <= Math.min(Math.floor(hi), Math.floor(rhi)); k++) ks.push(k);
       const pts = ks.map(k => [k, safePdf(k, p)]);
       const inArea = k => area.mode === 'left' ? k <= area.a : area.mode === 'right' ? k > area.a : (k > area.a && k <= area.b);
-      for (const ov of (X.overlays ? X.overlays(p) : [])) {
-        layers.push({ id: 'ov-' + ov.id, type: 'line', points: sampleFn(ov.pdf, lo, hi, N_PDF), cls: ov.cls || 'curve-ref' });
-        legend.push({ label: ov.label, cls: ov.cls || 'curve-ref' });
-      }
+      layers.push(...under);
+      for (const ov of (X.overlays ? X.overlays(p) : [])) { layers.push(overlayLayer(ov)); legend.push(overlayLegend(ov)); }
       layers.push({ id: 'pmf', type: 'stems', points: area.on ? pts.filter(([k]) => !inArea(k)) : pts, cls: 'pmf' });
       layers.push({ id: 'pmf-on', type: 'stems', points: area.on ? pts.filter(([k]) => inArea(k)) : [], cls: 'pmf-on' });
     }
-    if (X.extraLayers) { try { layers.push(...X.extraLayers(p, { x: [lo, hi], y: yd })); } catch (e) { console.warn(e); } }
-    if (legend.length) legend.unshift({ label: mod.name, cls: 'curve-main' });
+    layers.push(...over);
+    if (legend.length) legend.unshift({ label: mod.name, cls: discrete ? 'pmf' : 'curve-main' });
 
     const handles = [];
     const hs = handleSpecs(p);
@@ -430,7 +482,7 @@ export function mountExplorer(container, mod, { store }) {
       } else {
         const Fb = safeCdf(area.b, p);
         guide('gb', area.b, Fb);
-        cdfLayers.push({ id: 'br', type: 'bracket', x: xEdge, y1: Fa, y2: Fb, side: 'left', cls: 'area-bracket', label: `F(b) − F(a) = ${fmt(v, 3)}` });
+        cdfLayers.push({ id: 'br', type: 'bracket', x: xEdge, y1: Fa, y2: Fb, side: 'left', cls: 'area-bracket', label: `F(${bLab}) − F(${aLab}) = ${fmt(v, 3)}` });
       }
     }
     cdfPlot.render({ x: [lo, hi], y: [-0.02, 1.06], discreteX: discrete, layers: cdfLayers, handles: thresholdHandles(s, true) });
@@ -445,7 +497,7 @@ export function mountExplorer(container, mod, { store }) {
     if (!area.on) return;
     const v = areaValue(s);
     const a = fmt(area.a), b = fmt(area.b);
-    const X_ = '<i>X</i>';
+    const X_ = `<i>${vName}</i>`;
     let html;
     if (area.mode === 'left') html = `Shaded ${discrete ? 'bars' : 'area'}: P(${X_} ≤ ${a}) = <i>F</i>(${a}) = <b>${fmt(v)}</b>`;
     else if (area.mode === 'right') html = `Shaded ${discrete ? 'bars' : 'area'}: P(${X_} &gt; ${a}) = 1 − <i>F</i>(${a}) = <b>${fmt(v)}</b>`;

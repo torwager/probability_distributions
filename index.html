@@ -11,19 +11,28 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
 <link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/map.css">
 <script defer src="assets/vendor/katex/katex.min.js"></script>
 </head>
-<body>
+<body class="home">
 <a class="sr-only" href="#main">Skip to content</a>
+<a class="sr-only" href="#map-list">Skip the map and go to the list of distributions and relationships</a>
 <div id="site-header"></div>
-<main class="wrap" id="main">
-  <div class="page-head">
-    <p class="eyebrow">Map</p>
-    <h1>Probability distributions and how they are related</h1>
-    <p>This site describes the probability distributions most used in statistics and computational modeling. Each distribution has a page where you can change its parameters by dragging handles on a plot, and see its formulas, properties and uses. Relationships between distributions, such as special cases, limits and transformations, each have their own page.</p>
-    <p class="small muted">The interactive map of relationships is being built. For now, the distributions are listed below by family; the <a href="relationships.html">relationships</a> are listed on their own page.</p>
+<main id="main" class="home-main">
+  <div class="wrap">
+    <div class="page-head home-head">
+      <p class="eyebrow">Map</p>
+      <h1>Probability distributions and how they are related</h1>
+      <p>This site is an interactive reference for the probability distributions used most in statistics and computational modeling, and for the relationships between them. Each distribution has its own page with an interactive plot, its formulas, its properties and its uses.</p>
+      <p>On the map below, each tile is a distribution with a small sketch of its shape. Click a tile to open that distribution's page. Each arrow is a relationship, such as a special case, a limit or a transformation, and its label gives the key step as a short formula. Click an arrow or its label to read an explanation. Drag to move the map, and use the buttons in its corner to zoom.</p>
+    </div>
   </div>
-  <div id="dist-grid"></div>
+  <div class="map-wide" id="map-root">
+    <noscript><p>The map needs JavaScript. The <a href="distributions.html">list of distributions</a> and the <a href="relationships.html">list of relationships</a> work without it.</p></noscript>
+  </div>
+  <div class="wrap">
+    <section class="map-list" id="map-list" aria-labelledby="map-list-h"></section>
+  </div>
 </main>
 <div id="site-footer"></div>
 <script type="module" src="assets/js/core/layout.js"></script>

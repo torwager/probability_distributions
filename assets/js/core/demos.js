@@ -54,8 +54,10 @@ function frame(container, { intro, leftCaption, rightCaption }) {
  *   range(p) -> [lo, hi]    plotting window (integers for a discrete target)
  *   intro, xLabel, leftCaption, rightCaption, sampleName (rich text shown in the legend, default 'simulated values')
  *   sizes: [200, 2000, 20000] sample-size choices, size: default (2000)
- *   readout(p, s) -> rich text appended to the standard readout; s = {n, mean, sd, gap, gapAt, crit}
- *   onUpdate(p, s, plots)   optional hook after each redraw
+ *   readout(p, s) -> rich text appended to the standard readout; s = {n, mean, sd, gap, gapAt, crit, xs, sorted}
+ *                           (xs: the simulated values in the order drawn, sorted: the same values sorted)
+ *   onUpdate(p, s, plots)   optional hook after each redraw (same s)
+ *   check(p) -> error message or null;  normalize(p, changedKey) -> corrected params (e.g. keep k <= n)
  */
 export function simulationDemo(container, ctx, o) {
   const params = o.params || [];
@@ -70,10 +72,11 @@ export function simulationDemo(container, ctx, o) {
   const left = new Plot(F.left, { xLabel, yLabel: o.target.discrete ? 'probability' : 'density' });
   const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability' });
 
+  const norm = (p, k) => (o.normalize ? o.normalize(p, k) || p : p);
   const panel = params.length ? paramPanel(F.controls, params, {
     get: () => store.get().p,
-    apply: (k, v) => store.set({ p: { ...store.get().p, [k]: v } }),
-    check: o.check ? (k, v) => o.check({ ...store.get().p, [k]: v }) : undefined,
+    apply: (k, v) => store.set({ p: norm({ ...store.get().p, [k]: v }, k) }),
+    check: o.check ? (k, v) => o.check(norm({ ...store.get().p, [k]: v }, k)) : undefined,
     onReset: () => store.set({ p: defaultsOf(params) }),
   }) : null;
   const sizeCtl = segmented(sizes.map(n => ({ value: n, label: `${n.toLocaleString('en-US')} draws` })), store.get().size,
@@ -133,7 +136,7 @@ export function simulationDemo(container, ctx, o) {
       layers.push({ id: 'pdf', type: 'line', points: curve, cls: 'curve-main' });
     }
     const xd = disc ? [lo - 0.7, hi + 0.7] : [lo, hi];
-    const legendL = [{ label: rawText(call(o.sampleName, p)) || 'simulated values', cls: 'bars-strong' }, { label: rawText(call(o.target.name, p)) || 'target', cls: 'curve-main' }];
+    const legendL = [{ label: rawText(call(o.sampleName, p)) || 'simulated values', cls: 'bars-strong' }, { label: rawText(call(o.target.name, p)) || 'target', cls: disc ? 'pmf' : 'curve-main' }];
     left.render({ x: xd, y: [0, (ymax || 1) * 1.12], discreteX: disc, layers, legend: legendL });
 
     // CDFs and the largest gap (Kolmogorov-Smirnov distance)
@@ -170,7 +173,7 @@ export function simulationDemo(container, ctx, o) {
       legend: [{ label: 'sample CDF', cls: 'curve-2' }, { label: 'target CDF', cls: 'curve-main' }] });
 
     const crit = KS95 / Math.sqrt(n);
-    const st = { n, mean: m, sd, gap, gapAt, crit };
+    const st = { n, mean: m, sd, gap, gapAt, crit, xs, sorted };
     let html = `With ${n.toLocaleString('en-US')} simulated values: sample mean <b>${fmt(m)}</b>, sample standard deviation <b>${fmt(sd)}</b>. `
       + `Largest gap between the sample CDF and the target CDF: <b>${fmt(gap, 3)}</b>. `
       + `For this many draws, gaps up to about ${fmt(crit, 2)} (that is, $1.36/\\sqrt{n}$) are expected from chance alone`
@@ -195,6 +198,8 @@ export function simulationDemo(container, ctx, o) {
  *   intro, xLabel (axis title), xSym (TeX symbol used in the readout, default 'k' or 'x'), leftCaption, rightCaption
  *   handles(p, set) -> raw plot handle descriptors for the left plot (optional); call set(patch) to change params
  *   readout(p, g) -> rich text appended to the standard readout; g = {gap, at}
+ *   check(p) -> error message or null
+ *   normalize(p, changedKey) -> corrected params, applied before check (e.g. raise n when lambda is typed above it)
  */
 export function compareDemo(container, ctx, o) {
   const params = o.params || [];
@@ -203,27 +208,31 @@ export function compareDemo(container, ctx, o) {
   const anyDisc = !!(E.discrete || A.discrete);
   const F = frame(container, {
     intro: o.intro,
-    leftCaption: o.leftCaption || (anyDisc ? 'Probabilities (bars) and the approximating curve' : 'The two densities'),
+    leftCaption: o.leftCaption || (E.discrete && A.discrete ? 'Probabilities of the two distributions (steel and grey stems)'
+      : anyDisc ? 'Probabilities (stems) and the approximating curve' : 'The two densities'),
     rightCaption: o.rightCaption || 'The two CDFs',
   });
   const xLabel = o.xLabel || (anyDisc ? 'k' : 'x');
   const left = new Plot(F.left, { xLabel, yLabel: anyDisc ? 'probability' : 'density' });
   const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability' });
+  const norm = (p, k) => (o.normalize ? o.normalize(p, k) || p : p);
   const set = patch => {
-    const cur = store.get().p, next = { ...cur };
+    const cur = store.get().p;
+    let next = { ...cur };
     for (const [k, v0] of Object.entries(patch)) {
       const prm = params.find(q => q.key === k);
       let v = v0;
       if (prm) { v = clamp(v, prm.min, prm.max); if (prm.integer) v = Math.round(v); }
       next[k] = v;
     }
+    next = norm(next, Object.keys(patch)[0]);
     if (o.check && o.check(next)) return;
     store.set({ p: next });
   };
   const panel = params.length ? paramPanel(F.controls, params, {
     get: () => store.get().p,
     apply: (k, v) => set({ [k]: v }),
-    check: o.check ? (k, v) => o.check({ ...store.get().p, [k]: v }) : undefined,
+    check: o.check ? (k, v) => o.check(norm({ ...store.get().p, [k]: v }, k)) : undefined,
     onReset: () => store.set({ p: defaultsOf(params) }),
   }) : null;
 
@@ -251,14 +260,17 @@ export function compareDemo(container, ctx, o) {
     let xd = anyDisc ? [lo - 0.7, hi + 0.7] : [lo, hi];
     if (frozen) { xd = frozen; lo = anyDisc ? Math.ceil(xd[0]) : xd[0]; hi = anyDisc ? Math.floor(xd[1]) : xd[1]; }
     const se = series(E, p, xd[0], xd[1]), sa = series(A, p, xd[0], xd[1]);
+    // when both sides are discrete, draw the two sets of stems side by side so neither hides the other
+    const both = E.discrete && A.discrete;
+    const shift = (pts, d) => (both ? pts.map(([k, v]) => [k + d, v]) : pts);
     const fin = v => (Number.isFinite(v) ? v : 0);
     const ymax = Math.max(1e-12, ...se.map(q => fin(q[1])), ...sa.map(q => fin(q[1]))) * 1.15;
     const layers = [
-      E.discrete ? { id: 'e', type: 'stems', points: se, cls: 'pmf' } : { id: 'e', type: 'line', points: se, cls: 'curve-main' },
-      A.discrete ? { id: 'a', type: 'stems', points: sa, cls: 'pmf-ref' } : { id: 'a', type: 'line', points: sa, cls: 'curve-ref' },
+      E.discrete ? { id: 'e', type: 'stems', points: shift(se, -0.14), cls: 'pmf' } : { id: 'e', type: 'line', points: se, cls: 'curve-main' },
+      A.discrete ? { id: 'a', type: 'stems', points: shift(sa, 0.14), cls: 'pmf-ref' } : { id: 'a', type: 'line', points: sa, cls: 'curve-ref' },
     ];
     left.render({ x: xd, y: [0, ymax], discreteX: anyDisc, layers, handles: o.handles ? wrapHandles(o.handles(p, set), xd) : [],
-      legend: [{ label: rawText(call(E.name, p)), cls: 'curve-main' }, { label: rawText(call(A.name, p)), cls: 'curve-ref' }] });
+      legend: [{ label: rawText(call(E.name, p)), cls: E.discrete ? 'pmf' : 'curve-main' }, { label: rawText(call(A.name, p)), cls: A.discrete ? 'pmf-ref' : 'curve-ref' }] });
 
     // largest CDF gap: at integers when either side is discrete (checking both sides of each jump), else on a grid
     let gap = 0, at = lo, Fe = 0, Fa = 0;

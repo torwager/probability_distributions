@@ -62,7 +62,7 @@ export default {
     'De Moivre and Laplace proved it directly. Applying Stirling’s approximation $k! \\approx \\sqrt{2\\pi k}\\,(k/e)^k$ to the three factorials in $\\binom{n}{k}$ shows that, for $k$ within a few standard deviations of $np$,',
     { tex: '\\binom{n}{k} p^k (1-p)^{n-k} \\approx \\frac{1}{\\sqrt{2\\pi np(1-p)}} \\exp\\!\\left(-\\frac{(k-np)^2}{2np(1-p)}\\right),' },
     'which is the normal density with mean $np$ and variance $np(1-p)$ evaluated at $k$. Each bar has width 1, so the bar heights approximate the areas under the normal curve.',
-    'How good is the approximation? The largest gap between the two CDFs shrinks roughly like $1/\\sqrt{n}$, and more slowly when $p$ is near 0 or 1, because the binomial is then skewed. A common rule of thumb asks for $np \\ge 10$ and $n(1-p) \\ge 10$. Adding $\\tfrac12$ to $k$ before standardizing (the continuity correction) accounts for the bar width and usually improves the approximation. When $n$ is large but $np$ stays moderate, the Poisson distribution is a better approximation than the normal.',
+    'The quality of the approximation depends on $n$ and $p$. The largest gap between the two CDFs shrinks roughly like $1/\\sqrt{n}$, and more slowly when $p$ is near 0 or 1, because the binomial is then skewed. A common rule of thumb asks for $np \\ge 10$ and $n(1-p) \\ge 10$. Adding $\\tfrac12$ to $k$ before standardizing (the continuity correction) accounts for the bar width and usually improves the approximation. When $n$ is large but $np$ stays moderate, the Poisson distribution is a better approximation than the normal.',
   ],
 
   references: [
