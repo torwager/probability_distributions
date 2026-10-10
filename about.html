@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About | Probability distributions</title>
+<meta name="description" content="What this site is, how to use it, the conventions and notation it uses, and its sources.">
+<script>try{var t=localStorage.getItem('pd-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,0..100;1,9..144,300..600,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="assets/css/site.css">
+<script defer src="assets/vendor/katex/katex.min.js"></script>
+</head>
+<body>
+<a class="sr-only" href="#main">Skip to content</a>
+<div id="site-header"></div>
+<main class="wrap" id="main">
+  <div class="page-head"><p class="eyebrow">About</p><h1>About this site</h1></div>
+  <div class="prose">
+    <p>This site is an interactive guide to the probability distributions that are most often used in statistics and in computational modeling, and to the ways in which they are related to one another. It is meant for students and researchers who want to see how a distribution changes as its parameters change, to look up its formulas and properties, and to understand where it comes from and what it is used for.</p>
+
+    <h2>What is on the site</h2>
+    <ul>
+      <li><b>The map</b> (the home page) shows the distributions as tiles and their relationships as arrows. Clicking a tile opens the page for that distribution. Clicking an arrow or its label opens a short explanation of the relationship, with a link to a page where you can explore it.</li>
+      <li><b>Distribution pages</b> all have the same sections: a short description; an interactive plot of the density (or, for counts, the probability mass function) next to the cumulative distribution function; the formulas, with every symbol explained; a table of properties such as the mean, variance and skewness; limits and special cases; uses in frequentist statistics, in Bayesian statistics and in modeling; related distributions; and references.</li>
+      <li><b>Relationship pages</b> explain one connection between two distributions, such as a special case, a limit, a transformation or a conjugate prior. Each has a plain explanation, the formal statement, a glossary of the symbols, an interactive demonstration and a short explanation of why the relationship holds.</li>
+    </ul>
+
+    <h2>How to use the interactive plots</h2>
+    <ul>
+      <li>Handles that you can drag are drawn in amber. A dashed vertical line usually sets a location such as the mean; a horizontal arrow usually sets a scale such as the standard deviation. Curves are drawn in blue.</li>
+      <li>Each parameter also has a number box. Dragging a handle updates the box, and typing a value in the box updates the plot. If a value is outside the allowed range, a short message explains what is allowed and the plot keeps the last valid value.</li>
+      <li>A handle can also be selected with the Tab key and moved with the arrow keys (hold Shift for larger steps).</li>
+      <li>The <b>area under the curve</b> switch shades the area to the left or right of a point, or between two points, and shows its value. That area is a probability. The same number appears on the cumulative distribution plot as the height of the curve at that point (or one minus that height for the area to the right), which shows how the density and the CDF are connected.</li>
+    </ul>
+
+    <h2>Conventions</h2>
+    <p>Different textbooks and software packages parameterize some distributions differently. This site uses the conventions below throughout, and each distribution page states its parameterization and mentions the common alternatives.</p>
+    <div id="conventions"></div>
+
+    <h2>Notation</h2>
+    <p>These symbols appear in the formulas and relationship statements. Every page also explains the symbols it uses.</p>
+    <div id="notation"></div>
+
+    <h2>Kinds of relationship</h2>
+    <p>The arrows on the map are drawn in different styles according to the kind of relationship.</p>
+    <div id="edge-kinds"></div>
+
+    <h2>Sources</h2>
+    <ul>
+      <li>Leemis, L. M., &amp; McQueston, J. T. (2008). Univariate distribution relationships. <i>The American Statistician</i>, 62(1), 45–53. <a href="https://doi.org/10.1198/000313008X270448" target="_blank" rel="noopener">doi.org/10.1198/000313008X270448</a>. The map of relationships builds on this paper and on a chart of distribution relationships in its style.</li>
+      <li>Casella, G., &amp; Berger, R. L. (2002). <i>Statistical Inference</i> (2nd ed.). Duxbury.</li>
+      <li>Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., &amp; Rubin, D. B. (2013). <i>Bayesian Data Analysis</i> (3rd ed.). CRC Press. <a href="http://www.stat.columbia.edu/~gelman/book/" target="_blank" rel="noopener">stat.columbia.edu/~gelman/book</a>.</li>
+      <li>Johnson, N. L., Kotz, S., &amp; Balakrishnan, N. <i>Continuous Univariate Distributions</i> (Vols. 1–2) and <i>Univariate Discrete Distributions</i>. Wiley.</li>
+      <li>The Wikipedia article on each distribution, linked from its page, and the NIST Digital Library of Mathematical Functions for special functions.</li>
+    </ul>
+
+    <h2>How it is built</h2>
+    <p>The site is a set of static pages with no server-side code. Plots are drawn as SVG with a small plotting library written for the site, and all probabilities, quantiles and special functions are computed in the browser. Formulas are typeset with KaTeX. The source code is on <a href="https://github.com/torwager/probability_distributions" target="_blank" rel="noopener">GitHub</a>; corrections and suggestions are welcome as issues there.</p>
+
+    <h2>Credit</h2>
+    <p>Designed by <a href="https://torwager.github.io" target="_blank" rel="noopener">Tor Wager</a> and the <a href="http://canlab.science/" target="_blank" rel="noopener">Cognitive and Affective Neuroscience Lab (CANlab)</a> at Dartmouth College. The visual design follows the <a href="https://scienceofplacebo.org" target="_blank" rel="noopener">Science of Placebo</a> site.</p>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script type="module" src="assets/js/core/layout.js"></script>
+<script type="module" src="assets/js/pages/about.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability distributions</title>
+<meta name="description" content="An interactive map of common probability distributions and the relationships between them.">
+<script>try{var t=localStorage.getItem('pd-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,0..100;1,9..144,300..600,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="assets/css/site.css">
+<script defer src="assets/vendor/katex/katex.min.js"></script>
+</head>
+<body>
+<a class="sr-only" href="#main">Skip to content</a>
+<div id="site-header"></div>
+<main class="wrap" id="main">
+  <div class="page-head">
+    <p class="eyebrow">Map</p>
+    <h1>Probability distributions and how they are related</h1>
+    <p>This site describes the probability distributions most used in statistics and computational modeling. Each distribution has a page where you can change its parameters by dragging handles on a plot, and see its formulas, properties and uses. Relationships between distributions, such as special cases, limits and transformations, each have their own page.</p>
+    <p class="small muted">The interactive map of relationships is being built. For now, the distributions are listed below by family; the <a href="relationships.html">relationships</a> are listed on their own page.</p>
+  </div>
+  <div id="dist-grid"></div>
+</main>
+<div id="site-footer"></div>
+<script type="module" src="assets/js/core/layout.js"></script>
+<script type="module" src="assets/js/pages/index.js"></script>
+</body>
+</html>
