@@ -16,6 +16,8 @@ export default {
   to: 'exponential',
   title: 'Minus the logarithm of a uniform random number, divided by the rate, is exponential',
 
+  summary: 'If $U$ is a uniform random number between 0 and 1, then $-\\ln(U)/\\lambda$ has an exponential distribution with rate $\\lambda$. This is inverse-CDF sampling, the standard way to turn uniform random numbers into draws from another distribution.',
+
   plain: [
     'Take a random number $U$ that is equally likely to be anywhere between 0 and 1. Its logarithm is negative, so $-\\ln U$ is positive; dividing by a rate $\\lambda$ gives $-\\ln(U)/\\lambda$, which has an exponential distribution with rate $\\lambda$. Values of $U$ close to 1 give waits close to 0, and the rare values of $U$ close to 0 give long waits.',
     'This is an example of inverse-CDF sampling. The exponential CDF $F(x) = 1 - e^{-\\lambda x}$ can be solved for $x$, giving $F^{-1}(u) = -\\ln(1 - u)/\\lambda$. Feeding a uniform number into $F^{-1}$ produces an exponential number, and since $1 - U$ is uniform whenever $U$ is, $-\\ln(U)/\\lambda$ works just as well. The same idea turns uniform numbers into draws from any distribution whose CDF can be inverted.',

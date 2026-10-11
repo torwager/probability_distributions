@@ -78,6 +78,7 @@ export default {
   },
 
   content: {
+    summary: 'The half-Cauchy distribution is a Cauchy distribution centered at 0 and folded onto the positive values; its scale $\\gamma$ is also its median. Its heavy tail makes it a common weakly informative prior for a standard deviation in hierarchical models.',
     description: [
       'The half-Cauchy distribution is the distribution of the size $|X|$ of a Cauchy variable $X$ centered at zero: the negative half of the Cauchy curve is folded over onto the positive half. It takes every value from 0 upward. The density is highest at 0 and falls off slowly, like $1/x^2$, so very large values are rare but far from impossible.',
       'It has one parameter, the scale $\\gamma$, which is also the median: half of the probability lies below $\\gamma$ and half above. At $x = \\gamma$ the density is exactly half its value at 0. The tail is so heavy that the mean and the variance are infinite.',

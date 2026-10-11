@@ -149,6 +149,7 @@ export default {
   },
 
   content: {
+    summary: 'The hypergeometric distribution counts the successes in $n$ draws without replacement from $N$ items, of which $K$ are successes, such as the red cards in a 5-card hand. It is the basis of Fisher’s exact test.',
     description: [
       'The hypergeometric distribution counts successes when items are drawn without replacement from a finite population. A deck of $N = 52$ cards has $K = 26$ red cards; if you deal $n = 5$ cards, the number of red cards in your hand is hypergeometric. Other examples are the number of defective items in a sample taken from a batch, the number of tagged fish in a second catch from a lake, and the number of winning numbers on a lottery ticket.',
       'The count $X$ takes whole-number values from $\\max(0,\\, n + K - N)$ to $\\min(n, K)$: you cannot draw more successes than there are draws or than there are successes in the population. There are three parameters: the population size $N$, the number of successes $K$ in the population, and the number of draws $n$. (On this page $K$ is a fixed number of successes in the population, not a random count.) Because each draw changes what is left, the draws are not independent. This makes the count less variable than a binomial count with the same success probability $K/N$: its variance is smaller by the factor $(N - n)/(N - 1)$.',

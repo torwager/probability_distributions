@@ -24,6 +24,8 @@ export default {
   to: 'f',
   title: 'The ratio of two independent chi-squared variables, each divided by its degrees of freedom, has an F distribution',
 
+  summary: 'The ratio of two independent chi-squared variables, each divided by its degrees of freedom ($d_1$ in the numerator, $d_2$ in the denominator), has an $F(d_1, d_2)$ distribution. The F statistic of ANOVA and of regression F-tests has exactly this form.',
+
   plain: [
     'Divide a chi-squared variable by its degrees of freedom and you get an estimate of a variance in units of the true variance: a number that averages 1. The ratio of two such independent estimates has the F distribution, with the numerator degrees of freedom $d_1$ and the denominator degrees of freedom $d_2$ as its two parameters.',
     'This is exactly the form of the F statistic in an analysis of variance (ANOVA) or a regression F-test. The numerator is the variance explained by an effect and the denominator the residual variance. When the effect is absent, both estimate the same error variance $\\sigma^2$, which cancels in the ratio, so the statistic follows $F(d_1, d_2)$ whatever $\\sigma^2$ is. The same holds for the ratio of two sample variances from normal populations with equal variances.',

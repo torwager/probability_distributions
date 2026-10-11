@@ -19,6 +19,8 @@ export default {
   to: 'chi-squared',
   title: 'Adding up squared standard normal variables gives a chi-squared distribution',
 
+  summary: 'Squaring $k$ independent standard normal variables and adding them up gives a chi-squared variable with $k$ degrees of freedom. This is why the scaled sample variance of normal data, and many test statistics built from squared deviations, have chi-squared distributions.',
+
   plain: [
     'Take $k$ independent standard normal variables, square each one, and add them up. The total has a chi-squared distribution with $k$ degrees of freedom. Its mean is $k$, because each squared standard normal has mean 1, and its variance is $2k$.',
     'Many statistics are sums of squared, approximately normal deviations, and this is why they have chi-squared distributions. The most important case is the sample variance of normal data: $(n-1)S^2/\\sigma^2$ is chi-squared with $n - 1$ degrees of freedom. One degree of freedom is lost because the deviations are measured from the sample mean, which is estimated from the same data. Pearson’s goodness-of-fit statistic and likelihood-ratio statistics are chi-squared for related reasons.',

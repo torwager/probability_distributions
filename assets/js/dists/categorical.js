@@ -194,6 +194,7 @@ const mod = {
   },
 
   content: {
+    summary: 'The categorical distribution describes a single trial with $K$ possible outcomes, such as one roll of a die or one choice among several options, where outcome $j$ has probability $p_j$. It extends the Bernoulli distribution to more than two outcomes.',
     description: [
       'The categorical distribution describes a single trial that has $K$ possible outcomes, such as one roll of a die, the answer chosen on a multiple-choice question, the option a participant picks in a choice task, or the label a classifier assigns to an image. Each outcome, or category, $j$ has its own probability $p_j$, and the probabilities add up to 1.',
       'The outcome takes one of the values $1, 2, \\dots, K$. These numbers are labels: in most applications the categories have no natural order, so the CDF, mean and variance of the label are meaningful only when the categories are ordered or numeric (as for a die). The parameters are the number of categories $K$ and the probability vector $\\mathbf p = (p_1, \\dots, p_K)$. With $K = 2$ the categorical is the Bernoulli distribution, and with all $p_j = 1/K$ it is the discrete uniform distribution on $1, \\dots, K$.',

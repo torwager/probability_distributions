@@ -8,24 +8,28 @@ Live site: https://torwager.github.io/probability_distributions/
 * **Map** (home page): the distributions as tiles and their relationships as labeled arrows. Clicking a tile
   opens the distribution's page; clicking an arrow or its label opens a short explanation of the relationship
   with a link to its interactive page. The map pans and zooms on phones.
-* **Distribution pages** (`distribution.html?d=<id>`). Every page has the same sections in the same order:
-  1. a plain description of what the distribution describes and what its parameters do;
-  2. an interactive explorer: the density (or, for counts, the probability mass function) and the cumulative
+* **Distribution pages** (`distribution.html?d=<id>`). Every page has the same sections in the same order, and
+  the top of the page is kept short so that the plots are visible without scrolling on a laptop screen:
+  1. the name and a summary of one to three sentences, with a "More about this distribution" button that expands
+     it in place to the full description of what the distribution describes and what its parameters do;
+  2. the formulas for the PDF/PMF and the CDF side by side, with a "What the symbols mean" button that shows a
+     glossary of every symbol;
+  3. an interactive explorer: the density (or, for counts, the probability mass function) and the cumulative
      distribution function, with parameters set by dragging handles on the plot or typing in number boxes, an
      optional "area under the curve" tool linked to the CDF, and a summary of the mean, standard deviation,
-     median and mode;
-  3. formulas for the PDF/PMF and the CDF, each followed by a glossary of every symbol;
+     median and mode, followed by a short explanation of the handles;
   4. a table of properties (support, mean, median, mode, variance, standard deviation, skewness, excess
      kurtosis, entropy, generating and characteristic functions, and distribution-specific rows), with a column
      of values that updates as the parameters change;
   5. limits and special cases, linked to the relationship pages;
   6. uses in frequentist statistics, in Bayesian statistics, and in computational modeling and other
      applications;
-  7. related distributions (generated from the catalog);
-  8. references (Wikipedia and textbooks or original papers).
-* **Relationship pages** (`relation.html?r=<from>--<to>`): a plain explanation, the formal statement, a symbol
-  glossary, an interactive demonstration (a simulation, or two distributions drawn on top of each other as a
-  parameter approaches its limit) and a short derivation.
+  7. the parameters and the conventions used on the site, and further formulas where useful;
+  8. related distributions (generated from the catalog);
+  9. references (Wikipedia and textbooks or original papers).
+* **Relationship pages** (`relation.html?r=<from>--<to>`): a short summary (expandable to the full plain
+  explanation), the formal statement with a symbol glossary, an interactive demonstration (a simulation, or two
+  distributions drawn on top of each other as a parameter approaches its limit) and a short derivation.
 * **Lists and About**: `distributions.html` (by family), `relationships.html` (by kind), and `about.html` (how
   to use the site, the conventions and notation, and sources).
 
@@ -81,6 +85,10 @@ npm run smoke       # Playwright: every page at 1280 px and 390 px; console erro
 npm run interact    # Playwright: drags, typing, validation, the area tool, keyboard and touch on the Normal
                     # page, and the two relation demo helpers
 npm run map         # Playwright: map layout self-check, arrow directions, every label and arrow opens its dialog
+npm run layout      # Playwright: the top of every distribution and relationship page at 1280x720 and 1440x900:
+                    # summary at most 3 lines, plots (and parameter boxes at 1440x900) visible without
+                    # scrolling, the expand buttons work, no horizontal scroll at 390 px
+npm run subpath     # Playwright: the site works when served under /probability_distributions/
 ```
 
 The Playwright scripts use a globally installed Playwright and Chromium (see `tests/pw.mjs`; override with
@@ -100,7 +108,7 @@ The Playwright scripts use a globally installed Playwright and Chromium (see `te
    Use the catalog's parameter keys and `core/math.js` for the numerics, and explain every symbol in every
    formula.
 3. Run `node tools/update-manifest.mjs` (pages load only the modules listed in `assets/js/modules.js`).
-4. Run `npm test`, then `node tests/smoke.mjs --only=<id>` and look at the screenshots; drag every handle and
+4. Run `npm test`, then `node tests/smoke.mjs --only=<id>` and `npm run layout -- --only=<id>`, and look at the screenshots; drag every handle and
    try the smallest and largest value of each parameter in a browser.
 5. Place the new tile or arrow on the map: a tile center in `NODES` and, if needed, an arrow route in `ROUTES`
    in `assets/js/map/layout.js`. Then run `npm run map`, which fails if labels, tiles or arrows overlap.

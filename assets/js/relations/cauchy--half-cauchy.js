@@ -20,6 +20,8 @@ export default {
   to: 'half-cauchy',
   title: 'Folding a Cauchy distribution centered at zero gives the half-Cauchy distribution',
 
+  summary: 'Taking the absolute value of a Cauchy variable centered at 0 folds its curve onto the positive half-line and gives a half-Cauchy variable with the same scale. The half-Cauchy is a common prior for standard deviations: most mass is near 0, but large values stay possible.',
+
   plain: [
     'If $X$ has a Cauchy distribution centered at 0 with scale $\\gamma$, then its absolute value $|X|$, the distance of $X$ from 0 regardless of sign, has a half-Cauchy distribution with the same scale $\\gamma$. Graphically, the left half of the Cauchy curve is folded over onto the right half, so the density for $x \\ge 0$ is twice the Cauchy density there.',
     'Folding keeps the heavy tails of the Cauchy: the half-Cauchy density falls off like $1/x^2$, and its mean is infinite. The scale $\\gamma$ becomes the median of the half-Cauchy, because half of the Cauchy probability lies between $-\\gamma$ and $\\gamma$. The half-Cauchy is used as a prior for standard deviations, which must be positive; it puts most of its mass near zero but allows occasional large values.',
@@ -56,13 +58,14 @@ export default {
   demo(container, { demos, plot, ui }) {
     const { h } = ui;
     // ---- the folding picture (top)
-    const foldBox = h('div');
+    const foldBox = h('div', { 'data-role': 'main-plot' });
     const foldNote = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
+    // the folding plot comes first, so that it is visible on a laptop screen; the intro text follows its readout
     container.append(
-      ui.rich('p', 'The upper plot shows the folding. The dashed curve is the $\\mathrm{Cauchy}(0, \\gamma)$ density on the whole line. Its negative half (shaded amber on the left) is folded over at 0 and stacked on top of the positive half (shaded amber on the right); the two halves together make the half-Cauchy density (solid curve), which is twice the Cauchy density. Drag the amber arrow, which runs from 0 to $\\gamma$ at half the Cauchy peak height, to change the scale. The simulation below draws Cauchy values, takes their absolute values and compares them with the half-Cauchy density.', { class: 'small muted demo-intro' }),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Folding the Cauchy density at 0'), foldBox),
-      foldNote);
-    const P = new plot.Plot(foldBox, { xLabel: 'x', yLabel: 'density', height: w => Math.max(220, Math.min(300, w * 0.32)) });
+      foldNote,
+      ui.rich('p', 'The upper plot shows the folding. The dashed curve is the $\\mathrm{Cauchy}(0, \\gamma)$ density on the whole line. Its negative half (shaded amber on the left) is folded over at 0 and stacked on top of the positive half (shaded amber on the right); the two halves together make the half-Cauchy density (solid curve), which is twice the Cauchy density. Drag the amber arrow, which runs from 0 to $\\gamma$ at half the Cauchy peak height, to change the scale. The simulation below draws Cauchy values, takes their absolute values and compares them with the half-Cauchy density.', { class: 'small muted demo-intro' }));
+    const P = new plot.Plot(foldBox, { xLabel: 'x', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.34, phoneRatio: 0.7, min: 220, max: 360 }) });
 
     const sim = demos.simulationDemo(container, null, {
       params: [

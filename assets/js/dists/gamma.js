@@ -89,6 +89,7 @@ export default {
   },
 
   content: {
+    summary: 'The gamma distribution describes positive, right-skewed quantities such as waiting times. With a whole-number shape $\\alpha$, it is the waiting time until the $\\alpha$-th event when events occur at random at rate $\\beta$. It is the conjugate prior for a Poisson rate.',
     description: [
       'The gamma distribution describes positive quantities that are skewed to the right, such as waiting times, rainfall amounts, insurance claims or reaction times. Its best-known interpretation: if events happen at random at a constant rate $\\beta$, the total waiting time until the $\\alpha$-th event has a gamma distribution. With a whole-number shape it is also called the Erlang distribution.',
       'It has two parameters. The shape $\\alpha$ controls the form of the curve: for $\\alpha < 1$ the density shoots up at zero, for $\\alpha = 1$ it is the exponential distribution, and for larger $\\alpha$ it becomes a hump that grows more symmetric and close to normal. The rate $\\beta$ controls the time scale: doubling $\\beta$ squeezes the whole distribution toward 0 by a factor of 2. The mean is $\\alpha/\\beta$.',

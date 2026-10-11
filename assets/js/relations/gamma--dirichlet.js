@@ -46,6 +46,8 @@ export default {
   to: 'dirichlet',
   title: 'Independent gamma variables divided by their total have a Dirichlet distribution',
 
+  summary: 'Draw $K$ independent gamma variables with shapes $\\alpha_1, \\dots, \\alpha_K$ and the same rate, and divide each by their total. The resulting proportions have a $\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$ distribution, which is the standard way to simulate Dirichlet draws.',
+
   plain: [
     'Draw $K$ independent gamma variables $Y_1, \\dots, Y_K$ with shapes $\\alpha_1, \\dots, \\alpha_K$ and the same rate $c$, and divide each by their total. The resulting proportions $(Y_1/S, \\dots, Y_K/S)$, with $S = Y_1 + \\dots + Y_K$, are positive and add up to 1, and they follow the Dirichlet distribution $\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$. The common rate does not matter, because it cancels in the ratios.',
     'One way to picture it: $K$ independent processes produce amounts $Y_j$ (for example waiting times, or quantities of $K$ substances), and we look only at the share each one contributes to the total. This construction is how Dirichlet random vectors are simulated in practice. With $K = 2$ it is the familiar fact that $Y_1/(Y_1 + Y_2)$ is beta distributed. In addition, the total $S$ is $\\mathrm{Gamma}(\\alpha_0, c)$ and is independent of the proportions.',

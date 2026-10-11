@@ -93,6 +93,7 @@ export default {
   },
 
   content: {
+    summary: 'The Weibull distribution describes lifetimes, with shape $k$ and scale $\\lambda$. The shape sets whether the failure rate falls over time ($k < 1$), stays constant ($k = 1$, the exponential) or rises ($k > 1$), making it a standard model in reliability.',
     description: [
       'The Weibull distribution describes lifetimes and other positive waiting times: how long a machine part lasts before it fails, how long a patient survives after treatment, or how long until a light bulb burns out. Its defining feature is its hazard, the chance of failing in the next instant among the items still working. For a Weibull lifetime the hazard is a power of time, so it can fall over time (early failures), stay constant (purely random failures) or rise over time (wear-out).',
       'It takes values $x \\ge 0$ and has two parameters. The shape $k$ sets how the hazard changes: below 1 it falls, at 1 it is constant and the Weibull is the exponential distribution, above 1 it rises. The shape also sets the form of the curve: for $k < 1$ the density shoots up at 0, for $k = 1$ it is highest at 0 and decays, and for $k > 1$ it is a hump that becomes narrower and more symmetric as $k$ grows. The scale $\\lambda$ stretches the distribution: about 63.2% of values lie below $\\lambda$, whatever the shape.',

@@ -81,6 +81,7 @@ export default {
   },
 
   content: {
+    summary: 'The logistic distribution is a symmetric bell curve similar to the normal but with slightly heavier tails, centered at $\\mu$ with scale $s$. Its cumulative distribution function is the S-shaped logistic (sigmoid) curve used in logistic regression.',
     description: [
       'The logistic distribution describes a continuous quantity that can take any real value and is symmetric about a center. Its density is a bell curve very similar to the normal, with slightly heavier tails. It is best known through its cumulative distribution function, the logistic or sigmoid curve, an S-shaped curve that rises from 0 to 1. The same curve describes the probability of a yes/no outcome in logistic regression, the probability of detecting a stimulus as it gets stronger, and the probability of answering a test item correctly as ability increases.',
       'It has two parameters. The location $\\mu$ is the center: the mean, the median and the mode, and the point where the CDF equals $\\tfrac12$. The scale $s$ sets the spread and how steeply the S-curve rises: the standard deviation is $s\\pi/\\sqrt3 \\approx 1.81\\,s$, and the steepest slope of the CDF is $1/(4s)$.',

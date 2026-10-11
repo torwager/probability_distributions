@@ -27,6 +27,8 @@ export default {
   to: 'logistic',
   title: 'The difference of two independent Gumbel variables with the same scale is logistic',
 
+  summary: 'The difference of two independent Gumbel variables with the same scale has a logistic distribution. So when two options’ values carry independent Gumbel noise, the probability of choosing one over the other is a logistic function of the difference in values.',
+
   plain: [
     'Let $G_1$ and $G_2$ be independent Gumbel (maximum type) variables with locations $\\mu_1$ and $\\mu_2$ and the same scale $\\beta$. Their difference $G_1 - G_2$ has a logistic distribution centered at $\\mu_1 - \\mu_2$ with scale $\\beta$. Each Gumbel is skewed to the right, but the two skews cancel in the difference, which is symmetric.',
     'This fact is the basis of the logit model of choice. Suppose a person chooses between two options whose values $v_1$ and $v_2$ are each disturbed by independent Gumbel noise, and the option with the larger noisy value is chosen. Option 1 is chosen when $G_1 > G_2$, and the probability of that is the logistic function $1/(1 + e^{-(v_1 - v_2)/\\beta})$ of the value difference. With more than two options the same assumption gives the softmax rule.',

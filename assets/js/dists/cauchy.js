@@ -87,6 +87,7 @@ export default {
   },
 
   content: {
+    summary: 'The Cauchy distribution is a symmetric bell curve centered at $x_0$, with width set by the scale $\\gamma$ and tails so heavy that it has no mean or variance. Averages of Cauchy values do not settle down, so the central limit theorem does not apply.',
     description: [
       'The Cauchy distribution is a symmetric, bell-shaped distribution for a continuous quantity that can take any real value. It looks like a normal curve at first sight, but its tails are much heavier: values far from the center are rare, yet far less rare than under a normal distribution, and they are occasionally enormous. A standard example is the point where a beam from a rotating lighthouse hits a straight shoreline when the beam direction is random: most hits are near the lighthouse, but beams that are almost parallel to the shore land very far away.',
       'The tails are so heavy that the distribution has no mean and no variance. As a consequence, the average of many Cauchy values does not settle down as more values are added; it has the same Cauchy distribution as a single value. The law of large numbers and the central limit theorem do not apply.',
@@ -94,14 +95,14 @@ export default {
     ],
     explorerIntro: 'The left plot shows the density $f(x)$ and the right plot the cumulative distribution $F(x)$. Drag the dashed amber line to move the center $x_0$, and drag the tip of the amber arrow to change the scale $\\gamma$. The arrow runs from $x_0$ to $x_0 + \\gamma$ at half the height of the peak, so its length is the half-width of the curve at half its maximum. The dashed grey curve is a normal distribution with the same median and the same quartiles; compare how quickly its tails vanish. The plotting window $x_0 \\pm 10\\gamma$ still leaves about 6% of the Cauchy probability outside.',
 
-    pdfTex: 'f(x \\mid x_0, \\gamma) = \\frac{1}{\\pi\\gamma\\left[1 + \\left(\\dfrac{x - x_0}{\\gamma}\\right)^{2}\\right]} = \\frac{\\gamma}{\\pi\\left[(x - x_0)^2 + \\gamma^2\\right]}',
+    pdfTex: 'f(x \\mid x_0, \\gamma) = \\frac{1}{\\pi\\gamma\\left[1 + \\left((x - x_0)/\\gamma\\right)^{2}\\right]} = \\frac{\\gamma}{\\pi\\left[(x - x_0)^2 + \\gamma^2\\right]}',
     glossary: [
       { sym: 'x', meaning: 'A possible value of the random variable $X$. It can be any real number.' },
       { sym: 'f(x \\mid x_0, \\gamma)', meaning: 'The probability density at $x$ given the parameters. Probabilities are areas under this curve.' },
       { sym: 'x_0', meaning: 'The location: the center of the curve, which is both the median and the mode (peak). It is not a mean, because the Cauchy distribution has no mean.' },
       { sym: '\\gamma', meaning: 'The scale, a positive number. The density at $x_0 \\pm \\gamma$ is half the peak height, and the quartiles are $x_0 - \\gamma$ and $x_0 + \\gamma$. (Here $\\gamma$ is a parameter, not Euler’s constant.)' },
       { sym: '\\pi', meaning: 'The constant 3.14159…, the ratio of a circle’s circumference to its diameter.' },
-      { sym: '\\frac{x - x_0}{\\gamma}', meaning: 'The distance of $x$ from the center, measured in units of the scale $\\gamma$.' },
+      { sym: '(x - x_0)/\\gamma', meaning: 'The distance of $x$ from the center, measured in units of the scale $\\gamma$.' },
       { sym: '\\frac{1}{\\pi\\gamma}', meaning: 'The height of the peak at $x = x_0$; it also makes the total area equal to 1.' },
     ],
 

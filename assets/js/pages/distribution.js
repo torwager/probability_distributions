@@ -1,10 +1,14 @@
 // distribution.html?d=<id> — renders one distribution page from its module (assets/js/dists/<id>.js).
-// Sections, in this fixed order: page head, interactive explorer, formulas, properties,
-// limits and special cases, uses, related distributions, references.
+// Sections, in this fixed order (see ARCHITECTURE.md, "Page layout"):
+//   page head (eyebrow, name, 1-3 line summary with a "More about this distribution" toggle that shows the
+//   full description), formulas strip (PDF/PMF and CDF side by side, symbols behind a toggle), interactive
+//   explorer (plots sized to fit a laptop screen, help text below), properties, limits and special cases,
+//   uses, parameters and conventions, related distributions, references.
 
 import { DISTRIBUTIONS, GROUP_ORDER, KIND_LABELS, getDist, relationsOf } from '../catalog.js';
-import { h, rich, renderRich, renderTex, tex, section, glossaryList, referenceList, createStore, fmt, firstSentence } from '../core/ui.js';
+import { h, rich, renderTex, tex, section, glossaryList, referenceList, createStore, fmt, firstSentence, leadSentences, disclosure, fitDisplayFormula, scrollToHash } from '../core/ui.js';
 import { mountExplorer, defaultParams } from '../core/explorer.js';
+import { fitToViewport } from '../core/plot.js';
 import { makeCtx, loadDist } from '../core/ctx.js';
 import { groupLabel } from '../core/layout.js';
 
@@ -41,26 +45,54 @@ function distributionList() {
   return wrap;
 }
 
-function pageHead(cat, mod) {
+const normText = t => String(t ?? '').replace(/\s+/g, ' ').trim();
+
+/** The 1-3 line summary: content.summary, or the first sentence or two of the description. */
+function summaryOf(mod, cat) {
+  const c = mod && mod.content;
+  if (c && c.summary) return c.summary;
+  const desc = c && c.description;
+  const first = Array.isArray(desc) ? desc[0] : desc;
+  if (first) return leadSentences(first);
+  return cat.blurb;
+}
+
+/**
+ * The page head. The summary (1-3 lines) is shown first; "More about this distribution" expands it in place
+ * to the full description: the summary is hidden while the full text is shown, so nothing is read twice.
+ */
+function pageHead(cat, mod, jumpItems) {
   const desc = mod && mod.content && mod.content.description;
-  const head = h('div', { class: 'page-head' },
-    h('p', { class: 'eyebrow' }, KIND_EYEBROW[cat.kind] || 'Distribution'),
-    h('h1', {}, cat.name + (/(distribution|\))$/i.test(cat.name) ? '' : ' distribution')));
-  if (desc) {
-    const paras = Array.isArray(desc) ? desc : [desc];
-    for (const p of paras) head.append(rich('p', p));
-  } else {
-    head.append(h('p', {}, cat.blurb));
-    if (cat.whyAdded) head.append(rich('p', cat.whyAdded));
-  }
-  head.append(h('div', { class: 'chips' },
+  const summary = summaryOf(mod, cat);
+  const summaryEl = rich('p', summary, { class: 'lede', 'data-role': 'summary' });
+  const more = disclosure({ id: 'about-more', label: 'More about this distribution', labelOpen: 'Show less', regionClass: 'head-more',
+    onToggle: on => { summaryEl.hidden = on; } });
+  const paras = desc ? (Array.isArray(desc) ? desc : [desc]).map(String).filter(t => normText(t)) : [];
+  if (!paras.length) paras.push(summary);
+  if (!desc && cat.whyAdded) paras.push(cat.whyAdded);
+  for (const p of paras) more.region.append(rich('p', p));
+  more.region.append(h('div', { class: 'chips' },
     h('span', { class: 'chip steel' }, groupLabel(cat.group)),
     h('span', { class: 'chip' }, cat.onOriginalMap ? 'On the original map' : 'Added to the original map')));
-  return head;
+  const meta = h('div', { class: 'head-meta' }, more.button);
+  if (jumpItems) meta.append(jumpLinks(jumpItems));
+  return h('div', { class: 'page-head page-head-compact' },
+    h('p', { class: 'eyebrow' }, KIND_EYEBROW[cat.kind] || 'Distribution'),
+    h('h1', { class: 'dist-title' }, displayName(cat.name)),
+    summaryEl, more.region, meta);
+}
+
+/** "Normal (Gaussian)" -> "Normal distribution (Gaussian)"; "Student's t" -> "Student's t distribution". */
+function displayName(name) {
+  if (/distribution/i.test(name)) return name;
+  const m = /^(.*?)\s*(\([^()]*\))$/.exec(name);
+  return m ? `${m[1]} distribution ${m[2]}` : `${name} distribution`;
 }
 
 function jumpLinks(items) {
-  return h('ul', { class: 'jump', 'aria-label': 'On this page' }, items.map(([href, label]) => h('li', {}, h('a', { href: '#' + href }, label))));
+  return h('nav', { class: 'jump-inline', 'aria-label': 'On this page' },
+    h('span', { class: 'jump-label' }, 'On this page:'),
+    h('ul', {}, items.map(([href, label]) => h('li', {}, h('a', { href: '#' + href }, label)))));
 }
 
 function parameterList(params) {
@@ -132,25 +164,45 @@ function propertiesSection(mod, store) {
   return sec;
 }
 
-function formulasSection(cat, mod) {
+/** The formulas strip under the page head: PDF/PMF and CDF side by side, the symbols behind a toggle. */
+function formulasStrip(cat, mod) {
   const c = mod.content;
   const discrete = cat.kind === 'discrete' || cat.kind === 'multivariate-discrete';
-  const { section: sec, body } = section('formulas', 'Formulas');
-  body.append(h('h3', {}, 'Parameters'));
+  const sec = h('section', { class: 'doc-section formulas-strip', id: 'formulas', 'aria-labelledby': 'formulas-h' },
+    h('h2', { id: 'formulas-h', class: 'sr-only' }, 'Formulas'));
+  const pdfTitle = c.pdfTitle || (discrete ? 'Probability mass function (PMF)' : 'Probability density function (PDF)');
+  const cdfTitle = c.cdfTitle || 'Cumulative distribution function (CDF)';
+  const cell = (title, src, role) => {
+    const f = h('div', { class: 'formula', 'data-role': role, 'data-tex': src }); renderTex(f, src, true);
+    return h('div', { class: 'formula-cell' }, h('h3', { class: 'mini-title' }, title), f);
+  };
+  const pair = h('div', { class: 'formula-pair' }, cell(pdfTitle, c.pdfTex, 'pdf-formula'), cell(cdfTitle, c.cdfTex, 'cdf-formula'));
+  const sym = disclosure({ id: 'formula-symbols', label: 'What the symbols mean', labelOpen: 'Hide the symbols', regionClass: 'symbols-region' });
+  const col = (title, intro, items) => {
+    const d = h('div', { class: 'symbols-col' });
+    if (intro) d.append(rich('p', intro, { class: 'formula-note' }));
+    d.append(glossaryList(items || [], title));
+    return d;
+  };
+  sym.region.append(h('div', { class: 'symbols-pair' },
+    col(discrete ? 'Symbols in the PMF' : 'Symbols in the density', c.pdfIntro, c.glossary),
+    col('Symbols in the CDF', c.cdfIntro, c.cdfGlossary)));
+  sec.append(pair, h('div', { class: 'formula-tools' }, sym.button), sym.region);
+  const fit = () => sec.querySelectorAll('.formula-pair .formula').forEach(f => fitDisplayFormula(f));
+  requestAnimationFrame(fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  let t = 0;
+  window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fit, 120); });
+  return sec;
+}
+
+/** Parameters, the parameterization used on this site, and any further formulas. */
+function parametersSection(cat, mod) {
+  const c = mod.content;
+  const { section: sec, body } = section('parameters', 'Parameters and conventions');
   body.append(parameterList(mod.params));
   const conv = c.parameterization || cat.parameterization;
   if (conv) body.append(h('div', { class: 'callout steel', style: 'margin-top:1rem' }, h('p', {}, h('b', {}, 'Parameterization used on this site. '), rich('span', conv))));
-
-  const pdfBlock = h('div', { class: 'formula-block' },
-    h('h3', {}, c.pdfTitle || (discrete ? 'Probability mass function (PMF)' : 'Probability density function (PDF)')));
-  if (c.pdfIntro) pdfBlock.append(rich('p', c.pdfIntro));
-  const pdfF = h('div', { class: 'formula' }); renderTex(pdfF, c.pdfTex, true);
-  pdfBlock.append(pdfF, glossaryList(c.glossary));
-  const cdfBlock = h('div', { class: 'formula-block' }, h('h3', {}, c.cdfTitle || 'Cumulative distribution function (CDF)'));
-  if (c.cdfIntro) cdfBlock.append(rich('p', c.cdfIntro));
-  const cdfF = h('div', { class: 'formula' }); renderTex(cdfF, c.cdfTex, true);
-  cdfBlock.append(cdfF, glossaryList(c.cdfGlossary || []));
-  body.append(pdfBlock, cdfBlock);
   if (c.extraFormulas) for (const ef of c.extraFormulas) {
     const blk = h('div', { class: 'formula-block' }, h('h3', {}, ef.title));
     if (ef.intro) blk.append(rich('p', ef.intro));
@@ -199,9 +251,9 @@ function referencesSection(mod) {
 
 function fallbackPage(cat) {
   // The catalog knows this distribution but its module has not been written yet.
-  main.append(pageHead(cat, null));
+  main.append(pageHead(cat, null, null));
   main.append(h('div', { class: 'callout' }, h('p', {}, 'The interactive page for this distribution is still being written. The parameters and relationships below come from the site catalog.')));
-  const { section: sec, body } = section('formulas', 'Parameters');
+  const { section: sec, body } = section('parameters', 'Parameters');
   body.append(parameterList(cat.params));
   body.append(h('div', { class: 'callout steel', style: 'margin-top:1rem' }, h('p', {}, h('b', {}, 'Parameterization. '), rich('span', cat.parameterization))));
   const sup = h('p', {}, 'Support (the values the variable can take): '); sup.append(tex(cat.support));
@@ -228,18 +280,28 @@ async function run() {
   if (!mod) { fallbackPage(cat); return; }
 
   const store = createStore({ p: defaultParams(mod), area: { on: false, mode: 'left', a: 0, b: 1 } });
-  const head = pageHead(cat, mod);
-  head.append(jumpLinks([['explorer', 'Explorer'], ['formulas', 'Formulas'], ['properties', 'Properties'], ['limits', 'Limits'], ['uses', 'Uses'], ['related', 'Related'], ['references', 'References']]));
-  main.append(head);
+  main.append(pageHead(cat, mod, [['properties', 'Properties'], ['limits', 'Limits'], ['uses', 'Uses'], ['parameters', 'Parameters'], ['related', 'Related'], ['references', 'References']]));
+  main.append(formulasStrip(cat, mod));
 
-  const { section: exSec, body: exBody } = section('explorer', 'Interactive explorer', mod.content.explorerIntro || null);
+  // the explorer comes right after the formulas; its help text goes below it, so the plots stay near the top
+  const exSec = h('section', { class: 'doc-section explorer-section', id: 'explorer', 'aria-labelledby': 'explorer-h' },
+    h('h2', { id: 'explorer-h', class: 'sr-only' }, 'Interactive explorer'));
+  const exBody = h('div', { class: 'section-body' });
+  exSec.append(exBody);
   main.append(exSec);
   const ctx = makeCtx({ store, dist: mod, catalogEntry: cat });
   if (mod.customExplorer) await mod.customExplorer(exBody, ctx);
   else mountExplorer(exBody, mod, { store });
+  // size the plots so that they fit on the screen under the head and the formulas
+  fitToViewport(exSec, { ignore: ['#about-more', '#formula-symbols'] });
+  if (mod.content.explorerIntro) {
+    exSec.append(h('div', { class: 'explorer-help' },
+      h('h3', { class: 'mini-title' }, 'How to use the explorer'),
+      rich('p', mod.content.explorerIntro)));
+  }
 
-  main.append(formulasSection(cat, mod), propertiesSection(mod, store), limitsSection(mod), usesSection(mod), relatedSection(cat), referencesSection(mod));
-  if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+  main.append(propertiesSection(mod, store), limitsSection(mod), usesSection(mod), parametersSection(cat, mod), relatedSection(cat), referencesSection(mod));
+  scrollToHash();
 }
 
 run().catch(err => {

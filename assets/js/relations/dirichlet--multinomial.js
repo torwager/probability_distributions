@@ -58,6 +58,8 @@ export default {
   to: 'multinomial',
   title: 'The Dirichlet distribution is the conjugate prior for multinomial (and categorical) probabilities',
 
+  summary: 'The Dirichlet distribution is the conjugate prior for the category probabilities of multinomial (or categorical) data. A Dirichlet prior combined with observed category counts gives a Dirichlet posterior whose parameters are the prior parameters plus the counts.',
+
   plain: [
     'Suppose the probabilities $\\mathbf p = (p_1, \\dots, p_K)$ of $K$ categories are unknown, for example the chances that a participant chooses each of three options. A Dirichlet prior $\\mathrm{Dir}(\\alpha_1, \\dots, \\alpha_K)$ describes what is believed about $\\mathbf p$ before seeing data. After observing $n$ trials with counts $x_1, \\dots, x_K$ in the categories, the posterior is again Dirichlet, with each count added to the matching concentration: $\\mathrm{Dir}(\\alpha_1 + x_1, \\dots, \\alpha_K + x_K)$.',
     'This is the Beta–binomial update with more than two categories. The concentrations behave like counts from earlier, imaginary trials (pseudo-counts): the posterior mean of $p_j$ is $(\\alpha_j + x_j)/(\\alpha_0 + n)$, which moves from the prior mean $\\alpha_j/\\alpha_0$ toward the observed proportion $x_j/n$ as data accumulate. The same update holds when the data are $n$ separate categorical outcomes, because the likelihood depends on the outcomes only through the counts.',
@@ -102,16 +104,17 @@ export default {
     const store = ui.createStore({ p: { ...defaults }, truth: [0.6, 0.3, 0.1], x: [0, 0, 0], seed: 1 });
     let rng = math.makeRng(77);
 
-    const priorBox = h('div'), postBox = h('div');
+    const priorBox = h('div', { 'data-role': 'main-plot' }), postBox = h('div', { 'data-role': 'main-plot' });
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const counts = h('p', { class: 'dm-counts' });
     const controls = h('div', { class: 'demo-controls' });
     container.append(
-      ui.rich('p', 'Left: the prior $\\mathrm{Dir}(\\alpha_1, \\alpha_2, \\alpha_3)$ on the triangle of probability vectors (stronger shading means more probable; each corner is a vector with all the probability on one category). The amber point is the true probability vector used to simulate data; drag it anywhere in the triangle (this clears the data, so that all observed trials come from the same $\\mathbf p$). Right: the posterior $\\mathrm{Dir}(\\alpha_1 + x_1, \\alpha_2 + x_2, \\alpha_3 + x_3)$ after the trials observed so far. Add trials with the buttons and watch the posterior narrow around the true point.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid pd-dm' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Prior $\\mathrm{Dir}(\\boldsymbol\\alpha)$ and the true $\\mathbf p$'), priorBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Posterior $\\mathrm{Dir}(\\boldsymbol\\alpha + \\mathbf x)$'), postBox)),
-      readout, controls);
+      readout, controls,
+      // the plots come first so that they start inside a laptop screen; the explanation follows the controls
+      ui.rich('p', 'Left: the prior $\\mathrm{Dir}(\\alpha_1, \\alpha_2, \\alpha_3)$ on the triangle of probability vectors (stronger shading means more probable; each corner is a vector with all the probability on one category). The amber point is the true probability vector used to simulate data; drag it anywhere in the triangle (this clears the data, so that all observed trials come from the same $\\mathbf p$). Right: the posterior $\\mathrm{Dir}(\\alpha_1 + x_1, \\alpha_2 + x_2, \\alpha_3 + x_3)$ after the trials observed so far. Add trials with the buttons and watch the posterior narrow around the true point.', { class: 'small muted demo-intro' }));
     controls.classList.add('pd-dm');
 
     const panel = ui.paramPanel(controls, params, {
@@ -128,7 +131,7 @@ export default {
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Data'), counts,
       h('div', { class: 'dm-buttons' }, btn('Observe 1 trial', observe(1)), btn('Observe 10', observe(10)), btn('Observe 100', observe(100)), btn('Clear data', () => store.set({ x: [0, 0, 0] })))));
 
-    const opts = { equalAspect: true, className: 'pd-simplex', margin: { t: 24, b: 28, l: 12, r: 12 }, height: w => Math.max(240, Math.min(380, w * 0.85)) };
+    const opts = { equalAspect: true, className: 'pd-simplex', margin: { t: 24, b: 28, l: 12, r: 12 }, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.86, min: 220, max: 380 }) };
     const prior = new plot.Plot(priorBox, { ...opts, ariaLabel: 'Prior density on the triangle' });
     const post = new plot.Plot(postBox, { ...opts, ariaLabel: 'Posterior density on the triangle' });
 

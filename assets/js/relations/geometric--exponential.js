@@ -33,6 +33,8 @@ export default {
   to: 'exponential',
   title: 'The geometric waiting time becomes an exponential waiting time when time is divided into ever finer steps',
 
+  summary: 'Divide time into $n$ short steps per unit, each with a small chance $\\lambda/n$ of an event. The geometric number of steps before the first event, divided by $n$, approaches an exponential waiting time with rate $\\lambda$ as the steps get finer. Both waits are memoryless.',
+
   plain: [
     'Suppose time is divided into short steps of length $1/n$, and in each step an event happens with a small probability $\\lambda/n$, independently of the other steps. The number of empty steps before the first event is geometric. Dividing it by $n$ converts it from steps to time units. As the steps get finer ($n \\to \\infty$), this waiting time approaches an exponential distribution with rate $\\lambda$: the chance per unit time stays $\\lambda$, but events can now happen at any moment.',
     'The two distributions are the discrete-time and continuous-time versions of the same idea, a wait with a constant chance of ending at every moment. Both are memoryless. The link also works exactly in the other direction: rounding an exponential waiting time down to whole time units gives a geometric count of the units that passed without an event.',
@@ -85,13 +87,14 @@ export default {
     const pdfBox = h('div'), cdfBox = h('div'), gapBox = h('div');
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'The bars show the waiting time $K_n/n$ of the geometric model as a density: each bar covers one step of length $1/n$, and its area is the probability that the first event happens in that step. The dashed curve is the $\\mathrm{Exp}(\\lambda)$ density. Increase $n$ and the staircase settles onto the curve. Drag the tip of the amber arrow (it ends at the mean waiting time $1/\\lambda$) to change the rate, or type values below.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Waiting time $K_n/n$ (bars) and the exponential density'), pdfBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'The two CDFs'), cdfBox)),
       readout, controls,
-      h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' }, ui.rich('figcaption', 'Probability that the wait is longer than the mean $1/\\lambda$, for every $n$ from 3 to 200: it approaches $e^{-1}$'), gapBox));
+      h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' }, ui.rich('figcaption', 'Probability that the wait is longer than the mean $1/\\lambda$, for every $n$ from 3 to 200: it approaches $e^{-1}$'), gapBox),
+      ui.rich('p', 'The bars show the waiting time $K_n/n$ of the geometric model as a density: each bar covers one step of length $1/n$, and its area is the probability that the first event happens in that step. The dashed curve is the $\\mathrm{Exp}(\\lambda)$ density. Increase $n$ and the staircase settles onto the curve. Drag the tip of the amber arrow (it ends at the mean waiting time $1/\\lambda$) to change the rate, or type values below.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -101,8 +104,8 @@ export default {
     const tog = ui.toggleSwitch('Use the exact discretization p = 1 − e^(−λ/n)', false, on => store.set({ exact: on }));
     controls.append(h('div', {}, tog.el));
 
-    const pdfPlot = new plot.Plot(pdfBox, { xLabel: 'waiting time x (time units)', yLabel: 'density' });
-    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'waiting time x', yLabel: 'cumulative probability' });
+    const pdfPlot = new plot.Plot(pdfBox, { xLabel: 'waiting time x (time units)', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'waiting time x', yLabel: 'cumulative probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const gapPlot = new plot.Plot(gapBox, { xLabel: 'n (steps per time unit)', yLabel: 'P(K/n > 1/λ)', height: w => Math.max(170, Math.min(240, w * 0.28)) });
 
     let frozen = null;      // x domain held fixed while the arrow is dragged

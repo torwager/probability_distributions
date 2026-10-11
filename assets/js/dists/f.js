@@ -115,6 +115,7 @@ export default {
   },
 
   content: {
+    summary: 'The F distribution describes the ratio of two independent estimates of the same variance, with $d_1$ degrees of freedom in the numerator and $d_2$ in the denominator. It is the reference distribution for F-tests in analysis of variance (ANOVA) and regression.',
     description: [
       'The F distribution describes the ratio of two independent variance estimates. If $U$ and $V$ are independent chi-squared variables with $d_1$ and $d_2$ degrees of freedom, then $(U/d_1)/(V/d_2)$ has the $F(d_1, d_2)$ distribution. It takes non-negative values. When the two variances being compared are equal, the ratio is usually near 1; a large value means the numerator variance is larger than chance would explain.',
       'It has two parameters, both called degrees of freedom: $d_1$ belongs to the numerator (in an analysis of variance, the number of groups minus 1) and $d_2$ to the denominator (the residual or error degrees of freedom). Small $d_2$ gives a long right tail; when both are large the distribution concentrates around 1.',
@@ -122,23 +123,23 @@ export default {
     ],
     explorerIntro: 'The left plot shows the density $f(x)$ and the right plot the CDF $F(x)$. The dashed amber line marks the mean $d_2/(d_2 - 2)$, which depends only on the denominator degrees of freedom: drag it to change $d_2$ (it is hidden when $d_2 \\le 2$, where the mean is infinite). The amber knob sits on the peak: drag it left or right to change $d_1$. For $d_1 \\le 2$ the density is highest at 0 and the knob is not shown (at $d_1 = 2$ it sits at 0); use the boxes there. Under <b>Hypothesis test</b>, the upper-tail critical value used by ANOVA and regression F-tests is marked with its rejection region; turn on the area tool and drag its marker to an observed F to read off its p-value.',
 
-    pdfTex: 'f(x \\mid d_1, d_2) = \\frac{1}{B\\!\\left(\\frac{d_1}{2}, \\frac{d_2}{2}\\right)} \\left(\\frac{d_1}{d_2}\\right)^{d_1/2} x^{d_1/2 - 1} \\left(1 + \\frac{d_1 x}{d_2}\\right)^{-\\frac{d_1 + d_2}{2}}, \\qquad x \\ge 0',
+    pdfTex: 'f(x \\mid d_1, d_2) = \\frac{(d_1/d_2)^{d_1/2}}{B(d_1/2,\\, d_2/2)}\\, x^{d_1/2 - 1} \\left(1 + \\frac{d_1 x}{d_2}\\right)^{-(d_1 + d_2)/2}, \\quad x \\ge 0',
     glossary: [
       { sym: 'x', meaning: 'A possible value of the F ratio, a non-negative number (positive when $d_1 = 1$).' },
       { sym: 'f(x \\mid d_1, d_2)', meaning: 'The probability density at $x$.' },
       { sym: 'd_1', meaning: 'The numerator degrees of freedom: the degrees of freedom of the variance estimate on top of the ratio (for example the number of groups minus 1 in a one-way ANOVA).' },
       { sym: 'd_2', meaning: 'The denominator degrees of freedom: the degrees of freedom of the variance estimate below (for example the total sample size minus the number of groups).' },
       { sym: 'B(a, b)', meaning: 'The beta function, $B(a, b) = \\Gamma(a)\\Gamma(b)/\\Gamma(a + b)$, where $\\Gamma$ is the gamma function (which extends the factorial). Here it makes the total area equal to 1.' },
-      { sym: '\\left(\\frac{d_1}{d_2}\\right)^{d_1/2}', meaning: 'A constant that accounts for dividing each chi-squared variable by its degrees of freedom.' },
+      { sym: '(d_1/d_2)^{d_1/2}', meaning: 'A constant that accounts for dividing each chi-squared variable by its degrees of freedom.' },
       { sym: 'x^{d_1/2 - 1}', meaning: 'Sets the shape near 0: for $d_1 = 1$ the density is infinite at 0, for $d_1 = 2$ it starts at 1, and for $d_1 \\ge 3$ it starts at 0 and rises to a peak.' },
-      { sym: '\\left(1 + \\frac{d_1 x}{d_2}\\right)^{-\\frac{d_1+d_2}{2}}', meaning: 'Makes the right tail fall off like the power $x^{-(d_2/2 + 1)}$, so a small $d_2$ gives a heavy right tail.' },
+      { sym: '\\left(1 + \\frac{d_1 x}{d_2}\\right)^{-(d_1+d_2)/2}', meaning: 'Makes the right tail fall off like the power $x^{-(d_2/2 + 1)}$, so a small $d_2$ gives a heavy right tail.' },
     ],
 
-    cdfTex: 'F(x \\mid d_1, d_2) = I_{\\frac{d_1 x}{d_1 x + d_2}}\\!\\left(\\frac{d_1}{2}, \\frac{d_2}{2}\\right)',
+    cdfTex: 'F(x \\mid d_1, d_2) = I_z\\!\\left(\\frac{d_1}{2}, \\frac{d_2}{2}\\right), \\qquad z = \\frac{d_1 x}{d_1 x + d_2}',
     cdfGlossary: [
       { sym: 'F(x \\mid d_1, d_2)', meaning: 'The cumulative distribution function: the probability that the F ratio is at most $x$. (The letter $F$ is used both for the distribution and for CDFs in general.) The p-value of an upper-tail F-test with observed value $x$ is $1 - F(x \\mid d_1, d_2)$.' },
       { sym: 'I_z(a, b)', meaning: 'The regularized incomplete beta function: the probability that a $\\mathrm{Beta}(a, b)$ variable is at most $z$. It has no elementary formula and is computed numerically (a continued fraction).' },
-      { sym: '\\frac{d_1 x}{d_1 x + d_2}', meaning: 'The F value converted to a number between 0 and 1. This converted value has a $\\mathrm{Beta}(d_1/2, d_2/2)$ distribution, which is why the incomplete beta function appears.' },
+      { sym: 'z = \\frac{d_1 x}{d_1 x + d_2}', meaning: 'The F value converted to a number between 0 and 1. This converted value has a $\\mathrm{Beta}(d_1/2, d_2/2)$ distribution, which is why the incomplete beta function appears.' },
       { sym: 'd_1, d_2', meaning: 'The numerator and denominator degrees of freedom.' },
     ],
 

@@ -17,6 +17,7 @@ function lintRich(t, where) {
   const m = proseOnly(t).match(ASCII_GREEK);
   assert.ok(!m, `${where}: write Greek letters in TeX ($\\${m && m[1]}$), not as the word "${m && m[1]}"`);
 }
+import { checkSummary } from './content-rules.mjs';
 const list = dir => fs.readdirSync(path.join(ROOT, dir)).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3)).sort();
 
 test('catalog is frozen and consistent', () => {
@@ -60,6 +61,7 @@ for (const id of list('assets/js/relations')) {
     assert.equal(mod.to, rel.to);
     assert.ok(getDist(mod.from) && getDist(mod.to), 'from/to exist in the catalog');
     assert.ok(mod.plain && mod.statementTex, 'plain and statementTex');
+    if (mod.summary !== undefined) { checkSummary(mod.summary, `${id}.summary`); lintRich(mod.summary, `${id}.summary`); }
     assert.ok(Array.isArray(mod.glossary) && mod.glossary.every(g => g.sym && g.meaning), 'glossary');
     assert.ok(mod.why, 'why');
     assert.equal(typeof mod.demo, 'function', 'demo(container, ctx)');

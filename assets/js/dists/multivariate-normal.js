@@ -55,6 +55,10 @@ const STYLE = `
 .pd-mvn .readouts { grid-template-columns: 1fr; gap: 0; }
 .pd-mvn .readouts dd { margin: 0 0 .45rem; color: var(--ink); }
 .pd-mvn .pd-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .4rem; }
+/* the reset button and the extra buttons form one row under the parameter boxes */
+.pd-mvn .explorer .param-actions.pd-buttons, .pd-mvn.explorer .param-actions.pd-buttons { grid-column: 1 / -1; align-self: start; padding-bottom: 0; margin-top: 0; }
+.pd-mvn .explorer-readouts > .area-readout { margin: 0 0 .7rem; }
+@media (min-width: 761px) { .pd-mvn .param-panel { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); } }
 `;
 function injectStyle(id, css) {
   if (typeof document === 'undefined' || document.getElementById(id)) return;
@@ -128,17 +132,20 @@ const mod = {
     const prm = Object.fromEntries(params.map(q => [q.key, q]));
 
     // ---------- DOM
-    const jointBox = h('div', { class: 'plot-box' });
-    const condBox = h('div', { class: 'plot-box' });
+    // data-role marks the two plots that must be visible at the top of the page (tests/layout.mjs)
+    const jointBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
+    const condBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
     const regionReadout = h('p', { class: 'area-readout', 'aria-live': 'polite', hidden: true });
     const condReadout = h('p', { class: 'area-readout', 'aria-live': 'polite' });
     const panelBox = h('div', { class: 'explorer-params' }, h('h3', { class: 'mini-title' }, 'Parameters'));
     const areaBox = h('div', { class: 'explorer-area' }, h('h3', { class: 'mini-title' }, 'Probability inside an ellipse'));
-    const readBox = h('div', { class: 'explorer-readouts' }, h('h3', { class: 'mini-title' }, 'Summary at these parameters'));
+    // the explanation of the conditional density sits with the summary, so that the parameter boxes stay
+    // directly under the plots
+    const readBox = h('div', { class: 'explorer-readouts' }, h('h3', { class: 'mini-title' }, 'Summary at these parameters'), condReadout);
     container.appendChild(h('div', { class: 'explorer pd-mvn' },
       h('div', { class: 'explorer-plots' },
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Joint density f(x₁, x₂) with its 1- and 2-standard-deviation ellipses'), jointBox, regionReadout),
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Density of X₂: marginal, and conditional on X₁ = a'), condBox, condReadout)),
+        h('figure', { class: 'plot-fig fig-pdf' }, h('figcaption', {}, 'Joint density f(x₁, x₂) with its 1- and 2-SD ellipses'), jointBox, regionReadout),
+        h('figure', { class: 'plot-fig fig-cdf' }, h('figcaption', {}, 'Density of X₂: marginal, and conditional on X₁ = a'), condBox)),
       h('div', { class: 'explorer-controls' }, panelBox, areaBox, readBox),
       h('p', { class: 'explorer-hint' }, 'Drag the amber handles, or type values in the boxes. A focused handle also moves with the arrow keys (hold Shift for larger steps); the mean point moves up and down with the up and down keys.')));
 
@@ -186,8 +193,8 @@ const mod = {
     readBox.append(readDl);
 
     // ---------- plots
-    const J = new plot.Plot(jointBox, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, ariaLabel: 'Bivariate normal density', height: w => clamp(w * 0.86, 280, 440) });
-    const C = new plot.Plot(condBox, { xLabel: 'x₂', yLabel: 'density', ariaLabel: 'Marginal and conditional density of X2', height: w => clamp(w * 0.86, 260, 440) });
+    const J = new plot.Plot(jointBox, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, ariaLabel: 'Bivariate normal density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.86, min: 220, max: 440 }) });
+    const C = new plot.Plot(condBox, { xLabel: 'x₂', yLabel: 'density', ariaLabel: 'Marginal and conditional density of X2', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, min: 220, max: 440 }) });
 
     const target = p => ({ x: [p.mu1 - 3.6 * p.sigma1, p.mu1 + 3.6 * p.sigma1], y: [p.mu2 - 3.6 * p.sigma2, p.mu2 + 3.6 * p.sigma2] });
     /** Widen the shorter domain so one unit has the same length on both axes (as Plot does with equalAspect). */
@@ -366,11 +373,11 @@ const mod = {
           { id: 'mmv', type: 'segment', x1: mu2, y1: 0, x2: mu2, y2: npdf(mu2, mu2, sigma2), cls: 'ref-line' },
         ],
         legend: [
-          { label: `X₂ given X₁ = ${f3(a)}: Normal(mean ${f3(cm)}, sd ${f3(cs)})`, cls: 'curve-main' },
-          { label: `X₂ alone: Normal(mean ${f3(mu2)}, sd ${f3(sigma2)})`, cls: 'curve-ref' },
+          { label: `X₂ given X₁ = ${f3(a)}: mean ${f3(cm)}, sd ${f3(cs)}`, cls: 'curve-main' },
+          { label: `X₂ alone: mean ${f3(mu2)}, sd ${f3(sigma2)}`, cls: 'curve-ref' },
         ],
       });
-      ui.renderRich(condReadout, `Knowing $X_1 = a$ = ${f3(a)} moves the center of $X_2$ to $\\mu_2 + \\rho\\frac{\\sigma_2}{\\sigma_1}(a - \\mu_1)$ = <b>${f3(cm)}</b> and shrinks its standard deviation from ${f3(sigma2)} to $\\sigma_2\\sqrt{1-\\rho^2}$ = <b>${f3(cs)}</b>. The dashed steel line in the left plot marks $a$; drag its knob.`);
+      ui.renderRich(condReadout, `Knowing $X_1 = a$ = ${f3(a)} moves the center of $X_2$ to $\\mu_2 + \\rho\\frac{\\sigma_2}{\\sigma_1}(a - \\mu_1)$ = <b>${f3(cm)}</b> and shrinks its standard deviation from ${f3(sigma2)} to $\\sigma_2\\sqrt{1-\\rho^2}$ = <b>${f3(cs)}</b>. The dashed steel line in the joint plot marks $a$; drag its knob.`);
 
       if (reg.on) {
         const pr = 1 - Math.exp(-0.5 * reg.k * reg.k);
@@ -385,11 +392,12 @@ const mod = {
 
   // ---------------------------------------------------------------- content
   content: {
+    summary: 'The multivariate normal distribution describes several normally distributed variables that may be correlated, with mean vector $\\boldsymbol\\mu$ and covariance matrix $\\Sigma$. Every weighted sum and every conditional distribution of its variables is again normal.',
     description: [
       'The multivariate normal distribution describes several continuous variables that are each normally distributed and may be correlated with one another, such as the heights and weights of people, the scores of the same students on two tests, or the reaction time and accuracy of participants. Each observation is a vector $\\mathbf X = (X_1, \\dots, X_d)$ of $d$ real numbers. The density is highest at the mean vector and falls off in elliptical contours around it.',
       'It has two parameters: the mean vector $\\boldsymbol\\mu$, which gives the center of each variable, and the covariance matrix $\\Sigma$, which holds each variable’s variance on its diagonal and the covariance of each pair of variables off the diagonal. With two variables ($d = 2$, the bivariate normal shown here) the covariance matrix is described by the two standard deviations $\\sigma_1$, $\\sigma_2$ and the correlation $\\rho$. Every single variable, every weighted sum of the variables, and every conditional distribution of some variables given the others is again normal.',
     ],
-    explorerIntro: 'The left plot shows the joint density of $(X_1, X_2)$ as shading, with the ellipses that lie 1 and 2 standard deviations from the mean (solid and dashed). Both axes use the same scale, so the shapes are true to life. The curves along the bottom and left edges are the marginal densities of $X_1$ and $X_2$. Drag the amber point to move the mean $(\\mu_1, \\mu_2)$. The standard deviations are set on the marginal curves, as on the normal page: drag the tip of the horizontal arrow on the bottom curve (from $\\mu_1$ to $\\mu_1 + \\sigma_1$, at the height of the curve’s inflection point) to change $\\sigma_1$, and the tip of the vertical arrow on the left curve (from $\\mu_2$ to $\\mu_2 + \\sigma_2$) to change $\\sigma_2$. The correlation $\\rho$ is set by the knob on the dotted track at $x_1 = \\mu_1 + 2\\sigma_1$: its height above the mean is $2\\rho\\sigma_2$, and it marks the rightmost point of the 2-standard-deviation ellipse, which always lies on the dotted regression line $\\mathrm{E}[X_2 \\mid X_1]$. The dashed steel line at $x_1 = a$ is a slice: the right plot shows the conditional density of $X_2$ given $X_1 = a$ next to the marginal density of $X_2$. Instead of the area-under-the-curve tool, the tool below shades the inside of an ellipse and gives its probability.',
+    explorerIntro: 'The left plot shows the joint density of $(X_1, X_2)$ as shading, with the ellipses that lie 1 and 2 standard deviations from the mean (solid and dashed). Both axes use the same scale, so the shapes are true to life. The curves along the bottom and left edges are the marginal densities of $X_1$ and $X_2$. Drag the amber point to move the mean $(\\mu_1, \\mu_2)$. The standard deviations are set on the marginal curves, as on the normal page: drag the tip of the horizontal arrow on the bottom curve (from $\\mu_1$ to $\\mu_1 + \\sigma_1$, at the height of the curve’s inflection point) to change $\\sigma_1$, and the tip of the vertical arrow on the left curve (from $\\mu_2$ to $\\mu_2 + \\sigma_2$) to change $\\sigma_2$. The correlation $\\rho$ is set by the knob on the dotted track at $x_1 = \\mu_1 + 2\\sigma_1$: its height above the mean is $2\\rho\\sigma_2$, and it marks the rightmost point of the 2-standard-deviation ellipse, which always lies on the dotted regression line $\\mathrm{E}[X_2 \\mid X_1]$. The dashed steel line at $x_1 = a$ is a slice: the right plot shows the conditional density of $X_2$ given $X_1 = a$ next to the marginal density of $X_2$. Instead of the area-under-the-curve tool, the tool under the parameter boxes shades the inside of an ellipse and gives its probability.',
     parameterization: 'Mean vector $\\boldsymbol\\mu \\in \\mathbb R^d$ and covariance matrix $\\Sigma$ ($d \\times d$, symmetric and positive definite). The explorer uses $d = 2$ with $\\Sigma = \\begin{pmatrix} \\sigma_1^2 & \\rho\\sigma_1\\sigma_2 \\\\ \\rho\\sigma_1\\sigma_2 & \\sigma_2^2 \\end{pmatrix}$. Other common forms use the precision matrix $\\Sigma^{-1}$ (in Gaussian graphical models and in BUGS/JAGS), or a Cholesky factor $L$ with $\\Sigma = LL^{\\top}$ (in Stan, <code>multi_normal_cholesky</code>, usually with an LKJ prior on the correlation matrix).',
 
     pdfTex: 'f(\\mathbf x \\mid \\boldsymbol\\mu, \\Sigma) = \\frac{1}{(2\\pi)^{d/2} \\, |\\Sigma|^{1/2}} \\exp\\!\\left( -\\tfrac12 (\\mathbf x - \\boldsymbol\\mu)^{\\top} \\Sigma^{-1} (\\mathbf x - \\boldsymbol\\mu) \\right)',
@@ -405,12 +413,12 @@ const mod = {
       { sym: '\\exp(\\cdot)', meaning: 'The exponential function $e^{(\\cdot)}$.' },
     ],
 
-    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_d \\le x_d) = \\int_{-\\infty}^{x_1} \\!\\!\\cdots\\! \\int_{-\\infty}^{x_d} f(\\mathbf y \\mid \\boldsymbol\\mu, \\Sigma)\\, d\\mathbf y, \\qquad P(X_j \\le x_j) = \\Phi\\!\\left(\\frac{x_j - \\mu_j}{\\sigma_j}\\right)',
-    cdfIntro: 'The joint CDF has no closed form. It is computed numerically, for example with Genz’s algorithm for multivariate normal probabilities (in R, <code>mvtnorm::pmvnorm</code>). Probabilities about one variable come from its normal margin, and probabilities of ellipses around the mean have the simple formula in the properties table.',
+    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_d \\le x_d) = \\int_{-\\infty}^{x_1} \\!\\!\\cdots\\! \\int_{-\\infty}^{x_d} f(\\mathbf y \\mid \\boldsymbol\\mu, \\Sigma)\\, d\\mathbf y',
+    cdfIntro: 'The joint CDF has no closed form. It is computed numerically, for example with Genz’s algorithm for multivariate normal probabilities (in R, <code>mvtnorm::pmvnorm</code>). Probabilities about one variable come from its normal margin, $P(X_j \\le x_j) = \\Phi\\big((x_j - \\mu_j)/\\sigma_j\\big)$, and probabilities of ellipses around the mean have the simple formula in the properties table.',
     cdfGlossary: [
       { sym: 'F(\\mathbf x)', meaning: 'The joint cumulative distribution function: the probability that every coordinate is at most the matching entry of $\\mathbf x$ (the lower-left quadrant below $\\mathbf x$ when $d = 2$).' },
       { sym: 'd\\mathbf y', meaning: 'Integration over all $d$ coordinates of $\\mathbf y$.' },
-      { sym: 'f(\\mathbf y \\mid \\boldsymbol\\mu, \\Sigma)', meaning: 'The joint density above.' },
+      { sym: 'f(\\mathbf y \\mid \\boldsymbol\\mu, \\Sigma)', meaning: 'The joint density from the PDF formula.' },
       { sym: '\\Phi(z)', meaning: 'The CDF of the standard normal distribution, computed numerically.' },
       { sym: '\\mu_j,\\ \\sigma_j', meaning: 'The mean and standard deviation of variable $j$; $\\sigma_j^2$ is the $j$-th diagonal entry of $\\Sigma$.' },
     ],

@@ -44,6 +44,8 @@ export default {
   to: 'multivariate-normal',
   title: 'The multivariate normal extends the normal distribution to several correlated variables',
 
+  summary: 'The multivariate normal extends the normal distribution to several correlated variables; with one variable it is the ordinary normal. It can be built from independent standard normals by a linear transformation, and every weighted sum of its variables is normal.',
+
   plain: [
     'The multivariate normal distribution describes a vector of $d$ variables that are jointly normal. With $d = 1$ it is the ordinary normal distribution $\\mathcal N(\\mu, \\sigma^2)$. The two distributions are linked in both directions.',
     '<b>From normals to the multivariate normal.</b> Take $d$ independent standard normal variables $Z_1, \\dots, Z_d$ and form weighted combinations of them, $\\mathbf X = \\boldsymbol\\mu + L\\mathbf Z$. The result is multivariate normal with mean $\\boldsymbol\\mu$ and covariance matrix $\\Sigma = LL^{\\top}$. Correlation between the $X$s arises because they share some of the same $Z$s. This is how correlated normal variables are simulated.',
@@ -112,18 +114,18 @@ function buildMap(container, { math, plot, ui }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   container.append(
-    ui.rich('p', 'Left: 300 points $\\mathbf z = (z_1, z_2)$ drawn from two independent standard normals, with the circles of radius 1 and 2. Right: the same points after the linear map $\\mathbf x = \\boldsymbol\\mu + L\\mathbf z$, with $L$ the Cholesky factor of $\\Sigma$; the circles become the 1- and 2-standard-deviation ellipses. The steel arrows show where the unit steps $\\mathbf e_1 = (1, 0)$ and $\\mathbf e_2 = (0, 1)$ go: they become the columns of $L$. Drag the amber point in either plot to see a single point and its image.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Independent standard normals $\\mathbf Z$'), zBox),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', '$\\mathbf X = \\boldsymbol\\mu + L\\mathbf Z \\sim \\mathrm{MVN}_2(\\boldsymbol\\mu, \\Sigma)$'), xBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'Left: 300 points $\\mathbf z = (z_1, z_2)$ drawn from two independent standard normals, with the circles of radius 1 and 2. Right: the same points after the linear map $\\mathbf x = \\boldsymbol\\mu + L\\mathbf z$, with $L$ the Cholesky factor of $\\Sigma$; the circles become the 1- and 2-standard-deviation ellipses. The steel arrows show where the unit steps $\\mathbf e_1 = (1, 0)$ and $\\mathbf e_2 = (0, 1)$ go: they become the columns of $L$. Drag the amber point in either plot to see a single point and its image.', { class: 'small muted demo-intro' }));
   const panel = ui.paramPanel(controls, mvnParams, {
     get: () => store.get().p,
     apply: (k, v) => store.set({ p: { ...store.get().p, [k]: v } }),
     onReset: () => store.set({ p: { ...defaults } }),
   });
-  const zPlot = new plot.Plot(zBox, { xLabel: 'z₁', yLabel: 'z₂', equalAspect: true, height: w => Math.max(240, Math.min(400, w * 0.85)), ariaLabel: 'Standard normal points' });
-  const xPlot = new plot.Plot(xBox, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, height: w => Math.max(240, Math.min(400, w * 0.85)), ariaLabel: 'Transformed points' });
+  const zPlot = new plot.Plot(zBox, { xLabel: 'z₁', yLabel: 'z₂', equalAspect: true, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.85, min: 240, max: 400 }), ariaLabel: 'Standard normal points' });
+  const xPlot = new plot.Plot(xBox, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.85, min: 240, max: 400 }), ariaLabel: 'Transformed points' });
   let frozenX = null;
   let raf = 0;
   const request = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };
@@ -216,7 +218,7 @@ function buildSums(container, { plot, ui, demos }) {
   const box = h('div');
   side = h('div', { class: 'nm-side' });
   container.insertBefore(h('div', { class: 'nm-row' }, h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Draws of $\\mathbf X$ and the direction $\\mathbf a$'), box), side), container.querySelector('.demo-grid'));
-  scat = new plot.Plot(box, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, height: w => Math.max(240, Math.min(400, w * 0.85)), ariaLabel: 'Scatter of bivariate normal draws with a projection direction' });
+  scat = new plot.Plot(box, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.85, min: 240, max: 400 }), ariaLabel: 'Scatter of bivariate normal draws with a projection direction' });
 
   function drawScatter(p, s) {
     if (!scat) return;

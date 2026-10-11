@@ -19,6 +19,8 @@ export default {
   to: 'bernoulli',
   title: 'A hidden score with logistic noise, cut at zero, gives a Bernoulli response with the logistic probability',
 
+  summary: 'If a hidden score $\\eta$ plus standard logistic noise is compared with zero, the resulting yes/no response is Bernoulli with success probability $1/(1 + e^{-\\eta})$, the logistic (sigmoid) function of $\\eta$. This is the latent-variable form of logistic regression.',
+
   plain: [
     'Logistic regression can be written as a latent-variable (threshold) model. Each observation has a hidden continuous score $\\eta$, for example a linear combination of predictors. Random noise $\\varepsilon$ from the standard logistic distribution is added, and the binary response $Y$ is 1 when the noisy score $\\eta + \\varepsilon$ is above zero and 0 otherwise. The response is then a Bernoulli variable whose success probability is the logistic (sigmoid) function of the score, $1/(1 + e^{-\\eta})$.',
     'The log-odds of a 1 are then exactly $\\eta$, which is why logistic regression models the log-odds as a linear function of the predictors (the logit link). If the noise is standard normal instead, the success probability is $\\Phi(\\eta)$ and the model is probit regression. Standard logistic noise has standard deviation $\\pi/\\sqrt3 \\approx 1.81$, so with the same $\\eta$ the logit curve is flatter than the probit curve. Once the scores are rescaled the two curves are almost the same, $1/(1 + e^{-\\eta}) \\approx \\Phi(\\eta/1.702)$; the logistic one has slightly heavier tails.',
@@ -65,7 +67,7 @@ export default {
     const SIZES = [100, 1000, 10000];
     const store = ui.createStore({ eta: 0.8, noise: 'logistic', size: 1000, seed: 1 });
 
-    const latentBox = h('div'), bernBox = h('div'), linkBox = h('div');
+    const latentBox = h('div', { 'data-role': 'main-plot' }), bernBox = h('div', { 'data-role': 'main-plot' }), linkBox = h('div');
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     const noiseCtl = ui.segmented([
@@ -73,17 +75,17 @@ export default {
       { value: 'normal', label: 'Normal noise (probit)' },
     ], 'logistic', v => store.set({ noise: v }), 'Distribution of the noise ε');
     const capLatent = h('figcaption', {}), capBern = h('figcaption', {}), capLink = h('figcaption', {});
+    // the plots come first, so that they are visible on a laptop screen; the intro text follows the controls
     container.append(
-      ui.rich('p', 'The hidden score $\\eta$ plus noise $\\varepsilon$ is compared with 0. Drag the amber line to move $\\eta$; the shaded area above 0 is the probability that $Y = 1$. Switch the noise between logistic and normal to compare the logit and probit models.', { class: 'small muted demo-intro' }),
-      h('div', { style: 'margin-bottom:.7rem' }, noiseCtl.el),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, capLatent, latentBox),
         h('figure', { class: 'plot-fig' }, capBern, bernBox)),
       readout,
       controls,
+      ui.rich('p', 'The hidden score $\\eta$ plus noise $\\varepsilon$ is compared with 0. Drag the amber line to move $\\eta$; the shaded area above 0 is the probability that $Y = 1$. Switch the noise between logistic and normal to compare the logit and probit models.', { class: 'small muted demo-intro' }),
       h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' }, capLink, linkBox));
     ui.renderRich(capLatent, 'Density of the noisy score $\\eta + \\varepsilon$');
-    ui.renderRich(capBern, 'The response $Y$: exact probabilities (stems) and simulated frequencies (bars)');
+    ui.renderRich(capBern, 'The response $Y$: exact probabilities (stems) and simulated (bars)');
     ui.renderRich(capLink, 'The link between score and probability: $P(Y = 1)$ as a function of $\\eta$. The small dots show the normal CDF with $\\eta$ divided by 1.702, $\\Phi(\\eta/1.702)$, which almost coincides with the logistic curve.');
 
     const panel = ui.paramPanel(controls, params, {
@@ -95,10 +97,11 @@ export default {
       v => store.set({ size: v }), 'Number of simulated trials');
     const again = h('button', { type: 'button', class: 'btn small-btn' }, 'Draw new samples');
     again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
+    controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Noise'), noiseCtl.el));
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), sizeCtl.el, h('div', {}, again)));
 
-    const latentPlot = new plot.Plot(latentBox, { xLabel: 'noisy score η + ε', yLabel: 'density' });
-    const bernPlot = new plot.Plot(bernBox, { xLabel: 'response y', yLabel: 'probability' });
+    const latentPlot = new plot.Plot(latentBox, { xLabel: 'noisy score η + ε', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const bernPlot = new plot.Plot(bernBox, { xLabel: 'response y', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const linkPlot = new plot.Plot(linkBox, { xLabel: 'hidden score η', yLabel: 'P(Y = 1)', height: w => Math.max(220, Math.min(300, w * 0.36)) });
 
     const noisePdf = (x, noise) => (noise === 'logistic' ? logisticPdf(x) : math.normalPdf(x));

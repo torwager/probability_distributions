@@ -37,6 +37,10 @@
 // shorter domain is widened around its center) for 2-D views such as contour plots and simplexes,
 // `xTicks: false` / `yTicks: false` to hide tick labels, and `bare: true` to draw no axes, grid lines or
 // axis labels at all (polar plots, simplex triangles).
+// `height` is a number (px), the string 'css' (the CSS variable --plot-h, which site.css sets on .explorer
+// and .demo from the viewport height so that the plots fit on a laptop screen), or a function
+// (width, cssHeight) => px, where cssHeight is --plot-h resolved to px (NaN when it is not set), e.g.
+//   height: (w, H) => w < 480 ? w * 0.8 : Math.min(H, w * 0.75)
 //
 // Legend items are { label, cls, shape? }; shape 'line' (default for curves), 'box' (bars), 'dot'
 // (scatter points) or 'stem' (PMF lollipops) picks the swatch drawn next to the label.
@@ -58,6 +62,7 @@ import { niceStep } from './math.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 let plotCounter = 0;
+const LIVE = new Set();   // plots on the page, for refreshPlots()
 
 function el(name, attrs = {}, parent) {
   const e = document.createElementNS(SVGNS, name);
@@ -93,10 +98,73 @@ export function formatTick(v, step) {
   return s.replace(/^-/, '−');
 }
 
+/**
+ * A plot height for the explorer and demo plots: on desktop the CSS height H (--plot-h, from the viewport
+ * height) capped at `ratio` times the width; in a phone-width column (`w < 480`) `phoneRatio` times the width.
+ * Use it as `height: (w, H) => fitHeight(w, H, { ratio: 0.86 })`.
+ */
+export function fitHeight(w, H, { ratio = 0.62, phoneRatio = 0.78, min = 200, max = 460 } = {}) {
+  const c = v => Math.max(min, Math.min(max, v));
+  if (w < 480 || !Number.isFinite(H)) return c(w * (w < 480 ? phoneRatio : ratio));
+  return c(Math.min(H, w * ratio));
+}
+
+/** Re-measure (and redraw) every plot inside `root`, e.g. after its CSS height (--plot-h) changed. */
+export function refreshPlots(root = document) {
+  for (const p of LIVE) if (root.contains(p.root) && p._measure() && p.scene) p.render(p.scene);
+}
+
+/**
+ * Fit the plots of an explorer or demo section to the viewport height. Sets the CSS variable --plot-h-fit
+ * on `section` (site.css: .explorer and .demo use it for --plot-h) so that the first main plot fits
+ * between its current top and the bottom of the viewport, leaving room for the parameter boxes under it
+ * (measured; `reserveBelow` px when they are not below the plot) when there is room for a plot of at least
+ * `preferred` px. Content in `ignore`
+ * (elements above the plots that can be expanded, such as the "More" region) is not counted, so opening
+ * it does not shrink the plots. Re-fits on window resize. Returns the refit function.
+ */
+export function fitToViewport(section, { reserveBelow = 130, preferred = 260, min = 220, max = 440, ignore = [], plotSelector } = {}) {
+  const fit = () => {
+    const svg = (plotSelector && section.querySelector(plotSelector)) ||
+      section.querySelector('[data-role="main-plot"] .plot-svg, [data-role="main-plot"] svg, [data-role="pdf-plot"] .plot-svg') ||
+      section.querySelector('.plot-svg');
+    if (!svg) return;
+    let top = svg.getBoundingClientRect().top + window.scrollY;
+    for (const el of ignore) {
+      const e = typeof el === 'string' ? document.querySelector(el) : el;
+      if (e && !e.hidden && e.getClientRects().length) {
+        const r = e.getBoundingClientRect();
+        if (r.top + window.scrollY < top) top -= r.height;
+      }
+    }
+    const avail = window.innerHeight - top - 10;
+    // room needed under the plot for the parameter boxes: measured when they sit below the plot
+    // (this includes a legend under the plot), else `reserveBelow`
+    let reserve = reserveBelow;
+    const svgBottom = svg.getBoundingClientRect().bottom;
+    const boxes = [...section.querySelectorAll('.explorer-params .param-input, .demo-controls .param-input')].filter(e => e.getClientRects().length);
+    if (boxes.length) {
+      const b = boxes.map(e => e.getBoundingClientRect());
+      if (Math.min(...b.map(r => r.top)) > svgBottom) reserve = Math.max(...b.map(r => r.bottom)) - svgBottom + 6;
+    }
+    const withParams = avail - reserve;
+    const H = Math.max(min, Math.min(max, withParams >= preferred ? withParams : Math.min(avail, preferred)));
+    const cur = section.style.getPropertyValue('--plot-h-fit');
+    if (cur !== H + 'px') { section.style.setProperty('--plot-h-fit', H + 'px'); refreshPlots(section); }
+  };
+  fit();
+  let t = 0;
+  window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fit, 100); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(fit));
+  return fit;
+}
+
 export class Plot {
   /**
    * @param {HTMLElement} container
-   * @param {object} opts  xLabel, yLabel, height(width)->px or number, margin {t,r,b,l}, ariaLabel,
+   * @param {object} opts  xLabel, yLabel, height: number | 'css' | (width, cssHeight) => px, margin {t,r,b,l}, ariaLabel,
+   *                       (cssHeight is the CSS custom property --plot-h resolved to px, NaN when unset;
+   *                       site.css sets it on .explorer and .demo from the viewport height)
    *                       onBackground(pt, phase, event) for pointer drags on empty plot area (mouse/pen only),
    *                       yTickCount, xTickCount, yTicks (false to hide y tick labels), className
    */
@@ -142,6 +210,10 @@ export class Plot {
     this._measure();
     this.ro = new ResizeObserver(() => { if (this._measure() && this.scene) this.render(this.scene); });
     this.ro.observe(this.root);
+    // the CSS plot height (--plot-h) depends on the viewport height, which can change without the width
+    this._onWinResize = () => { if (this._measure() && this.scene) this.render(this.scene); };
+    window.addEventListener('resize', this._onWinResize);
+    LIVE.add(this);
 
     if (opts.onBackground) this._wireBackground();
   }
@@ -157,10 +229,30 @@ export class Plot {
     return { t: m.t ?? 26, r: m.r ?? (narrow ? 12 : 18), b: m.b ?? 44, l: m.l ?? Math.max(narrow ? 40 : 52, auto) };
   }
 
+  /**
+   * The CSS plot height in px: the value of the custom property --plot-h where the plot sits
+   * (set on .explorer and .demo in site.css from the viewport height), or NaN when it is not set.
+   */
+  cssHeight() {
+    const v = getComputedStyle(this.root).getPropertyValue('--plot-h').trim();
+    if (!v) return NaN;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:0;height:var(--plot-h)';
+    this.root.appendChild(probe);
+    const px = probe.getBoundingClientRect().height;
+    probe.remove();
+    return px > 0 ? px : NaN;
+  }
+
   _measure() {
     const w = Math.max(200, Math.round(this.root.clientWidth || this.container.clientWidth || 600));
     const hOpt = this.opts.height;
-    const h = Math.round(typeof hOpt === 'function' ? hOpt(w) : hOpt || Math.max(220, Math.min(360, w * 0.62)));
+    // height: a number, 'css' (use --plot-h), or a function (width, cssHeight) -> px
+    let h;
+    if (typeof hOpt === 'function') h = hOpt(w, this.cssHeight());
+    else if (hOpt === 'css') { const c = this.cssHeight(); h = Number.isFinite(c) ? Math.min(c, Math.max(220, w * 0.8)) : Math.max(220, Math.min(360, w * 0.62)); }
+    else h = hOpt || Math.max(220, Math.min(360, w * 0.62));
+    h = Math.round(Number.isFinite(h) && h > 0 ? h : Math.max(220, Math.min(360, w * 0.62)));
     if (w === this.width && h === this.height) return false;
     this.width = w; this.height = h;
     this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
@@ -741,7 +833,7 @@ export class Plot {
   /** True while a handle is being dragged. */
   get dragging() { return !!this.drag; }
 
-  destroy() { this.ro.disconnect(); this.root.remove(); }
+  destroy() { this.ro.disconnect(); window.removeEventListener('resize', this._onWinResize); LIVE.delete(this); this.root.remove(); }
 }
 
 /**

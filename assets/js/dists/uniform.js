@@ -90,26 +90,27 @@ export default {
   },
 
   content: {
+    summary: 'The continuous uniform distribution describes a quantity that is equally likely to fall anywhere between a lower bound $a$ and an upper bound $b$. The standard uniform on $(0, 1)$ is the starting point for generating random draws from other distributions.',
     description: [
       'The continuous uniform distribution describes a quantity that is equally likely to fall anywhere in an interval from $a$ to $b$, and never outside it. Its density is flat: a rectangle over $[a, b]$ whose height $1/(b - a)$ makes the total area equal to 1. A familiar example is the position at which a spinning pointer stops, measured along the rim, or the rounding error when a measurement is rounded to the nearest whole unit (uniform between $-0.5$ and $0.5$).',
       'The two parameters are the ends of the interval: the lower bound $a$ and the upper bound $b$, with $a < b$. The probability of landing in any sub-interval is its length divided by $b - a$. The standard uniform $\\mathrm U(0, 1)$ is the starting point of almost all random-number generation: computers produce uniform numbers on $(0, 1)$ and transform them into draws from other distributions.',
     ],
     explorerIntro: 'The left plot shows the density $f(x)$, a flat rectangle, and the right plot the cumulative distribution $F(x)$, a straight ramp from 0 at $a$ to 1 at $b$. Drag the dashed amber line marked $a$ to move the lower bound and the one marked $b$ to move the upper bound; if one end is pushed past the other, the other end moves along. Drag the knob in the middle of the top edge to slide the whole interval without changing its width. A wider interval gives a lower rectangle, because the area must stay 1. In the “Between” mode of the area tool, the two boundaries of the shaded region are labeled $c$ and $d$, so that they are not confused with the parameters $a$ and $b$.',
 
-    pdfTex: 'f(x \\mid a, b) = \\begin{cases} \\dfrac{1}{b-a} & \\text{for } a \\le x \\le b, \\\\[4pt] 0 & \\text{otherwise} \\end{cases}',
+    pdfTex: 'f(x \\mid a, b) = \\begin{cases} 1/(b-a) & \\text{for } a \\le x \\le b, \\\\ 0 & \\text{otherwise} \\end{cases}',
     glossary: [
       { sym: 'x', meaning: 'A possible value of the random variable $X$.' },
       { sym: 'f(x \\mid a, b)', meaning: 'The probability density at $x$ given the two bounds. Probabilities are areas under this flat curve.' },
       { sym: 'a', meaning: 'The lower bound: the smallest possible value.' },
       { sym: 'b', meaning: 'The upper bound: the largest possible value. It must be larger than $a$.' },
-      { sym: '\\dfrac{1}{b-a}', meaning: 'The constant height of the density. It is chosen so that the rectangle of width $b - a$ has area 1.' },
+      { sym: '1/(b-a)', meaning: 'The constant height of the density. It is chosen so that the rectangle of width $b - a$ has area 1.' },
     ],
 
-    cdfTex: 'F(x \\mid a, b) = P(X \\le x) = \\begin{cases} 0 & x < a, \\\\[2pt] \\dfrac{x-a}{b-a} & a \\le x \\le b, \\\\[4pt] 1 & x > b \\end{cases}',
+    cdfTex: 'F(x \\mid a, b) = P(X \\le x) = \\begin{cases} 0 & \\text{for } x < a, \\\\ (x-a)/(b-a) & \\text{for } a \\le x \\le b, \\\\ 1 & \\text{for } x > b \\end{cases}',
     cdfGlossary: [
       { sym: 'F(x \\mid a, b)', meaning: 'The cumulative distribution function: the probability that $X$ is at most $x$, which is the area of the rectangle to the left of $x$.' },
       { sym: 'P(X \\le x)', meaning: 'The probability that the random variable $X$ takes a value at most $x$.' },
-      { sym: '\\dfrac{x-a}{b-a}', meaning: 'The fraction of the interval that lies to the left of $x$. The CDF rises in a straight line from 0 to 1 across the interval.' },
+      { sym: '(x-a)/(b-a)', meaning: 'The fraction of the interval that lies to the left of $x$. The CDF rises in a straight line from 0 to 1 across the interval.' },
       { sym: 'a,\\ b', meaning: 'The lower and upper bounds of the interval.' },
     ],
     extraFormulas: [

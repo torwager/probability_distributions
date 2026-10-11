@@ -92,6 +92,7 @@ export default {
   },
 
   content: {
+    summary: 'The Gumbel distribution is a common model for the largest of many random values, such as the highest river level of each year, with location $\\mu$ (the mode) and scale $\\beta$. It is used for flood and wind risk, and in choice models, where Gumbel noise gives the softmax rule.',
     description: [
       'The Gumbel distribution describes the largest of many random values. If you record the highest river level of each year, the strongest wind gust of each month or the best score among many candidates, the maxima tend to follow a Gumbel distribution, provided the individual values have tails that are lighter than any power law (as normal, exponential and gamma values do). It is also called the extreme value type I distribution. It takes any real value and is skewed to the right: very high maxima are possible, but values far below the typical maximum are almost impossible.',
       'It has two parameters. The location $\\mu$ is the mode, the most likely value. The scale $\\beta$ sets the spread: the standard deviation is $\\pi\\beta/\\sqrt6 \\approx 1.28\\,\\beta$, and the mean $\\mu + 0.5772\\,\\beta$ lies to the right of the mode. This page uses the maximum type; the minimum type, used for the weakest link in a chain or the first failure, is its mirror image $-X$.',

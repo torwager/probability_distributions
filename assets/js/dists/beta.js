@@ -134,6 +134,7 @@ export default {
   },
 
   content: {
+    summary: 'The beta distribution describes a quantity between 0 and 1, such as a proportion or a probability, with shapes $\\alpha$ and $\\beta$ that act like counts of successes and failures. It is the conjugate prior for a success probability with binomial data.',
     description: [
       'The beta distribution describes a quantity that lies between 0 and 1, such as a proportion, a rate or a probability. Examples are the fraction of trials a participant answers correctly, the share of voters who support a candidate, or our uncertainty about the probability that a coin lands heads. It takes every value in the interval from 0 to 1.',
       'It has two positive shape parameters. The first, $\\alpha$, pulls probability toward 1, and the second, $\\beta$, pulls it toward 0. The mean is $\\alpha/(\\alpha+\\beta)$. Their sum $\\alpha + \\beta$, called the concentration, sets how tightly the distribution is packed around its mean: larger sums give narrower curves. Depending on the two shapes the curve can be a hump, a flat line ($\\alpha = \\beta = 1$, the uniform distribution), a J shape, or a U shape with high density at both ends (both shapes below 1).',
@@ -153,14 +154,13 @@ export default {
       { sym: '\\Gamma(\\cdot)', meaning: 'The gamma function, which extends the factorial to non-integers: $\\Gamma(n) = (n-1)!$ for whole numbers $n$. For whole-number shapes, $1/B(\\alpha, \\beta) = (\\alpha+\\beta-1)!/((\\alpha-1)!\\,(\\beta-1)!)$.' },
     ],
 
-    cdfTex: 'F(x \\mid \\alpha, \\beta) = P(X \\le x) = I_x(\\alpha, \\beta) = \\frac{B(x; \\alpha, \\beta)}{B(\\alpha, \\beta)}, \\qquad B(x; \\alpha, \\beta) = \\int_0^x t^{\\alpha-1}(1-t)^{\\beta-1}\\,dt',
+    cdfTex: 'F(x \\mid \\alpha, \\beta) = P(X \\le x) = I_x(\\alpha, \\beta) = \\frac{B(x; \\alpha, \\beta)}{B(\\alpha, \\beta)}',
     cdfGlossary: [
       { sym: 'F(x \\mid \\alpha, \\beta)', meaning: 'The cumulative distribution function: the probability that $X$ is at most $x$, the area under the density to the left of $x$.' },
       { sym: 'P(X \\le x)', meaning: 'The probability that the random variable $X$ takes a value of at most $x$.' },
       { sym: 'I_x(\\alpha, \\beta)', meaning: 'The regularized incomplete beta function. It has no formula in elementary functions for general shapes and is computed numerically (here with a continued fraction). For $\\alpha = 1$ it simplifies to $1 - (1-x)^{\\beta}$, and for $\\beta = 1$ to $x^{\\alpha}$.' },
-      { sym: 'B(x; \\alpha, \\beta)', meaning: 'The incomplete beta function: the area under $t^{\\alpha-1}(1-t)^{\\beta-1}$ from 0 up to $x$.' },
+      { sym: 'B(x; \\alpha, \\beta)', meaning: 'The incomplete beta function: the area under $t^{\\alpha-1}(1-t)^{\\beta-1}$ from 0 up to $x$, that is $B(x; \\alpha, \\beta) = \\int_0^x t^{\\alpha-1}(1-t)^{\\beta-1}\\,dt$, where $t$ is the integration variable.' },
       { sym: 'B(\\alpha, \\beta)', meaning: 'The complete beta function, the same area all the way to 1.' },
-      { sym: 't', meaning: 'The integration variable, running from 0 to $x$.' },
       { sym: '\\alpha,\\ \\beta', meaning: 'The two shape parameters.' },
     ],
 

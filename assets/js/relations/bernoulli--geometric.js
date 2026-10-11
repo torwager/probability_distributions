@@ -38,6 +38,8 @@ export default {
   to: 'geometric',
   title: 'Waiting for the first success in a sequence of Bernoulli trials gives a geometric count',
 
+  summary: 'Run independent yes/no trials, each a success with probability $p$, and count the failures before the first success. That count has a geometric distribution: the probability of exactly $k$ failures is $(1-p)^k p$.',
+
   plain: [
     'Run independent yes/no trials, each a success with probability $p$, and stop at the first success. The number of failures that came before it is a geometric random variable. For it to equal $k$, the first $k$ trials must all fail, which has probability $(1-p)^k$, and the next trial must succeed, which has probability $p$.',
     'This site counts failures, so the geometric variable starts at 0 (a success on the very first trial). Some books count the trials instead, including the successful one; that count is one larger and starts at 1. Both describe the same waiting process.',
@@ -91,9 +93,9 @@ export default {
       readout: ({ p }) => `Geometric mean $(1-p)/p$ = <b>${ui.fmt((1 - p) / p)}</b>, standard deviation $\\sqrt{1-p}/p$ = <b>${ui.fmt(Math.sqrt(1 - p) / p)}</b>.`,
     });
 
-    const stripBox = h('div', { class: 'small', style: 'margin:.2rem 0 1rem' });
+    const stripBox = h('div', { class: 'small', style: 'margin:1rem 0 0' });
     const intro = container.querySelector('.demo-intro');
-    if (intro) intro.after(stripBox); else container.prepend(stripBox);
+    if (intro) intro.before(stripBox); else container.append(stripBox);   // under the controls, above the explanation
     function drawStrip() {
       const { p, seed } = res.store.get();
       const outcomes = runUntilSuccess(makeRng(91 + 37 * seed), p.p);

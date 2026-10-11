@@ -18,6 +18,8 @@ export default {
   to: 'discrete-uniform',
   title: 'With a flat Beta(1, 1) distribution for the success probability, every number of successes is equally likely',
 
+  summary: 'When the success probability of a binomial count is drawn from the flat $\\mathrm{Beta}(1, 1)$ distribution, every number of successes from 0 to $n$ (the number of trials) is equally likely, with probability $1/(n + 1)$ each. Bayes used this result to justify a uniform prior.',
+
   plain: [
     'A beta-binomial count is produced in two stages: a success probability $p$ is drawn from a $\\mathrm{Beta}(\\alpha, \\beta)$ distribution, and then $n$ trials with that probability are counted. When $\\alpha = \\beta = 1$, the Beta distribution is the uniform distribution on the interval from 0 to 1, so every value of $p$ is equally likely. Averaged over this flat distribution, every count $0, 1, \\dots, n$ turns out to have the same probability, $1/(n + 1)$. The beta-binomial then is the discrete uniform distribution on $\\{0, 1, \\dots, n\\}$.',
     'In Bayesian terms: if you have no idea what $p$ is and give it a uniform prior, then before seeing any data you expect every possible number of successes to be equally likely. This is the result Thomas Bayes used in his 1763 essay, phrased as balls rolled on a billiard table, to justify the uniform prior.',

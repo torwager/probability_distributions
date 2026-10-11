@@ -53,6 +53,8 @@ export default {
   to: 'ex-gaussian',
   title: 'Adding an independent exponential delay to a normal variable gives an ex-Gaussian variable',
 
+  summary: 'Adding an independent exponential delay with mean $\\tau$ to a normal variable gives an ex-Gaussian variable: a bell curve shifted to the right, with a long right tail. It is widely used to describe response times; as $\\tau$ shrinks to 0 it becomes the normal again.',
+
   plain: [
     'Take a normally distributed value with mean $\\mu$ and standard deviation $\\sigma$, and add to it an independent exponential delay with mean $\\tau$. The sum has an ex-Gaussian distribution. The delay is never negative and is usually short but occasionally long, so the sum is the normal bell pushed to the right by $\\tau$ on average and given a long right tail.',
     'In response-time research the normal part is often read as a typical processing time and the exponential part as occasional slow responses, although the components do not map cleanly onto specific mental processes. As $\\tau$ shrinks to 0 the delay disappears and the ex-Gaussian becomes the original normal distribution.',

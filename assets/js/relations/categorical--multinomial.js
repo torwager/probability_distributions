@@ -15,6 +15,8 @@ export default {
   to: 'multinomial',
   title: 'Counting the outcomes of repeated categorical trials gives a multinomial vector of counts',
 
+  summary: 'Repeat a trial with $K$ possible outcomes $n$ times independently and count how often each outcome occurs; the vector of counts has a multinomial distribution. This is the step from the Bernoulli to the binomial, extended to more than two categories.',
+
   plain: [
     'A categorical trial has $K$ possible outcomes with probabilities $p_1, \\dots, p_K$. Repeat the trial $n$ times independently, for example roll a die $n$ times or record the choices of $n$ participants, and count how often each outcome occurs. The vector of counts $(X_1, \\dots, X_K)$ has the multinomial distribution with $n$ trials and probabilities $\\mathbf p$. The counts always add up to $n$.',
     'This is the step from the Bernoulli to the binomial distribution, extended to more than two categories. Conversely, a single categorical trial is a multinomial with $n = 1$: its count vector has a single 1 in the position of the outcome and 0 elsewhere (the one-hot coding). Each count on its own is binomial, $X_j \\sim \\mathrm{Bin}(n, p_j)$, because category $j$ either occurs or not on each trial; the counts are negatively correlated, because a trial that lands in one category cannot land in another.',
@@ -65,12 +67,13 @@ export default {
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     const jBox = h('div');
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'Left: the category probabilities (bars; drag the arrow tips) and the proportions $X_j/n$ from one simulated set of $n$ trials (amber dots). The box below lists those trials and their counts. Right: over many repetitions of the $n$ trials, the frequencies of one count $X_j$ (choose $j$ below) compared with its exact multinomial marginal distribution, $\\mathrm{Bin}(n, p_j)$.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Category probabilities and one simulated set of proportions'), catBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', `Count of one category over ${REPS.toLocaleString('en-US')} repetitions`), margBox)),
-      seqBox, readout, controls);
+      readout, controls, seqBox,
+      ui.rich('p', 'Left: the category probabilities (bars; drag the arrow tips) and the proportions $X_j/n$ from one simulated set of $n$ trials (amber dots). The box below lists those trials and their counts. Right: over many repetitions of the $n$ trials, the frequencies of one count $X_j$ (choose $j$ below) compared with its exact multinomial marginal distribution, $\\mathrm{Bin}(n, p_j)$.', { class: 'small muted demo-intro' }));
 
     const resetProbs = K => (K === 3 ? P0.slice() : new Array(K).fill(1 / K));
     const panel = ui.paramPanel(controls, params, {
@@ -96,8 +99,8 @@ export default {
       } else seg.set(j);
     }
 
-    const catPlot = new plot.Plot(catBox, { xLabel: 'category j', yLabel: 'probability or proportion' });
-    const margPlot = new plot.Plot(margBox, { xLabel: 'count x', yLabel: 'probability' });
+    const catPlot = new plot.Plot(catBox, { xLabel: 'category j', yLabel: 'probability or proportion', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const margPlot = new plot.Plot(margBox, { xLabel: 'count x', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const setOne = (probs, i, v) => {
       v = math.clamp(v, 0, 1);
       const rest = probs.reduce((s, q, k) => s + (k === i ? 0 : q), 0);

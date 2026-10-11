@@ -14,7 +14,7 @@
 // the catalog ({key, sym, name, meaning, min, max, default, integer?, log?, step?}). Both return
 // { store, redraw } so a module can add extra layers or readouts if needed. See ARCHITECTURE.md.
 
-import { Plot, sampleFn } from './plot.js';
+import { Plot, sampleFn, fitHeight } from './plot.js';
 import { h, paramPanel, createStore, segmented, fmt, rich, renderRich } from './ui.js';
 import { makeRng, histogram, ecdf, clamp } from './math.js';
 
@@ -27,17 +27,21 @@ function defaultsOf(params) {
 }
 const call = (v, ...args) => (typeof v === 'function' ? v(...args) : v);
 
+// demo plots: the CSS height --plot-h on desktop (see site.css and plot.js fitToViewport), from the width on phones
+const demoHeight = (w, H) => fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 });
+
 function frame(container, { intro, leftCaption, rightCaption }) {
   const left = h('div'), right = h('div');
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   const capL = h('figcaption', {}), capR = h('figcaption', {});
-  if (intro) container.append(rich('p', intro, { class: 'small muted demo-intro' }));
+  // the plots come first, so that they are visible on a laptop screen; the intro text follows the controls
   container.append(
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, capL, left),
       h('figure', { class: 'plot-fig' }, capR, right)),
     readout, controls);
+  if (intro) container.append(rich('p', intro, { class: 'small muted demo-intro' }));
   renderRich(capL, leftCaption || '');
   renderRich(capR, rightCaption || '');
   return { left, right, readout, controls, capL, capR };
@@ -69,8 +73,8 @@ export function simulationDemo(container, ctx, o) {
     rightCaption: o.rightCaption || 'Sample CDF and the target CDF',
   });
   const xLabel = o.xLabel || (o.target.discrete ? 'k' : 'x');
-  const left = new Plot(F.left, { xLabel, yLabel: o.target.discrete ? 'probability' : 'density' });
-  const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability' });
+  const left = new Plot(F.left, { xLabel, yLabel: o.target.discrete ? 'probability' : 'density', height: demoHeight });
+  const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability', height: demoHeight });
 
   const norm = (p, k) => (o.normalize ? o.normalize(p, k) || p : p);
   const panel = params.length ? paramPanel(F.controls, params, {
@@ -213,8 +217,8 @@ export function compareDemo(container, ctx, o) {
     rightCaption: o.rightCaption || 'The two CDFs',
   });
   const xLabel = o.xLabel || (anyDisc ? 'k' : 'x');
-  const left = new Plot(F.left, { xLabel, yLabel: anyDisc ? 'probability' : 'density' });
-  const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability' });
+  const left = new Plot(F.left, { xLabel, yLabel: anyDisc ? 'probability' : 'density', height: demoHeight });
+  const right = new Plot(F.right, { xLabel, yLabel: 'cumulative probability', height: demoHeight });
   const norm = (p, k) => (o.normalize ? o.normalize(p, k) || p : p);
   const set = patch => {
     const cur = store.get().p;

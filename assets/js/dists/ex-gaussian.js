@@ -113,7 +113,7 @@ export default {
 
   explorer: {
     xLabel: 'x',
-    pdfCaption: 'Probability density  f(x)  (x is, for example, a response time in seconds)',
+    pdfCaption: 'Probability density  f(x)  (x in seconds)',
     // a normal curve with the same mean and standard deviation, to show the skew
     overlays: ({ mu, sigma, tau }) => {
       const m = mu + tau, sd = Math.sqrt(sigma * sigma + tau * tau);
@@ -133,6 +133,7 @@ export default {
   },
 
   content: {
+    summary: 'The ex-Gaussian distribution is the sum of a normal variable (mean $\\mu$, standard deviation $\\sigma$) and an independent exponential variable (mean $\\tau$). Its bell shape with a long right tail matches typical response times in psychology experiments.',
     description: [
       'The ex-Gaussian distribution is the distribution of a sum $X = N + E$ of two independent parts: a normal (Gaussian) variable $N$ with mean $\\mu$ and standard deviation $\\sigma$, and an exponential variable $E$ with mean $\\tau$. The name is short for “exponentially modified Gaussian”. Its values can be any real number, but in practice $\\mu$ is several standard deviations above 0, so nearly all of the probability lies on positive values.',
       'Its shape is a bell curve on the left and a long, exponentially decaying tail on the right. This is the typical shape of response times in psychology experiments: most responses are close to a typical time, and a minority are much slower. The three parameters split the distribution into a location and spread of the bell ($\\mu$, $\\sigma$) and a length of the slow tail ($\\tau$). The overall mean is $\\mu + \\tau$ and the variance is $\\sigma^2 + \\tau^2$.',

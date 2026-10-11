@@ -23,6 +23,8 @@ export default {
   to: 'beta',
   title: 'The fraction X/(X + Y) of two independent gamma variables with the same rate is beta distributed',
 
+  summary: 'If $X$ and $Y$ are independent gamma variables with shapes $\\alpha$ and $\\beta$ and the same rate, the fraction $X/(X + Y)$ has a $\\mathrm{Beta}(\\alpha, \\beta)$ distribution and is independent of the total $X + Y$. This is how beta random numbers are usually generated.',
+
   plain: [
     'Take two independent gamma variables $X$ and $Y$ with shapes $\\alpha$ and $\\beta$ and the <b>same</b> rate $c$, and ask what fraction of their total $X + Y$ comes from $X$. That fraction lies between 0 and 1, and it has a beta distribution with shapes $\\alpha$ and $\\beta$. The common rate does not matter: it only sets the units of $X$ and $Y$, and it cancels in the fraction.',
     'A waiting-time example, for whole numbers $\\alpha$ and $\\beta$: events arrive at random at rate $c$. The waiting time for the first $\\alpha$ events and the further waiting time for the next $\\beta$ events are independent gamma variables, so the fraction of the total waiting time spent on the first $\\alpha$ events is $\\mathrm{Beta}(\\alpha, \\beta)$. A second, less obvious part of the result is that this fraction is independent of the total $X + Y$, which is $\\mathrm{Gamma}(\\alpha + \\beta, c)$. Knowing how long the whole wait took tells you nothing about how it was split.',

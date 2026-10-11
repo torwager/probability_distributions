@@ -102,6 +102,7 @@ export default {
   },
 
   content: {
+    summary: 'The binomial distribution counts the successes in $n$ independent trials that each succeed with the same probability $p$, such as the number of heads in 10 coin flips. Its mean is $np$, and it underlies tests and regression models for proportions.',
     description: [
       'The binomial distribution counts the number of successes in a fixed number of independent trials that all have the same success probability. Examples are the number of heads in 10 coin flips, the number of correct answers when a participant guesses on 20 questions, or the number of patients out of 50 who respond to a treatment.',
       'The count takes the whole-number values $0, 1, \\dots, n$. There are two parameters. The number of trials $n$ sets the largest possible count. The success probability $p$ is the chance that any one trial is a success; it sets where the counts center, at $np$. The trials must be independent and share the same $p$; if $p$ varies between trials or units, the counts are more spread out (see the beta-binomial distribution).',

@@ -1,8 +1,13 @@
 // relation.html?r=<id> — renders one relationship page from its module (assets/js/relations/<id>.js),
 // or from the catalog entry when the module has not been written yet.
+// Order (see ARCHITECTURE.md, "Page layout"): page head (From → To, a 1-3 line summary with a
+// "More about this relationship" toggle that shows the full plain explanation), the formal statement with
+// a "What the symbols mean" toggle, the interactive demonstration, why this is true, the two
+// distributions, references.
 
 import { RELATIONS, KIND_LABELS, EDGE_KINDS, getDist, getRelation, notationFor } from '../catalog.js';
-import { h, rich, renderTex, renderTexLines, tex, section, glossaryList, referenceList } from '../core/ui.js';
+import { h, rich, renderTex, renderTexLines, tex, section, glossaryList, referenceList, leadSentences, disclosure, fitTexLines, scrollToHash } from '../core/ui.js';
+import { fitToViewport } from '../core/plot.js';
 import { makeCtx, loadRelation } from '../core/ctx.js';
 
 const main = document.getElementById('main');
@@ -46,42 +51,65 @@ async function run() {
   main.textContent = '';
 
   const flow = h('h1', { class: 'rel-head-flow' }, distLink(rel.from), h('span', { class: 'arrow', 'aria-label': rel.bidirectional ? 'and' : 'to' }, rel.bidirectional ? '↔' : '→'), distLink(rel.to));
-  const labelChip = h('span', { class: 'chip amber' }); renderTex(labelChip, rel.label);
-  const head = h('div', { class: 'page-head' },
+  const plain = (mod && mod.plain) || rel.plain;
+  const paras = (Array.isArray(plain) ? plain : [plain]).map(String);
+  const summary = (mod && mod.summary) || leadSentences(paras[0]);
+  // "More about this relationship" expands the summary in place to the full explanation (the summary is
+  // hidden while the full text is shown, so nothing is read twice)
+  const summaryEl = rich('p', summary, { class: 'lede', 'data-role': 'summary' });
+  const more = disclosure({ id: 'about-more', label: 'More about this relationship', labelOpen: 'Show less', regionClass: 'head-more',
+    onToggle: on => { summaryEl.hidden = on; } });
+  if (mod && mod.title) more.region.append(h('p', { class: 'rel-title' }, mod.title));
+  for (const para of paras.filter(t => t.trim())) more.region.append(rich('p', para));
+  if (EDGE_KINDS[rel.kind]) more.region.append(h('p', { class: 'small muted' }, `On the map, this is drawn as a “${(KIND_LABELS[rel.kind] || rel.kind).toLowerCase()}” arrow: ${EDGE_KINDS[rel.kind]}.`));
+  more.region.append(h('div', { class: 'chips' }, h('span', { class: 'chip steel' }, KIND_LABELS[rel.kind] || rel.kind),
+    rel.onOriginalMap ? h('span', { class: 'chip' }, 'On the original map') : null));
+  const labelChip = h('span', { class: 'chip rel-label-chip' }); renderTex(labelChip, rel.label);
+  const jump = h('nav', { class: 'jump-inline', 'aria-label': 'On this page' }, h('span', { class: 'jump-label' }, 'On this page:'),
+    h('ul', {}, [['demo', 'Demonstration'], ['why', 'Why this is true'], ['distributions', 'The distributions'], ['references', 'References']]
+      .filter(([k]) => k !== 'why' || (mod && mod.why)).map(([k, t]) => h('li', {}, h('a', { href: '#' + k }, t)))));
+  const head = h('div', { class: 'page-head page-head-compact' },
     h('p', { class: 'eyebrow' }, `Relationship · ${KIND_LABELS[rel.kind] || rel.kind}`),
     flow,
-    mod && mod.title ? h('p', { class: 'small muted' }, mod.title) : null,
-    h('div', { class: 'chips' }, h('span', { class: 'chip steel' }, KIND_LABELS[rel.kind] || rel.kind), labelChip,
-      rel.onOriginalMap ? h('span', { class: 'chip' }, 'On the original map') : null));
+    summaryEl,
+    more.region,
+    h('div', { class: 'head-meta' }, more.button, labelChip, jump));
   main.append(head);
 
-  // plain explanation
-  const { section: s1, body: b1 } = section('explanation', 'In plain language');
-  const plain = (mod && mod.plain) || rel.plain;
-  for (const para of (Array.isArray(plain) ? plain : [plain])) b1.append(rich('p', para));
-  if (EDGE_KINDS[rel.kind]) b1.append(h('p', { class: 'small muted' }, `On the map, this is drawn as a “${(KIND_LABELS[rel.kind] || rel.kind).toLowerCase()}” arrow: ${EDGE_KINDS[rel.kind]}.`));
-  main.append(s1);
-
-  // formal statement + glossary
-  const { section: s2, body: b2 } = section('statement', 'Formal statement');
-  const f = h('div', { class: 'formula' });
+  // formal statement, symbols behind a toggle
+  const s2 = h('section', { class: 'doc-section statement-strip', id: 'statement', 'aria-labelledby': 'statement-h' },
+    h('h2', { id: 'statement-h', class: 'mini-title' }, 'Formal statement'));
+  const f = h('div', { class: 'formula', 'data-role': 'statement' });
   renderTexLines(f, (mod && mod.statementTex) || rel.statement);
-  b2.append(f);
+  s2.append(f);
   const gl = (mod && mod.glossary) || notationFor(rel.statement).map(e => ({ sym: e.sym, meaning: e.plain }));
-  if (gl.length) b2.append(glossaryList(gl));
+  if (gl.length) {
+    const sym = disclosure({ id: 'statement-symbols', label: 'What the symbols mean', labelOpen: 'Hide the symbols', regionClass: 'symbols-region' });
+    sym.region.append(glossaryList(gl, 'Symbols in the statement'));
+    s2.append(h('div', { class: 'formula-tools' }, sym.button), sym.region);
+  }
   main.append(s2);
+  const fit = () => fitTexLines(f, 0.72);
+  requestAnimationFrame(fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(fit, 120); });
 
   // demo
-  const { section: s3, body: b3 } = section('demo', 'Interactive demonstration');
+  const s3 = h('section', { class: 'doc-section demo-section', id: 'demo', 'aria-labelledby': 'demo-h' },
+    h('h2', { id: 'demo-h', class: 'sr-only' }, 'Interactive demonstration'));
+  const b3 = h('div', { class: 'section-body' });
+  s3.append(b3);
+  main.append(s3);
   if (mod && mod.demo) {
     const box = h('div', { class: 'demo' });
     b3.append(box);
     try { await mod.demo(box, makeCtx({ relation: rel, from, to })); }
     catch (err) { console.error(err); box.textContent = 'The demonstration could not be started: ' + err.message; }
+    fitToViewport(s3, { ignore: ['#about-more', '#statement-symbols'] });
   } else {
     b3.append(h('div', { class: 'callout' }, h('p', {}, 'An interactive demonstration for this relationship is still being written. Meanwhile you can explore each distribution on its own page.')));
   }
-  main.append(s3);
 
   // why
   if (mod && mod.why) {
@@ -116,6 +144,7 @@ async function run() {
     h('a', { href: `relation.html?r=${prev.id}` }, '← ' + nameOf(prev)), ' · ',
     h('a', { href: 'relationships.html' }, 'All relationships'), ' · ',
     h('a', { href: `relation.html?r=${next.id}` }, nameOf(next) + ' →')));
+  scrollToHash();
 }
 
 run().catch(err => {

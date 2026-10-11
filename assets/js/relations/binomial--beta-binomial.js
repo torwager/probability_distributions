@@ -15,6 +15,8 @@ export default {
   to: 'beta-binomial',
   title: 'A binomial count whose success probability varies according to a Beta distribution is beta-binomial',
 
+  summary: 'If the success probability of a binomial count varies from unit to unit according to a $\\mathrm{Beta}(\\alpha, \\beta)$ distribution, the counts are beta-binomial. They have the same mean as a binomial with $p = \\alpha/(\\alpha + \\beta)$ but, for more than one trial, a larger variance (overdispersion).',
+
   plain: [
     'A binomial count assumes that every trial has the same success probability $p$. Often that is not true across units: some patients are more likely to respond than others, some participants are better at a task, some batches have more defects. If each unit first gets its own success probability, drawn from a $\\mathrm{Beta}(\\alpha, \\beta)$ distribution, and then produces a binomial count with that probability, the counts follow a beta-binomial distribution.',
     'The beta-binomial has the same mean as the binomial with $p = \\alpha/(\\alpha + \\beta)$, but a larger variance, because the variation in $p$ between units adds to the binomial variation within a unit. This extra spread is called overdispersion. The sum $\\alpha + \\beta$ controls how much $p$ varies: when it is large the Beta distribution is concentrated near its mean, every unit has nearly the same $p$, and the beta-binomial turns back into the binomial. In Bayesian terms, the beta-binomial is the prior predictive distribution of a binomial count when $p$ has a Beta prior (and the posterior predictive distribution after updating the prior).',
@@ -65,14 +67,15 @@ export default {
     const controls = h('div', { class: 'demo-controls' });
     const again = h('button', { type: 'button', class: 'btn small-btn' }, 'Draw new samples');
     again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'Left: the Beta distribution from which each unit draws its success probability $p$. Drag the amber line to move its mean $\\pi$, and the tip of the amber arrow to change its spread (one standard deviation), which sets $\\alpha + \\beta$. Right: the beta-binomial probabilities (stems), the frequencies of 2,000 simulated two-stage draws (bars: first $p$ from the Beta, then a binomial count), and the binomial with the same mean (grey stems). Make the Beta narrow, or raise $\\alpha + \\beta$, and the beta-binomial closes in on the binomial.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Mixing distribution $\\mathrm{Beta}(\\alpha, \\beta)$ of the success probability'), betaBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Counts: $\\mathrm{BetaBin}(n, \\alpha, \\beta)$ and $\\mathrm{Bin}(n, \\pi)$'), countBox)),
       readout, controls,
       h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' },
-        ui.rich('figcaption', 'Total variation distance between $\\mathrm{BetaBin}(n, \\alpha, \\beta)$ and $\\mathrm{Bin}(n, \\pi)$ as $\\alpha + \\beta$ grows (at this $n$ and $\\pi$)'), tvBox));
+        ui.rich('figcaption', 'Total variation distance between $\\mathrm{BetaBin}(n, \\alpha, \\beta)$ and $\\mathrm{Bin}(n, \\pi)$ as $\\alpha + \\beta$ grows (at this $n$ and $\\pi$)'), tvBox),
+      ui.rich('p', 'Left: the Beta distribution from which each unit draws its success probability $p$. Drag the amber line to move its mean $\\pi$, and the tip of the amber arrow to change its spread (one standard deviation), which sets $\\alpha + \\beta$. Right: the beta-binomial probabilities (stems), the frequencies of 2,000 simulated two-stage draws (bars: first $p$ from the Beta, then a binomial count), and the binomial with the same mean (grey stems). Make the Beta narrow, or raise $\\alpha + \\beta$, and the beta-binomial closes in on the binomial.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -81,8 +84,8 @@ export default {
     });
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), again));
 
-    const betaPlot = new plot.Plot(betaBox, { xLabel: 'success probability p', yLabel: 'density' });
-    const countPlot = new plot.Plot(countBox, { xLabel: 'k (number of successes)', yLabel: 'probability' });
+    const betaPlot = new plot.Plot(betaBox, { xLabel: 'success probability p', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const countPlot = new plot.Plot(countBox, { xLabel: 'k (number of successes)', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const tvPlot = new plot.Plot(tvBox, { xLabel: 'α + β (logarithmic scale)', yLabel: 'distance', xTicks: false, height: w => Math.max(180, Math.min(250, w * 0.3)) });
 
     const ab = ({ mean, conc }) => [mean * conc, (1 - mean) * conc];

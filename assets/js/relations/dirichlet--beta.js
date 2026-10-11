@@ -20,6 +20,8 @@ export default {
   to: 'beta',
   title: 'Each coordinate of a Dirichlet vector is beta distributed, and the Dirichlet with two categories is the beta distribution',
 
+  summary: 'A Dirichlet vector is a random set of probabilities for $K$ categories that add up to 1. With $K = 2$ it is the beta distribution, and for any $K$ the probability of a single category, with all the others lumped together, has a beta distribution.',
+
   plain: [
     'A Dirichlet vector $(X_1, \\dots, X_K)$ is a random list of probabilities that add up to 1. Pick one category $j$ and lump all the other categories together. The probability of category $j$ then follows a beta distribution, $X_j \\sim \\mathrm{Beta}(\\alpha_j, \\alpha_0 - \\alpha_j)$: its first parameter is the concentration of category $j$, and its second is the total concentration of all the other categories.',
     'With only two categories nothing needs to be lumped. The vector is $(X_1, 1 - X_1)$, it is determined by $X_1$ alone, and $X_1 \\sim \\mathrm{Beta}(\\alpha_1, \\alpha_2)$. So the beta distribution, the usual prior for a single probability, is the $K = 2$ case of the Dirichlet, and conversely the Dirichlet is the generalization of the beta distribution to more than two categories.',

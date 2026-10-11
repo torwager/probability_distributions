@@ -32,6 +32,8 @@ export default {
   to: 'negative-binomial',
   title: 'A Poisson count with a gamma-distributed rate is negative binomial, and the negative binomial approaches the Poisson when the rates stop varying',
 
+  summary: 'If each unit has its own Poisson rate and the rates vary according to a gamma distribution, the pooled counts are negative binomial, with a variance larger than the mean (overdispersion). When the rates stop varying, the negative binomial becomes Poisson again.',
+
   plain: [
     'A Poisson count assumes that every unit has the same rate. Often that is not true: some people have more accidents than others, some neurons fire more on some trials, some genes are expressed more in some samples. If each unit has its own rate $\\lambda$, and the rates across units follow a gamma distribution, then the counts pooled over units are negative binomial. Their variance is larger than their mean (overdispersion), because it adds the variation of the rates to the Poisson variation of the counts.',
     'This gamma–Poisson mixture is the main reason the negative binomial is used for count data, and it is why its size parameter $r$ can be any positive number, not only a whole number. When the rates hardly vary (very large $r$, with the mean held fixed), the negative binomial becomes a Poisson distribution again.',
@@ -76,7 +78,7 @@ export default {
     const { h } = ui;
 
     // ---------------------------------------------------------------- 1. the mixture
-    container.append(h('h3', {}, 'Mixing Poisson counts over gamma-distributed rates'));
+    container.append(h('h3', { style: 'margin:0 0 .6rem' }, 'Mixing Poisson counts over gamma-distributed rates'));
     let acc = { rng: null, rates: [] };   // the rates drawn in the current batch
     let ratePlot = null;
     const mix = h('div');

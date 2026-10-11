@@ -41,6 +41,8 @@ export default {
   to: 'binomial',
   title: 'Adding up independent Bernoulli trials gives a binomial count',
 
+  summary: 'Adding up $n$ independent Bernoulli trials, each a success with the same probability $p$, gives the number of successes, which has a binomial distribution with parameters $n$ and $p$. A binomial with a single trial ($n = 1$) is a Bernoulli trial.',
+
   plain: [
     'A Bernoulli variable records one yes/no trial as 1 (success) or 0 (failure), with success probability $p$. If the same trial is repeated $n$ times independently, the total of the 0s and 1s is the number of successes, and that count has a binomial distribution with parameters $n$ and $p$.',
     'Read the other way, a binomial distribution with a single trial ($n = 1$) is a Bernoulli distribution. This is why Bernoulli and binomial data lead to the same likelihood for $p$, up to a constant: both depend on the data only through the number of successes and the number of trials.',
@@ -97,9 +99,9 @@ export default {
     });
 
     // one run of n trials, drawn with the same seed as the current simulation
-    const stripBox = h('div', { class: 'small', style: 'margin:.2rem 0 1rem' });
+    const stripBox = h('div', { class: 'small', style: 'margin:1rem 0 0' });
     const intro = container.querySelector('.demo-intro');
-    if (intro) intro.after(stripBox); else container.prepend(stripBox);
+    if (intro) intro.before(stripBox); else container.append(stripBox);   // under the controls, above the explanation
     function drawStrip() {
       const { p, seed } = res.store.get();
       const rng = makeRng(77 + 31 * seed);

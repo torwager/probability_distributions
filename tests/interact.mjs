@@ -286,6 +286,33 @@ await check('simulationDemo: new samples and sample sizes redraw; the KS gap is 
   assert.match(await read(), /mean n\/λ|mean/);
 });
 
+// page head toggles with the keyboard, and links to a section of a page
+const hp = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+hp.on('pageerror', e => errors.push('pageerror: ' + e.message));
+await hp.goto(url + 'distribution.html?d=gamma', { waitUntil: 'load' });
+await hp.waitForSelector('#explorer .plot-svg');
+await check('keyboard: Enter and Space open and close "More about this distribution" and the symbols', async () => {
+  const state = id => hp.evaluate(id => [document.querySelector(`button[aria-controls="${id}"]`).getAttribute('aria-expanded'), !document.getElementById(id).hidden,
+    !document.querySelector('[data-role="summary"]').hidden], id);
+  await hp.locator('button[aria-controls="about-more"]').focus();
+  await hp.keyboard.press('Enter');
+  assert.deepEqual(await state('about-more'), ['true', true, false]);
+  await hp.keyboard.press(' ');
+  assert.deepEqual(await state('about-more'), ['false', false, true]);
+  await hp.locator('button[aria-controls="formula-symbols"]').focus();
+  await hp.keyboard.press('Enter');
+  assert.equal((await state('formula-symbols'))[1], true);
+  assert.ok(await hp.locator('#formula-symbols .glossary dt').count() > 3, 'glossary shown');
+});
+for (const rel of ['distribution.html?d=dirichlet#references', 'distribution.html?d=normal#uses', 'relation.html?r=binomial--normal#why']) {
+  await check(`a link to a section scrolls there and stays (${rel})`, async () => {
+    await hp.goto(url + rel, { waitUntil: 'load' });
+    await hp.waitForTimeout(1500);
+    const top = await hp.evaluate(id => Math.round(document.getElementById(id).getBoundingClientRect().top), rel.split('#')[1]);
+    assert.ok(top > 40 && top < 160, `section top at ${top}px`);
+  });
+}
+
 await browser.close();
 server.close();
 if (errors.length) { console.log('\nProblems:\n  ' + errors.join('\n  ')); process.exit(1); }

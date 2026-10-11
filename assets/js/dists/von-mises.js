@@ -237,8 +237,9 @@ const mod = {
       h('figcaption', {}, 'The same density drawn around the circle'), box);
     const text = h('div', { class: 'vm-polar-text', 'aria-live': 'polite' });
     const wrap = h('div', { class: 'vm-polar-wrap' }, fig, text);
-    const plots = container.querySelector('.explorer-plots');
-    if (plots) plots.after(wrap); else container.append(wrap);
+    // the polar view goes under the parameter boxes, so that the line plots and the boxes stay at the top
+    const controls = container.querySelector('.explorer-controls');
+    if (controls) controls.after(wrap); else container.append(wrap);
 
     const R = 1.8, S = 0.42;
     const P = new plot.Plot(box, {
@@ -306,12 +307,13 @@ const mod = {
   },
 
   content: {
+    summary: 'The von Mises distribution describes an angle on a circle, such as a compass heading or the phase of an oscillation, clustered around a mean direction $\\mu$ with concentration $\\kappa$. It is the circular counterpart of the normal distribution.',
     description: [
       'The von Mises distribution describes an angle: a direction on a circle, such as a compass heading, the time of day on a 24-hour clock, the phase of an oscillation, or the error in recalling the orientation of a line. Its values are angles in radians, written here between $-\\pi$ and $\\pi$; an angle and the same angle plus $2\\pi$ are the same direction, so the two ends of this interval are the same point on the circle.',
       'It is the circular counterpart of the normal distribution. The density is a single smooth bump around the mean direction $\\mu$, and the concentration $\\kappa$ sets how tightly the angles cluster around it. With $\\kappa = 0$ every direction is equally likely (the uniform distribution on the circle); as $\\kappa$ grows the bump narrows, and for large $\\kappa$ it is close to a normal distribution with mean $\\mu$ and variance $1/\\kappa$.',
       'It is named after Richard von Mises, who introduced it in 1918. Because the circle has no beginning or end, ordinary summaries such as the average of the angle numbers do not work (the average of $179^\\circ$ and $-179^\\circ$ is $0^\\circ$, the opposite direction). Circular statistics use the mean direction and the mean resultant length instead; these appear in the properties table below.',
     ],
-    explorerIntro: 'The left plot shows the density $f(x)$ of the angle over one turn of the circle, from $-\\pi$ to $\\pi$, and the right plot the cumulative probability from $-\\pi$ up to $x$. Drag the dashed amber line to move the mean direction $\\mu$. Drag the tip of the amber arrow to change the concentration $\\kappa$: the arrow runs from $\\mu$ to the point where the density is halfway between its peak and its lowest value, so a shorter arrow means a narrower peak and a larger $\\kappa$ (the arrow is $\\pi/2$ long when $\\kappa = 0$). The polar plot below draws the same density around the circle. Its amber knob is the tip of the mean resultant vector: drag it around the circle to set $\\mu$ and toward the rim to increase $\\kappa$. When the mean direction is near $\\pm\\pi$ the bump wraps around: part of it appears at the left end of the linear plot and part at the right end.',
+    explorerIntro: 'The left plot shows the density $f(x)$ of the angle over one turn of the circle, from $-\\pi$ to $\\pi$, and the right plot the cumulative probability from $-\\pi$ up to $x$. Drag the dashed amber line to move the mean direction $\\mu$. Drag the tip of the amber arrow to change the concentration $\\kappa$: the arrow runs from $\\mu$ to the point where the density is halfway between its peak and its lowest value, so a shorter arrow means a narrower peak and a larger $\\kappa$ (the arrow is $\\pi/2$ long when $\\kappa = 0$). The polar plot under the parameter boxes draws the same density around the circle. Its amber knob is the tip of the mean resultant vector: drag it around the circle to set $\\mu$ and toward the rim to increase $\\kappa$. When the mean direction is near $\\pm\\pi$ the bump wraps around: part of it appears at the left end of the linear plot and part at the right end.',
 
     pdfTex: 'f(x \\mid \\mu, \\kappa) = \\frac{e^{\\kappa \\cos(x - \\mu)}}{2\\pi\\, I_0(\\kappa)}, \\qquad x \\in [-\\pi, \\pi)',
     glossary: [
@@ -325,11 +327,10 @@ const mod = {
       { sym: '\\pi', meaning: 'The constant 3.14159…; $2\\pi$ is the length of one full turn of the unit circle.' },
     ],
 
-    cdfTex: 'F(x) = P(-\\pi \\le X \\le x) = \\int_{-\\pi}^{x} f(t)\\,dt = \\frac{1}{2\\pi}\\Big[\\,x + \\pi + 2\\sum_{n=1}^{\\infty} \\frac{I_n(\\kappa)}{I_0(\\kappa)}\\,\\frac{\\sin n(x - \\mu) + \\sin n(\\pi + \\mu)}{n}\\Big]',
-    cdfIntro: 'The CDF has no closed form. It depends on where the circle is cut; here the angle is measured from $-\\pi$. Writing the density as a Fourier series, $f(t) = \\frac{1}{2\\pi}\\big[1 + 2\\sum_{n \\ge 1} \\frac{I_n(\\kappa)}{I_0(\\kappa)} \\cos n(t - \\mu)\\big]$, and integrating term by term gives the series below. The ratios $I_n/I_0$ shrink quickly with $n$, so a few dozen terms give full accuracy; they are computed by a backward recurrence.',
+    cdfTex: 'F(x) = \\int_{-\\pi}^{x} f(t)\\,dt = \\frac{1}{2\\pi}\\Big[\\,x + \\pi + 2\\sum_{n=1}^{\\infty} \\frac{I_n(\\kappa)}{I_0(\\kappa)}\\,\\frac{\\sin n(x - \\mu) + \\sin n(\\pi + \\mu)}{n}\\Big]',
+    cdfIntro: 'The CDF has no closed form. It depends on where the circle is cut; here the angle is measured from $-\\pi$. Writing the density as a Fourier series, $f(t) = \\frac{1}{2\\pi}\\big[1 + 2\\sum_{n \\ge 1} \\frac{I_n(\\kappa)}{I_0(\\kappa)} \\cos n(t - \\mu)\\big]$, and integrating term by term gives the series in the formula. The ratios $I_n/I_0$ shrink quickly with $n$, so a few dozen terms give full accuracy; they are computed by a backward recurrence.',
     cdfGlossary: [
-      { sym: 'F(x)', meaning: 'The probability that the angle lies between $-\\pi$ and $x$: the area under the density from the left end of the interval up to $x$.' },
-      { sym: 'P(-\\pi \\le X \\le x)', meaning: 'The probability that the random angle $X$ is at least $-\\pi$ and at most $x$.' },
+      { sym: 'F(x)', meaning: 'The probability $P(-\\pi \\le X \\le x)$ that the random angle $X$ lies between $-\\pi$ and $x$: the area under the density from the left end of the interval up to $x$.' },
       { sym: 't', meaning: 'The variable of integration, running over angles from $-\\pi$ to $x$.' },
       { sym: 'I_n(\\kappa)', meaning: 'The modified Bessel function of order $n$. The ratio $I_n(\\kappa)/I_0(\\kappa)$ equals $\\mathrm{E}[\\cos n(X - \\mu)]$, the $n$-th trigonometric moment; it is between 0 and 1 and falls off quickly as $n$ grows.' },
       { sym: 'n', meaning: 'The index of the sum, $n = 1, 2, 3, \\dots$; term $n$ describes features of the density that repeat $n$ times around the circle.' },

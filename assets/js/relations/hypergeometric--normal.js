@@ -50,6 +50,8 @@ export default {
   to: 'normal',
   title: 'The hypergeometric count is approximately normal when the population, its successes and the sample are all large',
 
+  summary: 'The number of successes in $n$ draws without replacement from $N$ items, $K$ of them successes, is approximately normal when all three are large and $n$ is well below $N$, with mean $nK/N$ and the binomial variance times $(N - n)/(N - 1)$.',
+
   plain: [
     'Draw $n$ items without replacement from a population of $N$ items, $K$ of which are successes, and count the successes. When $N$, $K$ and $n$ are all large, the bar chart of this hypergeometric count looks like a bell curve. The matching normal distribution has the hypergeometric mean $nK/N$ and the hypergeometric variance, which is the binomial variance multiplied by the finite-population correction $(N - n)/(N - 1)$.',
     'The correction matters when the sample is a sizable fraction of the population. If you sample half of the population, the variance is about half the binomial variance, because what you did not draw is determined by what you did. The approximation needs the sample to stay below the whole population ($n/N$ below 1) and the proportion of successes to stay away from 0 and 1. This is the central limit theorem for sampling without replacement, which underlies large-sample confidence intervals in survey sampling and the normal approximations used in place of Fisher’s exact test.',
@@ -99,14 +101,15 @@ export default {
     const pmfBox = h('div'), cdfBox = h('div'), gapBox = h('div');
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'The stems are the hypergeometric probabilities and the dashed curve is the normal density with the same mean and the same variance, which includes the finite-population correction $(N - n)/(N - 1)$. The thin solid curve is the normal density that leaves this correction out and uses the binomial variance. Increase $N$ with the box, or drag the amber marker on the lower plot, while the fractions $n/N$ and $K/N$ stay fixed. Raise $n/N$ to see why the finite-population correction is needed. The continuity correction (on by default) is a different, separate adjustment: the normal CDF is evaluated at $k + \\tfrac12$, halfway between two possible counts, which removes most of the gap caused by comparing a staircase with a smooth curve.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Hypergeometric probabilities and the normal curves'), pmfBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'The two CDFs (hypergeometric, and normal with the finite-population correction)'), cdfBox)),
       readout, controls,
       h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' },
-        ui.rich('figcaption', 'Largest CDF gap for every population size $N$ (logarithmic axis) at these fractions; drag the marker to change $N$'), gapBox));
+        ui.rich('figcaption', 'Largest CDF gap for every population size $N$ (logarithmic axis) at these fractions; drag the marker to change $N$'), gapBox),
+      ui.rich('p', 'The stems are the hypergeometric probabilities and the dashed curve is the normal density with the same mean and the same variance, which includes the finite-population correction $(N - n)/(N - 1)$. The thin solid curve is the normal density that leaves this correction out and uses the binomial variance. Increase $N$ with the box, or drag the amber marker on the lower plot, while the fractions $n/N$ and $K/N$ stay fixed. Raise $n/N$ to see why the finite-population correction is needed. The continuity correction (on by default) is a different, separate adjustment: the normal CDF is evaluated at $k + \\tfrac12$, halfway between two possible counts, which removes most of the gap caused by comparing a staircase with a smooth curve.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -117,8 +120,8 @@ export default {
     const nf = ui.toggleSwitch('Also show the normal curve without the finite-population correction', true, on => store.set({ nofpc: on }));
     controls.append(h('div', { style: 'display:grid;gap:.5rem' }, cc.el, nf.el));
 
-    const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'k (successes drawn)', yLabel: 'probability' });
-    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'k', yLabel: 'F(k)' });
+    const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'k (successes drawn)', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'k', yLabel: 'F(k)', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const gapPlot = new plot.Plot(gapBox, { xLabel: 'population size N (logarithmic scale)', yLabel: 'max gap', xTicks: false, height: w => Math.max(180, Math.min(250, w * 0.3)) });
     const L0 = Math.log10(N_MIN), L1 = Math.log10(N_MAX);
 

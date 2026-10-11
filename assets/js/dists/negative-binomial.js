@@ -155,6 +155,7 @@ export default {
   },
 
   content: {
+    summary: 'The negative binomial distribution counts the failures before the $r$-th success in independent trials with success probability $p$. It is also the standard model for counts whose variance exceeds their mean, such as Poisson counts with a gamma-distributed rate.',
     description: [
       'The negative binomial distribution has two common readings. In the first, it counts the failures before the $r$-th success in a sequence of independent trials that each succeed with probability $p$: for example, the number of rejected applications before a third acceptance, or the number of non-target items a participant searches before finding $r$ targets. With $r = 1$ it is the geometric distribution.',
       'In the second reading, it is a model for counts that vary more than a Poisson count would. If each unit (a person, a neuron, a gene, a stretch of road) has its own Poisson rate, and those rates follow a gamma distribution, the pooled counts are negative binomial. The variance is then larger than the mean, a pattern called overdispersion, which is common in real count data. In this reading $r$ need not be a whole number; it measures how much the rates vary, with small $r$ meaning a lot of variation.',

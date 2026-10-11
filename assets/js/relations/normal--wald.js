@@ -66,6 +66,8 @@ export default {
   to: 'wald',
   title: 'The first time a drifting random walk with normal steps reaches a threshold has a Wald (inverse Gaussian) distribution',
 
+  summary: 'When a running total drifts toward a threshold in many small, normally distributed steps (a Brownian motion with drift), the time at which it first reaches the threshold has a Wald distribution. This is the single-boundary drift-diffusion model of response times.',
+
   plain: [
     'Accumulate evidence in many small, normally distributed steps that drift on average at rate $v$ toward a threshold $a$, with noise of standard deviation $\\sigma$ per unit time. In the limit of very small steps this running total is a Brownian motion with drift, $W(t) = vt + \\sigma B(t)$, where $B(t)$ is standard Brownian motion, a continuous random walk. At any fixed time $t$ the total is normal, with mean $vt$ and variance $\\sigma^2 t$.',
     'The time $T$ at which the running total first reaches the threshold has a Wald (inverse Gaussian) distribution with mean $a/v$ and shape $a^2/\\sigma^2$. This is the single-boundary version of the drift-diffusion model of response times. The two distributions answer opposite questions about the same process: the normal says where the walk is at a given time, the Wald says when it first gets to a given place. In the other direction, when the shape $\\lambda$ is large relative to the mean, the Wald distribution is itself approximately normal.',
@@ -124,10 +126,11 @@ export default {
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     container.append(
-      ui.rich('p', 'Each thin line is one simulated accumulation path, built from many small normal steps with mean $v\\,dt$ and standard deviation $\\sigma\\sqrt{dt}$. A path stops when it first reaches the threshold $a$ (dashed amber line); the dots mark those first-passage times. The lower plot collects the first-passage times of all simulated paths, on the same time axis, and compares them with the Wald density with $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$. Press <b>Play</b> to watch the histogram fill in as the paths arrive. Drag the amber arrow to change the threshold, and the amber knob where the average path $vt$ meets the threshold (at the mean time $a/v$) to change the drift.', { class: 'small muted demo-intro' }),
-      h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Accumulation paths W(t) = vt + σB(t) and the threshold a'), pathBox),
-      h('figure', { class: 'plot-fig', style: 'margin-top:.6rem' }, h('figcaption', {}, 'First-passage times of all simulated paths and the Wald density'), histBox),
-      readout, controls);
+      h('div', { class: 'demo-grid' },
+        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Accumulation paths W(t) = vt + σB(t) and the threshold a'), pathBox),
+        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'First-passage times of all simulated paths and the Wald density'), histBox)),
+      readout, controls,
+      ui.rich('p', 'Each thin line is one simulated accumulation path, built from many small normal steps with mean $v\\,dt$ and standard deviation $\\sigma\\sqrt{dt}$. A path stops when it first reaches the threshold $a$ (dashed amber line); the dots mark those first-passage times. The second plot collects the first-passage times of all simulated paths, on the same time axis, and compares them with the Wald density with $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$. Press <b>Play</b> to watch the histogram fill in as the paths arrive. Drag the amber arrow to change the threshold, and the amber knob where the average path $vt$ meets the threshold (at the mean time $a/v$) to change the drift.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get().p,
@@ -142,7 +145,7 @@ export default {
     const normalSw = ui.toggleSwitch('Show the normal approximation N(μ, μ³/λ)', false, on => store.set({ normal: on }));
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), sizeCtl.el, h('div', {}, again, play), h('div', { style: 'margin-top:.6rem' }, normalSw.el)));
 
-    const height = w => Math.max(200, Math.min(300, w * 0.36));
+    const height = (w, H) => plot.fitHeight(w, H, { ratio: 0.72, phoneRatio: 0.7, min: 200, max: 400 });
     const pathPlot = new plot.Plot(pathBox, { xLabel: 'time t', yLabel: 'W(t)', height });
     const histPlot = new plot.Plot(histBox, { xLabel: 'first-passage time t', yLabel: 'density', height });
 

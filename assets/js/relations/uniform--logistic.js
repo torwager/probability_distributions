@@ -21,6 +21,8 @@ export default {
   to: 'logistic',
   title: 'The log-odds of a uniform random number has a logistic distribution',
 
+  summary: 'The log-odds $\\ln(U/(1 - U))$ of a uniform random number $U$ between 0 and 1 has the standard logistic distribution, because the log-odds function is the inverse of the logistic CDF. The same pair of functions forms the link in logistic regression.',
+
   plain: [
     'Take a uniform random number $U$ between 0 and 1 and treat it as a probability. Its odds are $U/(1 - U)$ and its log-odds, or logit, is $\\ln\\frac{U}{1-U}$. The logit of a uniform number has the standard logistic distribution: a symmetric bell-shaped curve centered at 0, a little heavier in the tails than the normal. Shifting by $\\mu$ and stretching by $s$ gives $\\mathrm{Logistic}(\\mu, s)$.',
     'The reason is that the logit is the inverse of the logistic CDF, the S-shaped sigmoid $1/(1 + e^{-z})$. Plugging a uniform number into the inverse of a CDF always produces a draw from that distribution (inverse-CDF sampling). In the other direction, applying the logistic CDF to a logistic variable gives back a uniform number.',

@@ -40,6 +40,8 @@ export default {
   to: 'normal',
   title: 'Binomial to normal as the number of trials grows (de Moivre–Laplace theorem)',
 
+  summary: 'When $n$ is large and $p$ is not close to 0 or 1, the binomial count of successes is approximately normal with the same mean $np$ and variance $np(1-p)$. This is the central limit theorem applied to a sum of yes/no trials.',
+
   plain: [
     'A binomial count is the number of successes in $n$ independent trials that each succeed with probability $p$. When $n$ is large and $p$ is not too close to 0 or 1, the bar chart of binomial probabilities takes the shape of a bell curve. The matching normal curve has the same mean $np$ and the same variance $np(1-p)$ as the binomial.',
     'This is the oldest form of the central limit theorem, found by de Moivre in 1733 and extended by Laplace. It is the reason the z-test for a proportion works, and the reason binomial probabilities could be computed from normal tables before computers.',
@@ -87,13 +89,14 @@ export default {
     const pmfBox = h('div'), cdfBox = h('div'), gapBox = h('div');
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
+    // the plots come first (visible on a laptop screen); the short explanation follows the controls
     container.append(
-      h('p', { class: 'small muted', style: 'margin-top:0' }, 'Increase n and watch the bars settle onto the normal curve. Drag the amber handle on the left plot to change n, or use the boxes below.'),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Binomial probabilities and the normal curve'), pmfBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'The two CDFs'), cdfBox)),
       readout,
       controls,
+      h('p', { class: 'small muted demo-intro' }, 'Increase n and watch the bars settle onto the normal curve. Drag the amber handle on the left plot to change n, or use the boxes above.'),
       h('figure', { class: 'plot-fig', style: 'margin-top:1.2rem' }, h('figcaption', {}, 'Largest CDF gap for every n from 1 to 500 (at this p)'), gapBox));
 
     const panel = ui.paramPanel(controls, params, {
@@ -104,8 +107,10 @@ export default {
     const cc = ui.toggleSwitch('Continuity correction (shift the normal CDF by ½)', false, on => store.set({ cc: on }));
     controls.append(h('div', {}, cc.el));
 
-    const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'k (number of successes)', yLabel: 'probability' });
-    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'k', yLabel: 'F(k)' });
+    // main plots: the screen-fitted demo height on a laptop (plot.fitHeight; see ARCHITECTURE.md, Plot sizes)
+    const height = (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 });
+    const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'k (number of successes)', yLabel: 'probability', height });
+    const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'k', yLabel: 'F(k)', height });
     const gapPlot = new plot.Plot(gapBox, { xLabel: 'n', yLabel: 'max gap', height: w => Math.max(170, Math.min(240, w * 0.28)) });
 
     let gapCache = { key: '', pts: [] };

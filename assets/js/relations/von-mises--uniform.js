@@ -17,6 +17,8 @@ export default {
   to: 'uniform',
   title: 'With zero concentration the von Mises distribution is uniform on the circle',
 
+  summary: 'With concentration $\\kappa = 0$ the von Mises distribution has no preferred direction: every angle on the circle is equally likely, so it is the uniform distribution on the circle. In working-memory models this uniform part represents random guesses.',
+
   plain: [
     'The concentration $\\kappa$ of a von Mises distribution says how strongly the angles prefer the mean direction $\\mu$. With $\\kappa = 0$ there is no preference at all: every direction on the circle is equally likely, and the distribution is the uniform distribution on $[-\\pi, \\pi)$, with constant density $1/(2\\pi)$. The mean direction $\\mu$ then has no effect, because there is no peak for it to locate.',
     'This special case matters in practice. Tests for whether angles have any preferred direction (such as the Rayleigh test) test $\\kappa = 0$ against $\\kappa > 0$. In mixture models of visual working memory, the uniform component describes random guesses and the von Mises component describes responses based on memory.',

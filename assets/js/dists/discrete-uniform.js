@@ -96,6 +96,7 @@ export default {
   },
 
   content: {
+    summary: 'The discrete uniform distribution gives the same probability to each whole number from a lower bound $a$ to an upper bound $b$, as in the roll of a fair die. It models fair randomization (dice, lotteries, random assignment) and “no preference” priors.',
     description: [
       'The discrete uniform distribution gives the same probability to each whole number in a range. The roll of a fair six-sided die is the standard example: each of the values 1, 2, 3, 4, 5 and 6 comes up with probability $1/6$. Picking a ticket at random from tickets numbered 1 to 100, or a random position in a list, works the same way.',
       'The variable takes the consecutive integer values $a, a+1, \\dots, b$. The lower bound $a$ and the upper bound $b$ are the two parameters, and they set where the range starts and ends. There are $n = b - a + 1$ possible values, each with probability $1/n$. Nothing else about the shape can change: it is always flat.',
@@ -114,7 +115,7 @@ export default {
       { sym: '\\{a, a+1, \\dots, b\\}', meaning: 'The set of consecutive integers from $a$ to $b$, which is the support.' },
     ],
 
-    cdfTex: 'F(x) = P(X \\le x) = \\begin{cases} 0, & x < a \\\\ \\dfrac{\\lfloor x \\rfloor - a + 1}{n}, & a \\le x < b \\\\ 1, & x \\ge b \\end{cases}',
+    cdfTex: 'F(x) = P(X \\le x) = \\begin{cases} 0, & x < a \\\\ (\\lfloor x \\rfloor - a + 1)/n, & a \\le x < b \\\\ 1, & x \\ge b \\end{cases}',
     cdfGlossary: [
       { sym: 'F(x)', meaning: 'The cumulative distribution function: the probability that $X$ is at most $x$. It is a staircase with $n$ equal steps of height $1/n$, one at each value $a, \\dots, b$.' },
       { sym: 'P(X \\le x)', meaning: 'The probability that $X$ takes a value less than or equal to $x$.' },

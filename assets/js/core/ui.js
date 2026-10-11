@@ -82,8 +82,14 @@ export function richToHtml(text) {
         j++;
       }
       if (j >= s.length) { out += s.slice(i); break; }
-      out += texToHtml(s.slice(i + open, j), display);
+      const src = s.slice(i + open, j);
+      const math = texToHtml(src, display);
       i = j + open;
+      // keep punctuation that follows short inline math on the same line as the math ("$1-p$." never wraps
+      // the "."); long inline formulas keep their own line breaks
+      const punct = display || src.length > 40 ? null : /^[.,;:!?)\]]+/.exec(s.slice(i));
+      if (punct) { out += `<span class="nowrap">${math}${punct[0]}</span>`; i += punct[0].length; }
+      else out += math;
       continue;
     }
     out += s[i++];
@@ -107,6 +113,88 @@ export function firstSentence(text) {
     return s.slice(0, i + 1);
   }
   return s;
+}
+
+/** Split rich text into sentences (same rules as firstSentence). Returns the sentences with their spacing trimmed. */
+export function sentences(text) {
+  const out = [];
+  let rest = String(text ?? '').trim();
+  while (rest) {
+    const s = firstSentence(rest);
+    out.push(s.trim());
+    rest = rest.slice(s.length).trim();
+  }
+  return out;
+}
+
+/**
+ * A short summary from longer rich text: the first sentence, plus the second one when both together
+ * stay within `maxChars` (default 300). Used when a module has no `summary` field.
+ */
+export function leadSentences(text, maxChars = 300) {
+  const ss = sentences(text);
+  if (!ss.length) return '';
+  let out = ss[0];
+  if (ss.length > 1 && out.length < 150 && (out + ' ' + ss[1]).length <= maxChars) out += ' ' + ss[1];
+  return out;
+}
+
+/**
+ * A disclosure: a button that shows and hides a region (aria-expanded + aria-controls; the region uses `hidden`).
+ *   const d = disclosure({ id: 'about-more', label: 'More about this distribution', labelOpen: 'Show less' });
+ *   head.append(d.button); later.append(d.region);   d.set(true) opens it.
+ */
+export function disclosure({ id, label, labelOpen = label, open = false, regionClass = '', buttonClass = '', onToggle = null }) {
+  const text = h('span', { class: 'disclosure-text' }, open ? labelOpen : label);
+  const button = h('button', { type: 'button', class: 'disclosure' + (buttonClass ? ' ' + buttonClass : ''), 'aria-expanded': String(open), 'aria-controls': id },
+    text, h('span', { class: 'disclosure-chev', 'aria-hidden': 'true' }));
+  const region = h('div', { id, class: 'disclosure-region' + (regionClass ? ' ' + regionClass : '') });
+  region.hidden = !open;
+  const set = on => {
+    button.setAttribute('aria-expanded', String(on));
+    text.textContent = on ? labelOpen : label;
+    region.hidden = !on;
+    if (onToggle) onToggle(on);
+  };
+  button.addEventListener('click', () => set(button.getAttribute('aria-expanded') !== 'true'));
+  return { button, region, set, isOpen: () => button.getAttribute('aria-expanded') === 'true' };
+}
+
+/**
+ * Shrink a rendered display formula (down to `minScale` of its size) when it is a little too wide for its
+ * box; anything wider still scrolls sideways inside the box. Call again after a resize.
+ */
+export function fitFormula(box, minScale = 0.8) {
+  for (const disp of box.querySelectorAll('.katex-display')) {
+    const k = disp.querySelector(':scope > .katex');
+    if (!k) continue;
+    k.style.fontSize = '';
+    const avail = disp.clientWidth, need = disp.scrollWidth;
+    if (need > avail + 1 && avail > 0) {
+      const base = parseFloat(getComputedStyle(k).fontSize);
+      k.style.fontSize = (base * Math.max(minScale, (avail - 2) / need)).toFixed(2) + 'px';
+    }
+  }
+}
+
+/**
+ * Scroll to the element named in the address (#id) once the page has been built. Plots resize while the fonts
+ * load and the explorer fits itself to the screen, which moves everything below them, so the target is kept in
+ * view until the page has settled (about 2.5 s), unless the reader scrolls or clicks first.
+ */
+export function scrollToHash() {
+  if (!location.hash || location.hash.length < 2) return;
+  let id;
+  try { id = decodeURIComponent(location.hash.slice(1)); } catch (_) { return; }
+  const go = () => { const t = document.getElementById(id); if (t) t.scrollIntoView({ block: 'start', behavior: 'instant' }); };
+  go();
+  const ac = new AbortController();
+  const stop = () => ac.abort();
+  for (const ev of ['wheel', 'touchstart', 'keydown', 'mousedown']) window.addEventListener(ev, stop, { passive: true, once: true, signal: ac.signal });
+  const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { if (!ac.signal.aborted) go(); }) : null;
+  if (ro) ro.observe(document.getElementById('main') || document.body);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(() => { if (!ac.signal.aborted) go(); }));
+  setTimeout(() => { if (ro) ro.disconnect(); ac.abort(); }, 2500);
 }
 
 /** Fill an element with rich text (see richToHtml). */
@@ -149,10 +237,102 @@ export function renderTexLines(target, src) {
   for (const line of splitTexLines(src)) {
     const d = document.createElement('div');
     d.className = 'formula-line';
+    d.dataset.tex = line;
     renderTex(d, line, true);
     target.appendChild(d);
   }
   return target;
+}
+
+/**
+ * Fit the lines made by renderTexLines to their box: a line that is a little too wide is shrunk (fitFormula);
+ * a line that is still too wide (long statements with words, on a phone) is set as inline math, which wraps
+ * after relations and operators instead of scrolling sideways. Call again after a resize.
+ */
+export function fitTexLines(target, minScale = 0.72) {
+  for (const d of target.querySelectorAll('.formula-line')) {
+    if (!d.dataset.tex) continue;
+    if (d.classList.contains('formula-line-wrap')) { d.classList.remove('formula-line-wrap'); renderTex(d, d.dataset.tex, true); }
+    fitFormula(d, minScale);
+    const disp = d.querySelector('.katex-display');
+    if (disp && disp.scrollWidth > disp.clientWidth + 1) { d.classList.add('formula-line-wrap'); renderTex(d, breakableText(d.dataset.tex), false); }
+  }
+}
+
+/**
+ * Split a display formula at its top level (outside braces, brackets, parentheses and environments) for a
+ * narrow screen: first at wide spaces (",\qquad", ",\quad", "\qquad"), which separate a formula from its
+ * conditions; with `atEquals`, also before every "=" after the first. Returns the pieces (one per line).
+ */
+export function splitFormula(src, atEquals = false) {
+  const cuts = [];
+  let depth = 0, env = 0, firstEq = true;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (c === '\\') {
+      const m = /^\\([a-zA-Z]+|.)/.exec(src.slice(i));
+      const name = m ? m[1] : '';
+      if (name === 'begin') env++;
+      else if (name === 'end') env--;
+      else if (name === 'left') depth++;
+      else if (name === 'right') depth--;
+      else if ((name === 'qquad' || name === 'quad') && depth === 0 && env === 0) {
+        // the separator and a comma or semicolon just before it
+        let a = i; while (a > 0 && /\s/.test(src[a - 1])) a--;
+        let b = i + m[0].length; while (b < src.length && /\s/.test(src[b])) b++;
+        if (/^\\q?quad/.test(src.slice(b))) { const m2 = /^\\q?quad\s*/.exec(src.slice(b)); b += m2[0].length; }
+        if (a > 0 && b < src.length) cuts.push([a, b]);
+        i = b - 1; continue;
+      }
+      i += (m ? m[0].length : 1) - 1;
+      if (name === 'left' || name === 'right') i++;   // skip the delimiter after \left / \right
+      continue;
+    }
+    if (c === '{' || c === '(' || c === '[') depth++;
+    else if (c === '}' || c === ')' || c === ']') depth--;
+    else if (atEquals && c === '=' && depth === 0 && env === 0) { if (firstEq) firstEq = false; else cuts.push([i, i]); }
+  }
+  const out = [];
+  let start = 0;
+  for (const [a, b] of cuts.sort((x, y) => x[0] - y[0])) { out.push(src.slice(start, a).trim()); start = b; }
+  out.push(src.slice(start).trim());
+  return out.filter(Boolean);
+}
+
+/**
+ * Fit a display formula (TeX in box.dataset.tex) to its box: shrink it a little (down to `minScale`); on a
+ * narrow screen (at most `narrow` px wide, where the formulas are stacked), a formula that would have to
+ * shrink below `splitBelow` is first split into lines
+ * (see splitFormula); what is still too wide scrolls sideways inside the box. Call again after a resize.
+ */
+export function fitDisplayFormula(box, { minScale = 0.72, splitBelow = 0.8, narrow = 760 } = {}) {
+  const src = box.dataset.tex;
+  if (!src) { fitFormula(box, minScale); return; }
+  if (box.dataset.split) { delete box.dataset.split; renderTex(box, src, true); }
+  const disp = box.querySelector('.katex-display');
+  const avail = disp ? disp.clientWidth : 0, need = disp ? disp.scrollWidth : 0;
+  if (!disp || avail === 0 || need <= avail + 1 || window.innerWidth > narrow || avail / need >= splitBelow) { fitFormula(box, minScale); return; }
+  let parts = splitFormula(src);
+  const render = ps => {
+    box.textContent = '';
+    for (const part of ps) { const d = document.createElement('div'); d.className = 'formula-line'; renderTex(d, part, true); box.appendChild(d); }
+    box.dataset.split = '1';
+  };
+  const tooWide = () => [...box.querySelectorAll('.katex-display')].some(d => d.clientWidth > 0 && d.clientWidth / d.scrollWidth < splitBelow);
+  if (parts.length > 1) render(parts);
+  if (parts.length < 2 || tooWide()) {
+    const finer = parts.flatMap(p => splitFormula(p, true));
+    if (finer.length > parts.length) { parts = finer; render(parts); }
+  }
+  fitFormula(box, minScale);
+}
+
+/** Let inline TeX wrap between the words of its \text{...} pieces (KaTeX only breaks after relations otherwise). */
+function breakableText(src) {
+  return src.replace(/\\text\{([^{}]*)\}/g, (m, body) => {
+    const words = body.split(/(?<=\s)/);
+    return words.length < 2 ? m : words.map(w => `\\text{${w}}`).join('\\allowbreak ');
+  });
 }
 
 // ---------------------------------------------------------------- numbers

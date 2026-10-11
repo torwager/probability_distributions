@@ -76,6 +76,7 @@ export default {
   },
 
   content: {
+    summary: 'The Laplace, or double exponential, distribution is symmetric about $\\mu$, with a sharp peak there and exponential tails on both sides; the scale $b$ is the average distance from $\\mu$. A Laplace prior on regression coefficients gives the LASSO estimate as its posterior mode.',
     description: [
       'The Laplace distribution, also called the double exponential distribution, describes a continuous quantity that can take any real value and is symmetric about a center. Its density has a sharp peak at the center and falls off exponentially on both sides, like two exponential densities placed back to back. Compared with a normal distribution of the same variance, it puts more probability very close to the center and more in the tails, and less in between. Day-to-day changes in many financial and physical quantities, and the errors of measurements with occasional large mistakes, have roughly this shape.',
       'It has two parameters. The location $\\mu$ is the center, which is the mean, the median and the mode. The scale $b$ sets the spread: it is the average absolute distance of a value from $\\mu$, and the standard deviation is $\\sqrt2\\,b$. Some texts use the rate $\\lambda = 1/b$ instead.',

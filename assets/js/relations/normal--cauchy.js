@@ -27,6 +27,8 @@ export default {
   to: 'cauchy',
   title: 'The ratio of two independent standard normal variables has a standard Cauchy distribution',
 
+  summary: 'The ratio of two independent normal variables centered at 0 has a Cauchy distribution (standard when both are standard). The denominator is often close to 0, which makes the ratio occasionally huge and gives the Cauchy its heavy tails.',
+
   plain: [
     'Take two independent standard normal variables $Z_1$ and $Z_2$, each with mean 0 and standard deviation 1, and divide one by the other. The ratio $Z_1/Z_2$ has the standard Cauchy distribution, with location 0 and scale 1.',
     'The denominator $Z_2$ is often close to zero, and dividing by a number close to zero gives a huge result. That is where the heavy tails of the Cauchy distribution come from: even though both normal variables rarely exceed 3 in size, about 6% of the ratios exceed 10 in size, and about 0.6% exceed 100.',

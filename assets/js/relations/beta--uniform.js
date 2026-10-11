@@ -23,6 +23,8 @@ export default {
   to: 'uniform',
   title: 'The Beta distribution with both shapes equal to 1 is the standard uniform, and sorted uniform numbers are Beta distributed',
 
+  summary: 'The beta distribution with both shapes equal to 1 is flat on $[0, 1]$, which is the standard uniform distribution. In the other direction, the $k$-th smallest of $n$ independent uniform numbers has a $\\mathrm{Beta}(k,\\ n - k + 1)$ distribution.',
+
   plain: [
     'The Beta distribution describes a quantity between 0 and 1, such as a probability or a proportion. Its density is proportional to $x^{\\alpha - 1}(1 - x)^{\\beta - 1}$. With $\\alpha = \\beta = 1$ both powers are $x^0 = 1$, so the density is flat: every value in $[0, 1]$ is equally likely. That is the standard uniform distribution $\\mathrm U(0, 1)$, and it is the usual “no preference” prior for an unknown probability.',
     'The connection also runs the other way. Draw $n$ independent uniform numbers between 0 and 1 and sort them. The $k$-th smallest, written $U_{(k)}$, has a $\\mathrm{Beta}(k,\\ n - k + 1)$ distribution. For example, the smallest of 5 uniform numbers is $\\mathrm{Beta}(1, 5)$, piled up near 0, and the middle one (the sample median) is $\\mathrm{Beta}(3, 3)$, centered at 1/2. With $n = 1$ and $k = 1$ this gives back $\\mathrm{Beta}(1, 1) = \\mathrm U(0, 1)$.',

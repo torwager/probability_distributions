@@ -106,6 +106,7 @@ export default {
   },
 
   content: {
+    summary: 'The Pareto distribution is the basic power-law distribution for positive values above a minimum $x_m$, with a long right tail whose heaviness is set by the tail index $\\alpha$. It describes incomes, city sizes and insurance claims, where a few values are very large.',
     description: [
       'The Pareto distribution is the basic power-law distribution. It describes positive quantities that have a smallest possible value and a very long right tail, so that a few values are enormous compared with the typical one: incomes and wealth above some level, the populations of cities, the sizes of files on a server, insurance claims, and the energies of earthquakes. Vilfredo Pareto introduced it in the 1890s to describe the distribution of income.',
       'It takes values $x \\ge x_m$ and has two parameters. The scale $x_m$ is the smallest possible value; the density is highest there and falls off for larger values. The tail index $\\alpha$ sets how fast it falls: the probability of exceeding $x$ is $(x_m/x)^{\\alpha}$, a power of $x$, so doubling $x$ always divides that probability by $2^{\\alpha}$. A smaller $\\alpha$ means a heavier tail. For $\\alpha \\le 1$ the mean is infinite, and for $\\alpha \\le 2$ the variance is infinite, so averages of Pareto data behave very differently from averages of normal data.',

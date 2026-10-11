@@ -93,6 +93,7 @@ export default {
   },
 
   content: {
+    summary: 'The Poisson distribution counts the events in a fixed interval of time or space when events occur independently at a constant average rate, such as the spikes of a neuron in 100 ms. Its parameter $\\lambda$ is both the mean and the variance of the count.',
     description: [
       'The Poisson distribution describes the number of times an event happens in a fixed stretch of time or space, when the events happen independently of each other and at a constant average rate. Examples are the number of spikes a neuron fires in a 100 ms window, the number of emails arriving in an hour, the number of typing errors on a page, or the number of radioactive decays recorded by a detector in a second.',
       'The count $X$ takes the whole-number values $0, 1, 2, \\dots$ with no upper limit. The single parameter $\\lambda$ is the expected count, and it is also the variance: counts with a larger mean are also more variable, with standard deviation $\\sqrt\\lambda$. For small $\\lambda$ the most likely count is 0 and the distribution is strongly skewed to the right; as $\\lambda$ grows it becomes more symmetric and close to a normal distribution.',

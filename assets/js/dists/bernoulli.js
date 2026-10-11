@@ -85,6 +85,7 @@ export default {
   },
 
   content: {
+    summary: 'The Bernoulli distribution describes a single yes/no trial: it gives 1 (a success) with probability $p$ and 0 (a failure) otherwise. It is the building block of the binomial, geometric and negative binomial distributions.',
     description: [
       'The Bernoulli distribution describes a single trial with two possible outcomes, such as a coin flip, a correct or incorrect answer, or whether a patient recovers. One outcome is called a success and coded 1; the other is called a failure and coded 0. The variable therefore takes only the values 0 and 1.',
       'It has one parameter, the success probability $p$, which is the probability of a 1. The probability of a 0 is $1 - p$. Coding the outcomes as 0 and 1 is useful because the mean of the variable is then simply $p$, and the sum of many such variables counts the successes.',

@@ -20,6 +20,8 @@ export default {
   to: 'gumbel',
   title: 'Minus the log of an exponential variable is Gumbel, and so is the largest of many exponential variables',
 
+  summary: 'Minus the logarithm of a standard exponential variable has the standard Gumbel distribution. The Gumbel also describes the largest of $n$ independent standard exponential variables after subtracting $\\ln n$, which is the simplest case of extreme-value theory.',
+
   plain: [
     'If $X$ is a standard exponential variable (rate 1), then $-\\ln X$ has the standard Gumbel distribution. Small values of $X$, which are common, give large values of $-\\ln X$, so the Gumbel has a long right tail and a short left tail.',
     'The Gumbel distribution also appears as a limit. Take the largest of $n$ independent standard exponential variables. It grows like $\\ln n$, and after subtracting $\\ln n$ its distribution approaches the standard Gumbel as $n$ grows. This is the simplest case of extreme-value theory: the maximum of many independent variables whose tails are lighter than any power law (exponential, gamma, normal, log-normal and others) is approximately Gumbel after suitable centering and scaling.',

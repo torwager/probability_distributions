@@ -7,7 +7,7 @@
 // `store` holds { p: {...params}, area: {on, mode, a, b} } and is shared with the page so that
 // the properties table can update live. See ARCHITECTURE.md for the module fields used here.
 
-import { Plot, DomainAnimator, sampleFn } from './plot.js';
+import { Plot, DomainAnimator, sampleFn, fitHeight } from './plot.js';
 import { h, paramPanel, toggleSwitch, segmented, fmt, fmtInput, dragResolution, keyStep, isLogParam, texLabel } from './ui.js';
 import { clamp, roundTo, niceStep } from './math.js';
 
@@ -34,8 +34,9 @@ export function mountExplorer(container, mod, { store }) {
   // ------------------------------------------------------------ DOM
   const pdfCap = discrete ? `Probability mass  P(${vName} = ${xName})` : `Probability density  f(${xName})`;
   const cdfCap = `Cumulative probability  F(${xName}) = P(${vName} ≤ ${xName})`;
-  const pdfBox = h('div', { class: 'plot-box' });
-  const cdfBox = h('div', { class: 'plot-box' });
+  // data-role marks the main plots for the layout test (tests/layout.mjs)
+  const pdfBox = h('div', { class: 'plot-box', 'data-role': 'pdf-plot' });
+  const cdfBox = h('div', { class: 'plot-box', 'data-role': 'cdf-plot' });
   const areaReadout = h('p', { class: 'area-readout', 'aria-live': 'polite', hidden: true });
   const figPdf = h('figure', { class: 'plot-fig fig-pdf' }, h('figcaption', {}, X.pdfCaption || pdfCap), pdfBox, areaReadout);
   const figCdf = h('figure', { class: 'plot-fig fig-cdf' }, h('figcaption', {}, X.cdfCaption || cdfCap), cdfBox);
@@ -52,12 +53,14 @@ export function mountExplorer(container, mod, { store }) {
 
   const pdfPlot = new Plot(pdfBox, {
     xLabel: xName, yLabel: discrete ? 'probability' : 'density', ariaLabel: `${mod.name} ${discrete ? 'PMF' : 'PDF'} plot`,
-    height: w => clamp(w < 480 ? w * 0.78 : w * 0.62, 240, 380),
+    // desktop: the CSS height --plot-h (from the viewport height, see site.css), so that both plots fit
+    // on a laptop screen under the page head and the formulas; phones: from the width
+    height: (w, H) => fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.78, min: 200, max: 440 }),
     onBackground: (pt, phase) => onBackgroundDrag(pt, phase),
   });
   const cdfPlot = new Plot(cdfBox, {
     xLabel: xName, yLabel: 'F(' + xName + ')', ariaLabel: `${mod.name} CDF plot`,
-    height: w => clamp(w < 480 ? w * 0.62 : w * 0.62, 200, 380),
+    height: (w, H) => fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.62, min: 200, max: 440 }),
     onBackground: (pt, phase) => onBackgroundDrag(pt, phase),
   });
 

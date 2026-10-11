@@ -42,6 +42,8 @@ export default {
   to: 'multinomial',
   title: 'The binomial is the multinomial with two categories, and each category of a multinomial has a binomial count',
 
+  summary: 'A binomial count is a multinomial with two categories, successes and failures. In the other direction, the count in any one category of a multinomial, with all other categories lumped together, is binomial with that category’s probability.',
+
   plain: [
     'The multinomial distribution generalizes the binomial from two possible outcomes per trial to $K$ outcomes (categories). After $n$ independent trials it records how many trials fell into each category, as a vector of counts $(X_1, \\dots, X_K)$ that adds up to $n$.',
     'With $K = 2$ categories, "success" and "failure", the vector is $(X, n - X)$. The second count is determined by the first, so the multinomial is just the binomial count $X$ written as a pair. Going the other way, pick any one category $j$ of a multinomial and lump all the other categories together as "not $j$". Each trial then either lands in category $j$, with probability $p_j$, or not, so the count $X_j$ is binomial with $n$ trials and success probability $p_j$.',
@@ -107,19 +109,20 @@ function buildTwo(container, { math, plot, ui }) {
   const leftBox = h('div'), rightBox = h('div');
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
+  // the plots come first (visible on a laptop screen); the explanation follows the controls
   container.append(
-    ui.rich('p', 'Left: every pair of counts $(x_1, x_2)$ with $0 \\le x_1, x_2 \\le n$, with a dot whose area is proportional to its multinomial probability. All the probability lies on the line $x_1 + x_2 = n$; every other pair is impossible. Right: the binomial probabilities of $x_1$. Reading the dots along the line from left to right gives exactly the binomial stems. Drag the amber marker to pick a value $k$ to compare.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', '$\\mathrm{Multinomial}(n, (p, 1-p))$ on the pairs $(x_1, x_2)$'), leftBox),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', '$\\mathrm{Bin}(n, p)$: probabilities of $x_1$'), rightBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'Left: every pair of counts $(x_1, x_2)$ with $0 \\le x_1, x_2 \\le n$, with a dot whose area is proportional to its multinomial probability. All the probability lies on the line $x_1 + x_2 = n$; every other pair is impossible. Right: the binomial probabilities of $x_1$. Reading the dots along the line from left to right gives exactly the binomial stems. Drag the amber marker to pick a value $k$ to compare.', { class: 'small muted demo-intro' }));
   const panel = ui.paramPanel(controls, params, {
     get: () => store.get(),
     apply: (key, v) => store.set({ [key]: v }),
     onReset: () => store.set({ ...defaults }),
   });
-  const left = new plot.Plot(leftBox, { xLabel: 'x₁ (count in category 1)', yLabel: 'x₂ (count in category 2)' });
-  const right = new plot.Plot(rightBox, { xLabel: 'x₁ (count in category 1)', yLabel: 'probability' });
+  const left = new plot.Plot(leftBox, { xLabel: 'x₁ (count in category 1)', yLabel: 'x₂ (count in category 2)', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+  const right = new plot.Plot(rightBox, { xLabel: 'x₁ (count in category 1)', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
   let frozen = null;
   let raf = 0;

@@ -103,6 +103,7 @@ export default {
   },
 
   content: {
+    summary: 'The inverse-gamma distribution describes a positive quantity whose reciprocal has a gamma distribution, with shape $\\alpha$ and scale $\\beta$. Its main use is as the conjugate prior for the variance of normally distributed data in Bayesian statistics.',
     description: [
       'The inverse-gamma distribution describes a positive quantity whose reciprocal has a gamma distribution: if $Y$ is gamma distributed, then $X = 1/Y$ is inverse-gamma distributed. Its main use is as a distribution for a variance. In Bayesian statistics it is the conjugate prior for the variance $\\sigma^2$ of normally distributed data, so a prior and a posterior for a variance are often inverse-gamma distributions.',
       'It takes every positive value. The density is very small close to 0, rises to a single peak and then falls off slowly: the right tail decreases like a power of $x$, not exponentially. Large values are therefore much more common than under a gamma distribution with a similar peak, and some moments are infinite. The mean exists only when $\\alpha > 1$ and the variance only when $\\alpha > 2$.',
@@ -121,14 +122,13 @@ export default {
       { sym: '\\Gamma(\\alpha)', meaning: 'The gamma function, which extends the factorial: $\\Gamma(n) = (n-1)!$ for whole numbers. Together with $\\beta^{\\alpha}$ it makes the total area equal to 1.' },
     ],
 
-    cdfTex: 'F(x \\mid \\alpha, \\beta) = P(X \\le x) = Q\\!\\left(\\alpha, \\frac{\\beta}{x}\\right) = \\frac{\\Gamma(\\alpha, \\beta/x)}{\\Gamma(\\alpha)}, \\qquad \\Gamma(\\alpha, u) = \\int_u^{\\infty} t^{\\alpha - 1} e^{-t}\\, dt',
+    cdfTex: 'F(x \\mid \\alpha, \\beta) = P(X \\le x) = Q\\!\\left(\\alpha, \\frac{\\beta}{x}\\right) = \\frac{\\Gamma(\\alpha, \\beta/x)}{\\Gamma(\\alpha)}',
     cdfGlossary: [
       { sym: 'F(x \\mid \\alpha, \\beta)', meaning: 'The cumulative distribution function: the probability that $X$ is at most $x$.' },
       { sym: 'P(X \\le x)', meaning: 'The probability that the random variable $X$ takes a value of at most $x$.' },
       { sym: 'Q(\\alpha, u)', meaning: 'The regularized upper incomplete gamma function. It equals $P(Y > u)$ for $Y \\sim \\mathrm{Gamma}(\\alpha, 1)$; it is computed numerically. The CDF has this form because $X \\le x$ exactly when $1/X \\ge 1/x$.' },
-      { sym: '\\Gamma(\\alpha, u)', meaning: 'The upper incomplete gamma function: the area under $t^{\\alpha-1}e^{-t}$ from $u$ to infinity.' },
+      { sym: '\\Gamma(\\alpha, u)', meaning: 'The upper incomplete gamma function: the area under $t^{\\alpha-1}e^{-t}$ from $u$ to infinity, $\\Gamma(\\alpha, u) = \\int_u^{\\infty} t^{\\alpha - 1} e^{-t}\\, dt$, where $t$ is the integration variable. Here $u = \\beta/x$.' },
       { sym: '\\Gamma(\\alpha)', meaning: 'The complete gamma function, the same area from 0 to infinity.' },
-      { sym: 't', meaning: 'The integration variable.' },
       { sym: '\\alpha,\\ \\beta', meaning: 'The shape and the scale.' },
     ],
 

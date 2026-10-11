@@ -21,6 +21,8 @@ export default {
   to: 'beta',
   title: 'An F variable converted to the scale from 0 to 1 has a beta distribution',
 
+  summary: 'An F variable $X$ with $d_1$ and $d_2$ degrees of freedom, converted to $d_1X/(d_1X + d_2)$, has a $\\mathrm{Beta}(d_1/2,\\ d_2/2)$ distribution. In regression this quantity is the proportion of variance explained, $R^2$, so the null distribution of $R^2$ is beta.',
+
   plain: [
     'An F statistic $X$ with $d_1$ and $d_2$ degrees of freedom can be turned into a number between 0 and 1 by computing $d_1X/(d_1X + d_2)$. This number has a beta distribution with shapes $d_1/2$ and $d_2/2$. Large F values map to values near 1 and small ones to values near 0.',
     'In regression and ANOVA this transformed value is the proportion of variance explained: $R^2$ for the overall regression F-test, or partial $\\eta^2$ for a single effect. So when the null hypothesis is true (the predictors explain nothing in the population), the sample $R^2$ has a $\\mathrm{Beta}(p/2,\\ (n - p - 1)/2)$ distribution for $p$ predictors and $n$ observations. Its mean $p/(n-1)$ is not 0: with many predictors and few observations, a sizable $R^2$ arises by chance alone.',

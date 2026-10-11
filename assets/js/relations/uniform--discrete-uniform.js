@@ -14,6 +14,8 @@ export default {
   to: 'discrete-uniform',
   title: 'Rounding down a stretched uniform number gives a discrete uniform integer, and a fine discrete uniform looks continuous',
 
+  summary: 'Stretching a uniform random number on $[0, 1)$ over $n$ equal bins and rounding down gives a discrete uniform integer, which is how a computer rolls a die. Conversely, a discrete uniform on a very fine grid, rescaled to $[0, 1]$, approaches the continuous uniform.',
+
   plain: [
     'A computer rolls a die by stretching a uniform random number $U$ between 0 and 1 to cover six equal bins and rounding down: $1 + \\lfloor 6U \\rfloor$ is equally likely to be any of $1, 2, \\dots, 6$. In general, $a + \\lfloor (b - a + 1)U \\rfloor$ is equally likely to be any whole number from $a$ to $b$, because each of the $b - a + 1$ bins covers the same length of the interval $[0, 1)$.',
     'In the other direction, take a discrete uniform number on $\\{1, \\dots, n\\}$ and divide it by $n$. Its possible values $1/n, 2/n, \\dots, 1$ form an ever finer grid on $(0, 1]$, each with probability $1/n$. As $n$ grows, the staircase CDF of this grid hugs the straight line of the continuous uniform CDF, and the largest gap between them is exactly $1/n$.',
@@ -135,16 +137,16 @@ function gridDemo(box, { plot, ui, math }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   box.append(
-    ui.rich('p', 'The stems show the probabilities of $X_n/n$: each grid point $k/n$ has probability $1/n$, so the stems get shorter as they get denser. The right plot compares the staircase CDF of $X_n/n$ with the straight-line CDF of $\\mathrm U(0, 1)$. Drag the amber marker under the left plot, which sits at the first grid point $1/n$, toward 0 to make the grid finer.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Probabilities of $X_n/n$'), pmfBox),
       h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'The two CDFs'), cdfBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'The stems show the probabilities of $X_n/n$: each grid point $k/n$ has probability $1/n$, so the stems get shorter as they get denser. The right plot compares the staircase CDF of $X_n/n$ with the straight-line CDF of $\\mathrm U(0, 1)$. Drag the amber marker under the left plot, which sits at the first grid point $1/n$, toward 0 to make the grid finer.', { class: 'small muted demo-intro' }));
   const panel = ui.paramPanel(controls, params, {
     get: () => store.get(), apply: (k, v) => store.set({ [k]: v }), onReset: () => store.set({ n: 5 }),
   });
-  const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'x = k/n', yLabel: 'probability' });
-  const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'x', yLabel: 'cumulative probability' });
+  const pmfPlot = new plot.Plot(pmfBox, { xLabel: 'x = k/n', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H) });
+  const cdfPlot = new plot.Plot(cdfBox, { xLabel: 'x', yLabel: 'cumulative probability', height: (w, H) => plot.fitHeight(w, H) });
   let raf = 0;
   const request = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };
   store.subscribe(() => { panel.update(store.get()); request(); });

@@ -86,12 +86,20 @@ await check('clicking each arrow opens its dialog', async () => {
   await page.waitForTimeout(300);
   const probs = [];
   for (const r of RELATIONS) {
+    // two quick clicks on nearby arrows count as a double click, which zooms the map: show the whole map again
+    await page.evaluate(() => window.__map.pz.fit());
     const pt = await page.evaluate(id => {
       const p = document.querySelector(`.edge[data-id="${id}"] .e-hit`);
       const L = p.getTotalLength();
+      // map path coordinates to the screen from the SVG's own box (getScreenCTM is unreliable here while the
+      // map's CSS transform has just changed)
+      const svg = p.ownerSVGElement, box = svg.getBoundingClientRect();
+      const vb = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width ? svg.viewBox.baseVal : null;
+      const sw = vb ? vb.width : svg.width.baseVal.value, sh = vb ? vb.height : svg.height.baseVal.value;
+      const ox = vb ? vb.x : 0, oy = vb ? vb.y : 0;
       for (let f = 0.06; f < 0.95; f += 0.02) {
-        const q = p.getPointAtLength(L * f), m = p.getScreenCTM();
-        const x = m.a * q.x + m.e, y = m.d * q.y + m.f;
+        const q = p.getPointAtLength(L * f);
+        const x = box.left + (q.x - ox) * box.width / sw, y = box.top + (q.y - oy) * box.height / sh;
         if (document.elementFromPoint(x, y) === p) return [x, y];
       }
       return null;

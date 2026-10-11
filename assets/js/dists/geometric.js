@@ -106,6 +106,7 @@ export default {
   },
 
   content: {
+    summary: 'The geometric distribution counts the failures before the first success in independent trials that each succeed with probability $p$, so it takes the values 0, 1, 2, and so on. It is the discrete counterpart of the exponential and is also memoryless.',
     description: [
       'The geometric distribution describes how long you wait for the first success in a sequence of independent tries that all have the same chance of success. Examples are the number of failed free throws before the first basket, the number of non-matching trials before a participant first answers correctly when guessing, or the number of rejected proposals before a rejection sampler accepts one.',
       'On this site the geometric variable $K$ counts the <b>failures before the first success</b>, so it takes the whole-number values $0, 1, 2, \\dots$ with no upper limit. Many textbooks instead count the trials up to and including the first success, $Y = K + 1$, which takes the values $1, 2, 3, \\dots$; the two versions differ only by a shift of one. The single parameter $p$ is the probability of success on each trial. The most likely value is always $K = 0$ (success on the first try), and the probabilities then shrink by the same factor $1 - p$ with every further failure, so a small $p$ gives a long, slowly decaying tail.',

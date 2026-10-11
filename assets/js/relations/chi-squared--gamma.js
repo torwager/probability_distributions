@@ -19,6 +19,8 @@ export default {
   to: 'gamma',
   title: 'The chi-squared distribution is a gamma distribution with shape k/2 and rate 1/2',
 
+  summary: 'The chi-squared distribution with $k$ degrees of freedom is the gamma distribution with shape $k/2$ and rate $1/2$. Conversely, a gamma variable with shape $\\alpha$ and rate $\\beta$, multiplied by $2\\beta$, is chi-squared with $2\\alpha$ degrees of freedom.',
+
   plain: [
     'The chi-squared distribution with $k$ degrees of freedom is the gamma distribution with shape $\\alpha = k/2$ and rate $\\beta = 1/2$ (scale 2). The two density formulas are the same once these values are put in, so every fact about gamma distributions applies to chi-squared distributions.',
     'The relationship also works the other way. Any gamma variable $X$ with shape $\\alpha$ and rate $\\beta$ can be rescaled into a chi-squared variable: $2\\beta X$ has a chi-squared distribution with $2\\alpha$ degrees of freedom. Before computers, gamma probabilities were looked up in chi-squared tables this way, and the same rescaling gives exact confidence intervals for a Poisson mean or an exponential rate.',

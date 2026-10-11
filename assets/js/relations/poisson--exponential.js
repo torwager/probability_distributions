@@ -20,6 +20,8 @@ export default {
   to: 'exponential',
   title: 'In a Poisson process the counts are Poisson and the waiting times between events are exponential',
 
+  summary: 'In a Poisson process, events occur independently at a constant average rate $\\lambda$. The number of events in a window of length $t$ is Poisson with mean $\\lambda t$, and the waiting times between events are exponential with rate $\\lambda$. Each description implies the other.',
+
   plain: [
     'A Poisson process is the simplest model of events that happen at random moments in time: clicks of a Geiger counter, spikes of a neuron firing at a steady rate, customers arriving at a shop. Events happen independently of each other, at a constant average rate $\\lambda$ per unit time. Such a process can be described in two equivalent ways.',
     'Counting: the number of events in any window of length $t$ is Poisson distributed with mean $\\lambda t$, and counts in windows that do not overlap are independent. Waiting: the times between successive events are independent exponential waiting times with rate $\\lambda$ (mean $1/\\lambda$). Each description implies the other. The simplest link between them is that the first wait is longer than $t$ exactly when the window from 0 to $t$ contains no events, and both probabilities equal $e^{-\\lambda t}$.',
@@ -77,13 +79,14 @@ export default {
     const again = h('button', { type: 'button', class: 'btn small-btn' }, 'Simulate a new process');
     again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
 
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'One long Poisson process is simulated, with about 4,000 events. Build it from independent exponential gaps and check that the counts per window are Poisson; or build it from a Poisson total with event times scattered uniformly and check that the gaps are exponential. Drag the amber marker on the timeline to change the window length $t$ (the events stay where they are and are counted again), drag the dashed line on the count plot to change the rate $\\lambda$, or type values below.', { class: 'small muted demo-intro' }),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', `The first ${SHOW_WINDOWS} windows of length $t$, with the number of events in each`), lineBox),
       h('div', { class: 'demo-grid', style: 'margin-top:1rem' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Counts per window (bars) and the $\\mathrm{Poisson}(\\lambda t)$ probabilities'), cntBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Gaps between events (histogram) and the $\\mathrm{Exp}(\\lambda)$ density'), gapBox)),
-      readout, controls);
+      readout, controls,
+      ui.rich('p', 'One long Poisson process is simulated, with about 4,000 events. Build it from independent exponential gaps and check that the counts per window are Poisson; or build it from a Poisson total with event times scattered uniformly and check that the gaps are exponential. Drag the amber marker on the timeline to change the window length $t$ (the events stay where they are and are counted again), drag the dashed line on the count plot to change the rate $\\lambda$, or type values below.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -93,8 +96,8 @@ export default {
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), modeCtl.el, h('div', {}, again)));
 
     const linePlot = new plot.Plot(lineBox, { xLabel: 'time', yTicks: false, height: w => (w < 480 ? 130 : 150), margin: { l: 18 }, yTickCount: 1 });
-    const cntPlot = new plot.Plot(cntBox, { xLabel: 'k (events in one window)', yLabel: 'proportion of windows' });
-    const gapPlot = new plot.Plot(gapBox, { xLabel: 'gap between events', yLabel: 'density' });
+    const cntPlot = new plot.Plot(cntBox, { xLabel: 'k (events in one window)', yLabel: 'proportion of windows', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const gapPlot = new plot.Plot(gapBox, { xLabel: 'gap between events', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
     // ---------------------------------------------------------------- simulation (cached)
     let cache = { key: '', ev: null, T: 0 };

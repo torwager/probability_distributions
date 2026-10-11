@@ -39,6 +39,8 @@ export default {
   to: 'binomial',
   title: 'Sampling without replacement from a large population is almost binomial; conditioning two binomial counts on their total gives a hypergeometric count',
 
+  summary: 'In a large population, drawing without replacement is almost like drawing with replacement, so the hypergeometric approaches the binomial. Conversely, given the total of two independent binomial counts with the same $p$, the first count is hypergeometric.',
+
   plain: [
     'The hypergeometric distribution counts the successes among $n$ items drawn without replacement from a population of $N$ items, $K$ of which are successes. The binomial distribution counts successes in $n$ independent trials with a fixed success probability $p$, which is what you get when every drawn item is put back before the next draw. When the population is very large compared with the sample, removing a few items hardly changes the proportion of successes $K/N$ that remain, so the two ways of drawing give almost the same probabilities. As $N$ grows with $K/N$ fixed at $p$, the hypergeometric distribution approaches $\\mathrm{Bin}(n, p)$.',
     'The relationship also runs the other way. Suppose a first group of $K$ units and a second group of $N - K$ units each succeed independently with the same probability $p$, giving binomial counts $X$ and $Y$. If you are told only that the total number of successes is $X + Y = n$, then the number of those successes that fall in the first group is hypergeometric: every set of $n$ successful units out of the $N$ is equally likely, whatever $p$ is. Because the unknown $p$ drops out, this conditional distribution gives an exact test of whether two groups have the same success probability. That test is Fisher’s exact test.',
@@ -199,12 +201,13 @@ function condDemo(box, { math, plot, ui }) {
   const leftBox = h('div'), rightBox = h('div');
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
+  // the plots come first (visible on a laptop screen); the explanation follows the controls
   box.append(
-    ui.rich('p', 'Each simulated pair is a count $X \\sim \\mathrm{Bin}(K, p)$ for the first group and an independent count $Y \\sim \\mathrm{Bin}(N - K, p)$ for the second. The right plot shows the distribution of the total $X + Y$; only the pairs whose total equals $n$ (the amber bar) are kept. The left plot compares the kept values of $X$ with the $\\mathrm{Hypergeometric}(N, K, n)$ probabilities. Drag the dashed line on the right plot to change $p$: fewer or more pairs are kept, but the shape on the left does not change. Drag the marker labeled $n$ to change the total.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Kept values of $X$ and the hypergeometric probabilities'), leftBox),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Total successes $X + Y \\sim \\mathrm{Bin}(N, p)$; pairs with total $n$ are kept'), rightBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'Each simulated pair is a count $X \\sim \\mathrm{Bin}(K, p)$ for the first group and an independent count $Y \\sim \\mathrm{Bin}(N - K, p)$ for the second. The right plot shows the distribution of the total $X + Y$; only the pairs whose total equals $n$ (the amber bar) are kept. The left plot compares the kept values of $X$ with the $\\mathrm{Hypergeometric}(N, K, n)$ probabilities. Drag the dashed line on the right plot to change $p$: fewer or more pairs are kept, but the shape on the left does not change. Drag the marker labeled $n$ to change the total.', { class: 'small muted demo-intro' }));
 
   const panel = ui.paramPanel(controls, params, {
     get: () => store.get(),
@@ -216,8 +219,8 @@ function condDemo(box, { math, plot, ui }) {
   again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
   controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), sizeCtl.el, h('div', {}, again)));
 
-  const left = new plot.Plot(leftBox, { xLabel: 'x (successes in group 1)', yLabel: 'probability' });
-  const right = new plot.Plot(rightBox, { xLabel: 'total successes x + y', yLabel: 'probability' });
+  const left = new plot.Plot(leftBox, { xLabel: 'x (successes in group 1)', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+  const right = new plot.Plot(rightBox, { xLabel: 'total successes x + y', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
   let sim = { key: '' };
   function simulate(s) {

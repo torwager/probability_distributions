@@ -24,6 +24,8 @@ export default {
   to: 'normal',
   title: 'The inverse-gamma distribution is the conjugate prior for the variance of normal data with a known mean',
 
+  summary: 'For normal data with a known mean, an inverse-gamma prior on the variance gives an inverse-gamma posterior. The shape grows by half the number of observations and the scale by half the sum of squared deviations from the mean.',
+
   plain: [
     'Suppose observations $x_1, \\dots, x_n$ come from a normal distribution whose mean $\\mu$ is known but whose variance $\\sigma^2$ is not, for example repeated measurements with an instrument of unknown precision. If our prior uncertainty about $\\sigma^2$ is described by an inverse-gamma distribution $\\mathrm{InvGamma}(\\alpha, \\beta)$, then the posterior distribution of $\\sigma^2$ after seeing the data is again inverse-gamma. A prior with this property is called conjugate.',
     'The update has a direct reading. The shape $\\alpha$ grows by half the number of observations, and the scale $\\beta$ grows by half the sum of squared deviations $\\sum_i (x_i - \\mu)^2$. So the prior behaves as if we had already seen $2\\alpha$ observations whose squared deviations added up to $2\\beta$, a prior guess of the variance of about $\\beta/\\alpha$.',
@@ -79,16 +81,17 @@ export default {
     const defaults = { alpha: 3, beta: 2, sigma: 1.5, n: 10 };
     const store = ui.createStore({ ...defaults, seed: 1 });
 
-    const postBox = h('div'), dataBox = h('div');
+    const postBox = h('div', { 'data-role': 'main-plot' }), dataBox = h('div', { 'data-role': 'main-plot' });
     const formula = h('div', { class: 'formula', 'aria-live': 'polite' });
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
+    // the plots come first, so that they are visible on a laptop screen; the intro text follows the controls
     container.append(
-      ui.rich('p', 'Observations are simulated from a normal distribution with known mean $\\mu = 0$ and a true standard deviation that you choose. The left plot shows what is known about the variance $\\sigma^2$: the inverse-gamma prior (dashed), the likelihood of the data scaled to area 1 (thin line; drawn once there are at least 3 observations) and the inverse-gamma posterior (solid, shaded). Drag the amber line to move the prior mode $\\beta/(\\alpha + 1)$ (this changes $\\beta$ and keeps $\\alpha$), drag the amber marker under the axis to change the true variance, or add observations with the buttons. The right plot compares the data with the posterior predictive distribution for a new observation.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Prior, likelihood and posterior for $\\sigma^2$'), postBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Observations and the predictive distribution of a new one'), dataBox)),
-      formula, readout, controls);
+      formula, readout, controls,
+      ui.rich('p', 'Observations are simulated from a normal distribution with known mean $\\mu = 0$ and a true standard deviation that you choose. The left plot shows what is known about the variance $\\sigma^2$: the inverse-gamma prior (dashed), the likelihood of the data scaled to area 1 (thin line; drawn once there are at least 3 observations) and the inverse-gamma posterior (solid, shaded). Drag the amber line to move the prior mode $\\beta/(\\alpha + 1)$ (this changes $\\beta$ and keeps $\\alpha$), drag the amber marker under the axis to change the true variance, or add observations with the buttons. The right plot compares the data with the posterior predictive distribution for a new observation.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -103,8 +106,8 @@ export default {
         btn('Clear data', () => store.set({ n: 0 })),
         btn('Draw new data', () => store.set({ seed: store.get().seed + 1 })))));
 
-    const postPlot = new plot.Plot(postBox, { xLabel: 'variance σ²', yLabel: 'density' });
-    const dataPlot = new plot.Plot(dataBox, { xLabel: 'x (observation)', yLabel: 'density' });
+    const postPlot = new plot.Plot(postBox, { xLabel: 'variance σ²', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const dataPlot = new plot.Plot(dataBox, { xLabel: 'x (observation)', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
     // fixed standard normal numbers for each seed: the data are sigma * z_i
     let zCache = { seed: null, zs: [] };

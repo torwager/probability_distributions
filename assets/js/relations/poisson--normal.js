@@ -15,6 +15,8 @@ export default {
   to: 'normal',
   title: 'The Poisson distribution approaches a normal distribution as its mean grows',
 
+  summary: 'When the mean $\\lambda$ of a Poisson count is large, its distribution is close to a normal distribution with the same mean and variance $\\lambda$ (standard deviation $\\sqrt\\lambda$). This follows from the central limit theorem, because the count is a sum of many small Poisson counts.',
+
   plain: [
     'A Poisson count with a large mean $\\lambda$ has a bar chart shaped like a bell curve. The matching normal distribution has the same mean $\\lambda$ and the same variance $\\lambda$, so its standard deviation is $\\sqrt\\lambda$.',
     'The reason is the central limit theorem. A $\\mathrm{Poisson}(\\lambda)$ count can be split into the sum of many independent Poisson counts with small means (for example, the counts in many short time windows), and a sum of many independent pieces is approximately normal.',

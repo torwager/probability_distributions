@@ -24,6 +24,8 @@ export default {
   to: 'negative-binomial',
   title: 'Adding independent geometric waits gives a negative binomial count, and the negative binomial with r = 1 is the geometric',
 
+  summary: 'For a whole number $r$, the number of failures before the $r$-th success is the sum of $r$ independent geometric counts of failures, one for each success, so it has a negative binomial distribution. With $r = 1$ the negative binomial is the geometric distribution.',
+
   plain: [
     'Think of a long sequence of independent trials, each a success with probability $p$. The number of failures before the first success is geometric. After that success the process starts afresh, so the number of failures between the first and second success is another, independent geometric count with the same $p$, and so on.',
     'The total number of failures before the $r$-th success is therefore the sum of $r$ independent geometric counts, and this total has the negative binomial distribution $\\mathrm{NegBin}(r, p)$. Read in the other direction, a negative binomial count with a whole-number $r$ can be cut into $r$ geometric pieces, and with $r = 1$ the negative binomial is simply the geometric distribution.',
@@ -65,17 +67,15 @@ export default {
     const { h } = ui;
 
     // ---------------------------------------------------------------- 1. sums of geometric waits
-    container.append(h('h3', {}, 'Adding r geometric waits'));
+    // the simulation plots come first (visible on a laptop screen); the sequence strip follows them
+    const sim = h('div');
+    container.append(h('h3', { style: 'margin:0 0 .6rem' }, 'Adding r geometric waits'), sim);
     const seqBox = h('div', { class: 'gnb-seq', 'aria-live': 'polite' });
     const seqNote = h('p', { class: 'small muted', style: 'margin:.4rem 0 0' });
     const again = h('button', { type: 'button', class: 'btn small-btn' }, 'Simulate another sequence');
-    const seqFig = h('figure', { class: 'plot-fig', style: 'margin:0 0 1.2rem' },
+    const seqFig = h('figure', { class: 'plot-fig', style: 'margin:1.2rem 0 0' },
       ui.rich('figcaption', 'One simulated sequence of trials until the $r$-th success. Each bracket is one geometric wait $K_i$: its failures (light squares) and the success that ends it (dark square).'),
       seqBox, seqNote, h('div', { style: 'margin-top:.5rem' }, again));
-    container.append(seqFig);
-
-    const sim = h('div');
-    container.append(sim);
     const res = demos.simulationDemo(sim, null, {
       intro: 'Each simulated value is the total number of failures in $r$ independent geometric waits with success probability $p$. The bars show how often each total occurred; the stems show the $\\mathrm{NegBin}(r, p)$ probabilities. Change $r$ and $p$ in the boxes, or draw new samples.',
       params: [
@@ -94,6 +94,8 @@ export default {
       xLabel: 'k (total number of failures)',
       readout: ({ r, p }) => `Negative binomial mean $r(1-p)/p$ = <b>${ui.fmt(r * (1 - p) / p, 4)}</b>, standard deviation $\\sqrt{r(1-p)}/p$ = <b>${ui.fmt(Math.sqrt(r * (1 - p)) / p, 4)}</b>.`,
     });
+
+    container.append(seqFig);
 
     // the sequence strip: plain HTML squares, which wrap onto several lines on narrow screens
     let seqSeed = 1;

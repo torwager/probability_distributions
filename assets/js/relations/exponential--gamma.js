@@ -14,6 +14,8 @@ export default {
   to: 'gamma',
   title: 'The sum of independent exponential waiting times is gamma distributed',
 
+  summary: 'The sum of $n$ independent exponential waiting times with the same rate $\\lambda$, such as the total wait for $n$ events in a Poisson process, has a gamma distribution with shape $n$ and rate $\\lambda$. With shape 1 the gamma is the exponential itself.',
+
   plain: [
     'Suppose events happen at random at a constant average rate $\\lambda$ per unit time (a Poisson process). The waiting time until the next event is exponential with rate $\\lambda$, and successive waiting times are independent. The total time until the $n$-th event is the sum of $n$ such waiting times, and it has a gamma distribution with shape $n$ and rate $\\lambda$.',
     'With a whole-number shape, the gamma distribution is also called the Erlang distribution. The gamma family allows any positive shape, and shape 1 gives back the exponential itself.',

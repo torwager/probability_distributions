@@ -15,6 +15,8 @@ export default {
   to: 'laplace',
   title: 'The difference of two independent exponential variables with the same rate is Laplace distributed',
 
+  summary: 'The difference of two independent exponential variables with the same rate $\\lambda$ has a Laplace (double exponential) distribution centered at 0 with scale $1/\\lambda$. Conversely, the distance of a Laplace variable from its center is exponential.',
+
   plain: [
     'Let $X_1$ and $X_2$ be two independent exponential waiting times with the same rate $\\lambda$, for example the waiting times of two people for two unrelated buses that run at the same rate. Their difference $X_1 - X_2$ can be positive or negative. It has a Laplace (double exponential) distribution: an exponential tail on each side of zero, with a sharp peak at zero, and scale $b = 1/\\lambda$.',
     'In the other direction, the distance of a Laplace variable from its center, measured in units of its scale, is a standard exponential variable. So the Laplace distribution is the exponential distribution reflected to both sides, with half of the probability on each side.',

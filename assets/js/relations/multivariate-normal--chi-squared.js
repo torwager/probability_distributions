@@ -19,7 +19,7 @@ const STYLE = `
 .pd-mc .layer.mc-out .dot { fill: var(--amber-deep); fill-opacity: .95; }
 .pd-mc .layer.mc-ell .poly { fill: rgba(233,185,73,.10); stroke: var(--amber-deep); stroke-width: 1.6; }
 .pd-mc .layer.mc-circ .poly { fill: none; stroke: var(--curve-ref); stroke-width: 1.4; stroke-dasharray: 6 4; }
-.pd-mc .mc-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 2vw, 24px); align-items: center; margin-bottom: 1rem; }
+.pd-mc .mc-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 2vw, 24px); align-items: center; margin: 1.2rem 0 1rem; }
 .pd-mc .mc-side { font-size: .92rem; color: var(--ink-2); }
 @media (max-width: 760px) { .pd-mc .mc-row { grid-template-columns: 1fr; } }
 `;
@@ -43,6 +43,8 @@ export default {
   from: 'multivariate-normal',
   to: 'chi-squared',
   title: 'The squared Mahalanobis distance of a multivariate normal point from its mean has a chi-squared distribution',
+
+  summary: 'For a multivariate normal vector of $d$ variables, the squared Mahalanobis distance from the mean (distance in standard deviations that takes the variances and correlations into account) has a chi-squared distribution with $d$ degrees of freedom. It gives confidence ellipses and outlier tests.',
 
   plain: [
     'For a multivariate normal vector $\\mathbf X$ with mean $\\boldsymbol\\mu$ and covariance matrix $\\Sigma$, the natural way to measure how far a point is from the center is the Mahalanobis distance $D_M$. It counts distance in standard deviations, taking into account that some directions vary more than others and that the variables are correlated. Its contours are the ellipses of constant density.',
@@ -117,7 +119,9 @@ export default {
     const box = h('div');
     side = h('div', { class: 'mc-side' });
     row = h('div', { class: 'mc-row' }, h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'First two coordinates of the draws'), box), side);
-    container.insertBefore(row, container.querySelector('.demo-grid'));
+    // the scatter goes under the parameter boxes, so that the histogram and the CDF plot start inside a laptop screen
+    const ctl = container.querySelector('.demo-controls');
+    if (ctl) ctl.after(row); else container.append(row);
     scat = new plot.Plot(box, { xLabel: 'x₁', yLabel: 'x₂', equalAspect: true, height: w => Math.max(240, Math.min(400, w * 0.85)), ariaLabel: 'Scatter of the first two coordinates' });
 
     function drawScatter(p, s) {

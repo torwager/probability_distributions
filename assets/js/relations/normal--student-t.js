@@ -30,6 +30,8 @@ export default {
   to: 'student-t',
   title: 'Standardizing a normal mean with an estimated standard deviation gives a t distribution, which approaches the normal as the degrees of freedom grow',
 
+  summary: 'A standard normal variable divided by $\\sqrt{V/\\nu}$, with $V$ an independent chi-squared variable with $\\nu$ degrees of freedom, has a t distribution; this is the t-test statistic. As $\\nu$ grows, the t approaches the normal.',
+
   plain: [
     'If the mean of a normal sample is standardized with the true standard deviation $\\sigma$, the result is exactly standard normal. In practice $\\sigma$ is unknown and is replaced by the sample standard deviation $S$, which is itself random. Dividing by a random quantity spreads the statistic out, and the result has Student’s $t$ distribution with $n - 1$ degrees of freedom. In general, a standard normal variable divided by the square root of an independent chi-squared variable over its degrees of freedom $\\nu$ has a $t_\\nu$ distribution.',
     'In the other direction, as $\\nu$ grows the estimate of the standard deviation becomes almost exact, the extra spread disappears, and $t_\\nu$ approaches the standard normal. This is why $t$ and normal critical values are close once $\\nu$ is above about 30, and why large-sample tests can use the normal distribution.',

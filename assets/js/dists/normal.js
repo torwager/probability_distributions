@@ -66,6 +66,7 @@ export default {
   },
 
   content: {
+    summary: 'The normal distribution describes a continuous quantity that clusters symmetrically around a mean $\\mu$, with spread set by the standard deviation $\\sigma$. Sums and averages of many independent effects tend toward it, which is why it underlies many statistical tests.',
     description: [
       'The normal distribution is the familiar symmetric bell curve. It describes a continuous quantity that can take any real value, with values near the center most likely and values far from it increasingly rare. It has two parameters: the mean $\\mu$, which sets where the center is, and the standard deviation $\\sigma$, which sets how spread out the values are.',
       'It is the most widely used distribution in statistics. One reason is the central limit theorem: a sum or average of many small independent effects is approximately normal, whatever the distribution of the individual effects. Measurement errors, sample means and many estimators therefore behave approximately normally.',

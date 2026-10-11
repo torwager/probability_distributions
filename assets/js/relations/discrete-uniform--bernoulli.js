@@ -15,6 +15,8 @@ export default {
   to: 'bernoulli',
   title: 'A fair coin is both a Bernoulli trial with p = 1/2 and a discrete uniform variable on {0, 1}',
 
+  summary: 'A fair coin flip is both a Bernoulli trial with success probability $1/2$ and a discrete uniform variable on the two values 0 and 1. Leaving aside variables that can take only one value, this is the only distribution the two families have in common.',
+
   plain: [
     'A Bernoulli variable takes the values 0 and 1, with probabilities $1 - p$ and $p$. A discrete uniform variable takes each whole number from $a$ to $b$ with the same probability. The two descriptions agree in exactly one case: two values, 0 and 1 ($a = 0$, $b = 1$), each with probability $1/2$ ($p = 1/2$). That is a fair coin flip.',
     'Away from this point the families separate. A Bernoulli variable with $p \\ne 1/2$ favors one outcome, so it is not uniform. A discrete uniform variable on three or more values has more than two outcomes, so it is not a Bernoulli trial. A uniform variable on two other neighboring values, $\\{a, a + 1\\}$, is a fair coin shifted by $a$: it equals $a + X$ with $X \\sim \\mathrm{Bernoulli}(1/2)$.',
@@ -64,12 +66,13 @@ export default {
     const toUnif = h('button', { type: 'button', class: 'btn small-btn' }, 'Set a = 0, b = 1');
     toCoin.addEventListener('click', () => apply({ p: 0.5 }));
     toUnif.addEventListener('click', () => apply({ a: 0, b: 1 }));
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'The steel stems are a $\\mathrm{Bernoulli}(p)$ distribution; drag the tip of the amber arrow on the stem at 1 to change $p$. The shaded bars are a discrete uniform distribution on $\\{a, \\dots, b\\}$; drag the amber markers under the axis to change $a$ and $b$. Approach the fair coin from either side: set $p = 1/2$, or shrink the uniform to the two values 0 and 1. The stems sit exactly on top of the bars, and the distance is 0, only when both happen.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Probabilities: Bernoulli (stems) and discrete uniform (bars)'), leftBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'The two CDFs'), rightBox)),
-      readout, controls);
+      readout, controls,
+      ui.rich('p', 'The steel stems are a $\\mathrm{Bernoulli}(p)$ distribution; drag the tip of the amber arrow on the stem at 1 to change $p$. The shaded bars are a discrete uniform distribution on $\\{a, \\dots, b\\}$; drag the amber markers under the axis to change $a$ and $b$. Approach the fair coin from either side: set $p = 1/2$, or shrink the uniform to the two values 0 and 1. The stems sit exactly on top of the bars, and the distance is 0, only when both happen.', { class: 'small muted demo-intro' }));
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
       apply: (key, v) => apply({ [key]: v }),
@@ -77,8 +80,8 @@ export default {
     });
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Go to the overlap'), h('div', { style: 'display:flex;gap:.5rem;flex-wrap:wrap' }, toCoin, toUnif)));
 
-    const left = new plot.Plot(leftBox, { xLabel: 'k', yLabel: 'probability' });
-    const right = new plot.Plot(rightBox, { xLabel: 'k', yLabel: 'cumulative probability' });
+    const left = new plot.Plot(leftBox, { xLabel: 'k', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const right = new plot.Plot(rightBox, { xLabel: 'k', yLabel: 'cumulative probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
     const bern = (k, p) => (k === 1 ? p : k === 0 ? 1 - p : 0);
     const unif = (k, a, b) => (k >= a && k <= b ? 1 / (b - a + 1) : 0);

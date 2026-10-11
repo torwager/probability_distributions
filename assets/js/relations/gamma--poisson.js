@@ -28,6 +28,8 @@ export default {
   to: 'poisson',
   title: 'The gamma distribution is the conjugate prior for the rate of Poisson counts',
 
+  summary: 'A gamma prior on the rate of Poisson counts gives a gamma posterior after the counts are observed. The shape increases by the total count and the rate parameter by the number of observation periods, so the prior acts like counts seen in earlier periods.',
+
   plain: [
     'Suppose we want to learn the rate $\\lambda$ of a Poisson process, such as a neuron’s firing rate or the number of calls per hour, from observed counts. In Bayesian inference our uncertainty about $\\lambda$ before seeing data is described by a prior distribution. If that prior is a gamma distribution, the posterior distribution after observing Poisson counts is again a gamma distribution, with simple updated parameters. A prior with this property is called conjugate.',
     'The update has an easy reading. The shape goes up by the total count, and the rate parameter goes up by the number of observation periods. So the prior $\\mathrm{Gamma}(\\alpha, \\beta)$ behaves as if we had already watched $\\beta$ periods and seen $\\alpha$ events in total. The gamma is also the conjugate prior for the rate of exponential waiting times, which describe the same Poisson process from the waiting-time side.',
@@ -84,11 +86,11 @@ export default {
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     container.append(
-      ui.rich('p', 'The left plot shows what is known about the rate $\\lambda$: the gamma prior (dashed), the likelihood of the observed counts scaled to area 1 (thin line) and the gamma posterior (solid, shaded). The counts are simulated from the true rate marked under the axis. Add observations and watch the posterior move from the prior toward the data and narrow. Drag the amber line to move the prior mean (this changes $\\beta$ and keeps $\\alpha$), drag the amber marker to change the true rate, or type values below.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Prior, likelihood and posterior for $\\lambda$'), postBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Observed counts and the posterior predictive distribution'), dataBox)),
-      readout, controls);
+      readout, controls,
+      ui.rich('p', 'The left plot shows what is known about the rate $\\lambda$: the gamma prior (dashed), the likelihood of the observed counts scaled to area 1 (thin line) and the gamma posterior (solid, shaded). The counts are simulated from the true rate marked under the axis. Add observations and watch the posterior move from the prior toward the data and narrow. Drag the amber line to move the prior mean (this changes $\\beta$ and keeps $\\alpha$), drag the amber marker to change the true rate, or type values below.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -103,8 +105,8 @@ export default {
         btn('Clear data', () => store.set({ n: 0 })),
         btn('Draw new data', () => store.set({ seed: store.get().seed + 1 })))));
 
-    const postPlot = new plot.Plot(postBox, { xLabel: 'rate λ', yLabel: 'density' });
-    const dataPlot = new plot.Plot(dataBox, { xLabel: 'k (count in one period)', yLabel: 'proportion' });
+    const postPlot = new plot.Plot(postBox, { xLabel: 'rate λ', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
+    const dataPlot = new plot.Plot(dataBox, { xLabel: 'k (count in one period)', yLabel: 'proportion', height: (w, H) => plot.fitHeight(w, H) });
 
     let uCache = { seed: null, us: [] };
     const uniforms = seed => {

@@ -30,6 +30,8 @@ export default {
   to: 'multinomial',
   title: 'Independent Poisson counts, given their total, are split according to a multinomial distribution',
 
+  summary: 'Given their total $n$, independent Poisson counts are split among their categories by a multinomial distribution, with probabilities proportional to the Poisson means. This is why Poisson and multinomial models of a contingency table give the same inferences.',
+
   plain: [
     'Suppose several kinds of events are counted over the same period, and the counts are independent Poisson counts with means $\\lambda_1, \\dots, \\lambda_K$: for example, the numbers of visitors arriving at a museum through each of three entrances in an hour. If we are told only that the total was $n$, the remaining uncertainty is how those $n$ events were shared among the kinds. That split is multinomial: each of the $n$ events independently belongs to kind $j$ with probability $\\lambda_j / (\\lambda_1 + \\dots + \\lambda_K)$.',
     'With two kinds the multinomial is a binomial, so $X_1$ given $X_1 + X_2 = n$ is $\\mathrm{Bin}(n,\\ \\lambda_1/(\\lambda_1 + \\lambda_2))$. This is the basis of the exact conditional test for comparing two Poisson rates, and it is why Poisson log-linear models and multinomial models of a contingency table give the same estimates and tests for the quantities they share.',

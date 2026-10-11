@@ -34,6 +34,8 @@ export default {
   to: 'chi-squared',
   title: 'Pearson’s chi-squared statistic of multinomial counts approaches a chi-squared distribution as the sample grows',
 
+  summary: 'Pearson’s statistic adds up $(O - E)^2/E$ over $K$ categories, where $O$ is an observed count and $E$ the count expected under a hypothesis. For multinomial counts from a large sample, when the hypothesis is true, it is approximately chi-squared with $K - 1$ degrees of freedom, which is the basis of the chi-squared test.',
+
   plain: [
     'Pearson’s chi-squared test asks whether observed category counts agree with the counts expected under a hypothesis. For each category it takes the difference between the observed count $X_j$ and the expected count $E_j = np_j$, squares it, divides by $E_j$, and adds these terms over the $K$ categories. Large values of the sum $X^2$ mean the counts are far from what the hypothesis predicts.',
     'When the counts are multinomial and the hypothesis is true, the distribution of $X^2$ approaches a chi-squared distribution with $K - 1$ degrees of freedom as the number of trials $n$ grows. One degree of freedom is lost because the counts must add up to $n$: once $K - 1$ of the differences $X_j - E_j$ are known, the last one is fixed. For a test of independence in a table with $r$ rows and $c$ columns, where the expected counts are computed from the row and column totals, the limit is chi-squared with $(r - 1)(c - 1)$ degrees of freedom. The approximation is usually considered adequate when every expected count is at least about 5.',

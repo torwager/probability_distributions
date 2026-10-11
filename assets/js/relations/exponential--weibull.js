@@ -25,6 +25,8 @@ export default {
   to: 'weibull',
   title: 'A power of a standard exponential variable, rescaled, is Weibull distributed',
 
+  summary: 'Raising a standard exponential variable to the power $1/k$ and multiplying by $\\lambda$ gives a Weibull variable with shape $k$ and scale $\\lambda$. The exponential has a constant hazard; the Weibull hazard rises over time when $k > 1$ and falls when $k < 1$.',
+
   plain: [
     'Start with a standard exponential waiting time $X$ (rate 1, mean 1). Raising it to the power $1/k$ and multiplying by $\\lambda$ gives a Weibull variable with shape $k$ and scale $\\lambda$. Going back, $(W/\\lambda)^k$ turns a Weibull variable into a standard exponential one.',
     'The exponential has a constant hazard: the chance of the event in the next instant, among those still waiting, never changes. The power transformation bends the time axis. With $k > 1$ it compresses long times, so the hazard rises with time, as for parts that wear out; with $k < 1$ it stretches them, so the hazard falls, as for early failures or infant mortality. With $k = 1$ nothing changes, and the Weibull is the exponential with rate $1/\\lambda$.',

@@ -82,6 +82,7 @@ export default {
   },
 
   content: {
+    summary: 'The chi-squared distribution with $k$ degrees of freedom is the distribution of a sum of $k$ squared independent standard normal variables. It is the reference distribution for the sample variance of normal data, Pearson’s chi-squared tests and likelihood-ratio tests.',
     description: [
       'The chi-squared distribution with $k$ degrees of freedom is the distribution of a sum of squares of $k$ independent standard normal variables, $Z_1^2 + \\dots + Z_k^2$. For example, if a dart lands at a point whose horizontal and vertical errors are independent standard normal variables, its squared distance from the target has a chi-squared distribution with $k = 2$. A chi-squared variable takes non-negative values.',
       'Its one parameter, the degrees of freedom $k$, is the number of independent squared normal terms. The mean is $k$ and the variance is $2k$. With small $k$ the distribution is strongly skewed to the right; as $k$ grows it becomes more symmetric and approaches a normal distribution.',
@@ -100,7 +101,7 @@ export default {
       { sym: 'e^{-x/2}', meaning: 'Exponential decay of the right tail; $e \\approx 2.71828$ is the base of natural logarithms.' },
     ],
 
-    cdfTex: 'F(x \\mid k) = P\\!\\left(\\frac{k}{2}, \\frac{x}{2}\\right) = \\frac{\\gamma\\!\\left(\\frac{k}{2}, \\frac{x}{2}\\right)}{\\Gamma\\!\\left(\\frac{k}{2}\\right)}',
+    cdfTex: 'F(x \\mid k) = P(k/2,\\, x/2) = \\frac{\\gamma(k/2,\\, x/2)}{\\Gamma(k/2)}',
     cdfGlossary: [
       { sym: 'F(x \\mid k)', meaning: 'The cumulative distribution function: the probability that the chi-squared variable is at most $x$. One minus it, $1 - F(x \\mid k)$, is the p-value of an upper-tail test with observed statistic $x$.' },
       { sym: 'P(a, z)', meaning: 'The regularized lower incomplete gamma function, the CDF of a $\\mathrm{Gamma}(a, 1)$ variable at $z$. It has no elementary formula for odd $k$ and is computed numerically (series and continued fractions).' },

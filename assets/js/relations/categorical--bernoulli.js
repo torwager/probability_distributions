@@ -14,6 +14,8 @@ export default {
   to: 'bernoulli',
   title: 'A categorical trial with two categories is a Bernoulli trial',
 
+  summary: 'A categorical trial with only two outcomes ($K = 2$) is a Bernoulli trial: call the second category a success (1) and the first a failure (0), and the success probability is $p = p_2$. Only the labels of the outcomes change.',
+
   plain: [
     'The categorical distribution describes one trial with $K$ possible outcomes, labeled $1, \\dots, K$, with probabilities $p_1, \\dots, p_K$ that add up to 1. The Bernoulli distribution describes one trial with two outcomes, coded 1 (success, with probability $p$) and 0 (failure, with probability $1 - p$). With $K = 2$ these are the same thing written with different labels: call category 2 a success and category 1 a failure, so $p = p_2$ and $1 - p = p_1$.',
     'Nothing is lost or added by the relabeling; only the names of the outcomes change. The 0/1 coding is convenient because the code itself is a number whose mean is the success probability, which is why binary data are almost always coded this way. For more than two categories the categorical carries more information than any single Bernoulli variable, but the indicator of any one category (1 if that category occurs, 0 otherwise) is still Bernoulli with probability $p_j$.',
@@ -54,12 +56,13 @@ export default {
     const trials = h('div', { class: 'cat-trials', style: 'font-family:var(--mono);font-size:.86rem;line-height:1.9;overflow-x:auto;padding:.6rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:.8rem 0' });
     const controls = h('div', { class: 'demo-controls' });
     const jBox = h('div');
+    // the plots come first (visible on a laptop screen); the explanation follows the controls
     container.append(
-      ui.rich('p', 'Left: the probability of each category; drag the top of an arrow to change it (the others are rescaled so that the total stays 1). Right: the distribution of the 0/1 code. With $K = 2$, category 2 is coded 1 and category 1 is coded 0, and the right plot is exactly the Bernoulli distribution with $p = p_2$. With more categories, choose which category counts as a success; its indicator is $\\mathrm{Bernoulli}(p_j)$. You can also drag the arrow on the right plot.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Categorical outcome Y: probability of each category'), catBox),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Code X (1 = success, 0 = failure): Bernoulli'), berBox)),
-      readout, trials, controls);
+      readout, controls, trials,
+      ui.rich('p', 'Left: the probability of each category; drag the top of an arrow to change it (the others are rescaled so that the total stays 1). Right: the distribution of the 0/1 code. With $K = 2$, category 2 is coded 1 and category 1 is coded 0, and the right plot is exactly the Bernoulli distribution with $p = p_2$. With more categories, choose which category counts as a success; its indicator is $\\mathrm{Bernoulli}(p_j)$. You can also drag the arrow on the right plot.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -81,8 +84,8 @@ export default {
       } else seg.set(j);
     }
 
-    const catPlot = new plot.Plot(catBox, { xLabel: 'category y', yLabel: 'probability' });
-    const berPlot = new plot.Plot(berBox, { xLabel: 'code x', yLabel: 'probability' });
+    const catPlot = new plot.Plot(catBox, { xLabel: 'category y', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const berPlot = new plot.Plot(berBox, { xLabel: 'code x', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
     const setOne = (probs, i, v) => {
       v = math.clamp(v, 0, 1);
       const rest = probs.reduce((s, q, k) => s + (k === i ? 0 : q), 0);

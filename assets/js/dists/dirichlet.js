@@ -103,6 +103,8 @@ const STYLE = `
 .pd-dir .readouts { grid-template-columns: 1fr; gap: 0; }
 .pd-dir .readouts dd { margin: 0 0 .45rem; color: var(--ink); }
 .pd-dir .pd-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .4rem; }
+/* the reset button and the extra buttons form one row under the parameter boxes */
+.pd-dir .explorer .param-actions.pd-buttons, .pd-dir.explorer .param-actions.pd-buttons { grid-column: 1 / -1; align-self: start; padding-bottom: 0; margin-top: 0; }
 .pd-dir .explorer-area .segmented { margin-top: .6rem; }
 .pd-dir .alpha-fig { margin: 0 0 .8rem; }
 .pd-dir .alpha-fig figcaption { font-size: .8rem; font-weight: 600; color: var(--ink-2); margin: 0 0 .2rem .2rem; }
@@ -173,18 +175,20 @@ const mod = {
     const params = mod.params;
 
     // ---------- DOM
-    const triBox = h('div', { class: 'plot-box' });
-    const margBox = h('div', { class: 'plot-box' });
+    // data-role marks the two plots that must be visible at the top of the page (tests/layout.mjs)
+    const triBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
+    const margBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
     const alphaBox = h('div');
     const regionReadout = h('p', { class: 'area-readout', 'aria-live': 'polite', hidden: true });
-    const panelBox = h('div', { class: 'explorer-params' }, h('h3', { class: 'mini-title' }, 'Parameters'),
-      h('figure', { class: 'alpha-fig' }, h('figcaption', {}, 'Concentrations αⱼ (log scale; drag the bars)'), alphaBox));
+    const panelBox = h('div', { class: 'explorer-params' }, h('h3', { class: 'mini-title' }, 'Parameters'));
     const areaBox = h('div', { class: 'explorer-area' }, h('h3', { class: 'mini-title' }, 'Probability of a region'));
-    const readBox = h('div', { class: 'explorer-readouts' }, h('h3', { class: 'mini-title' }, 'Summary at these parameters'));
+    // the bar chart of the concentrations sits with the summary, under the parameter boxes
+    const readBox = h('div', { class: 'explorer-readouts' }, h('h3', { class: 'mini-title' }, 'Summary at these parameters'),
+      h('figure', { class: 'alpha-fig' }, h('figcaption', {}, 'Concentrations αⱼ (log scale; drag the bars)'), alphaBox));
     container.appendChild(h('div', { class: 'explorer pd-dir' },
       h('div', { class: 'explorer-plots' },
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Density f(x₁, x₂, x₃) on the triangle of probability vectors'), triBox, regionReadout),
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Marginal densities: Xⱼ ~ Beta(αⱼ, α₀ − αⱼ)'), margBox)),
+        h('figure', { class: 'plot-fig fig-pdf' }, h('figcaption', {}, 'Density f(x₁, x₂, x₃) on the triangle of probability vectors'), triBox, regionReadout),
+        h('figure', { class: 'plot-fig fig-cdf' }, h('figcaption', {}, 'Marginal densities: Xⱼ ~ Beta(αⱼ, α₀ − αⱼ)'), margBox)),
       h('div', { class: 'explorer-controls' }, panelBox, areaBox, readBox),
       h('p', { class: 'explorer-hint' }, 'Drag the amber handles, or type values in the boxes. A focused handle also moves with the arrow keys (hold Shift for larger steps).')));
 
@@ -237,8 +241,8 @@ const mod = {
     readBox.append(readDl);
 
     // ---------- plots
-    const triPlot = new plot.Plot(triBox, { equalAspect: true, className: 'pd-simplex', ariaLabel: 'Dirichlet density on the triangle', margin: { t: 26, b: 30, l: 16, r: 16 }, height: w => clamp(w * 0.86, 280, 420) });
-    const margPlot = new plot.Plot(margBox, { xLabel: 'x (value of one coordinate)', yLabel: 'density', ariaLabel: 'Marginal Beta densities', height: w => clamp(w * 0.86, 260, 420) });
+    const triPlot = new plot.Plot(triBox, { equalAspect: true, className: 'pd-simplex', ariaLabel: 'Dirichlet density on the triangle', margin: { t: 26, b: 30, l: 16, r: 16 }, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, phoneRatio: 0.86, min: 220, max: 420 }) });
+    const margPlot = new plot.Plot(margBox, { xLabel: 'x (value of one coordinate)', yLabel: 'density', ariaLabel: 'Marginal Beta densities', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.86, min: 220, max: 420 }) });
     const alphaPlot = new plot.Plot(alphaBox, { className: 'pd-alpha', yTicks: false, ariaLabel: 'Concentration parameters', margin: { t: 22, b: 30, l: 8, r: 8 }, height: 200, xLabel: '' });
 
     // heatmap cache
@@ -430,11 +434,12 @@ const mod = {
 
   // ---------------------------------------------------------------- content
   content: {
+    summary: 'The Dirichlet distribution describes a random probability vector: $K$ positive proportions that add up to 1, with concentrations $\\alpha_1, \\dots, \\alpha_K$ that act like prior counts. It extends the beta distribution and is the usual prior for category probabilities.',
     description: [
       'The Dirichlet distribution is a distribution over probability vectors: lists of $K$ positive numbers $(x_1, \\dots, x_K)$ that add up to 1. It is used when the unknown quantity is itself a set of proportions or category probabilities, such as the probabilities of the six faces of a possibly loaded die, the shares of time a person spends on three activities, or the proportions of three response types in an experiment. It is the multivariate version of the beta distribution, which describes a single probability.',
       'The set of all such vectors is called the simplex. With $K = 3$ it is a triangle: each point of the triangle is one probability vector. The corners are the vectors in which one category has probability 1, the middle of the triangle is $(1/3, 1/3, 1/3)$, and the closer a point is to corner $j$, the larger its $j$-th entry. The parameters are positive concentrations $\\alpha_1, \\dots, \\alpha_K$, which act like prior counts. The mean of $x_j$ is $\\alpha_j/\\alpha_0$, where $\\alpha_0 = \\alpha_1 + \\dots + \\alpha_K$ is the total concentration. A larger $\\alpha_0$ concentrates the vectors more tightly around the mean. When every $\\alpha_j = 1$ all probability vectors are equally likely, and when the $\\alpha_j$ are below 1 most of the probability sits near the corners and edges, so that typical vectors have one or two large entries and the others near zero.',
     ],
-    explorerIntro: 'The left plot shows the density on the triangle of probability vectors $(x_1, x_2, x_3)$; stronger blue shading means higher density. Each point of the triangle is one probability vector, with the corners labeled. Drag the amber point at the mean to move the center of the distribution; this changes the $\\alpha_j$ but keeps their total $\\alpha_0$, so the spread stays about the same (the total is lowered only when an $\\alpha_j$ would exceed the maximum of 20). The right plot shows the three marginal densities: each coordinate $X_j$ on its own has a beta distribution, $\\mathrm{Beta}(\\alpha_j, \\alpha_0 - \\alpha_j)$. Under the plots, the bar chart shows the three concentrations on a log scale; drag the top of a bar to change one $\\alpha_j$ (raising all three together makes the distribution tighter). The region tool replaces the area-under-the-curve tool of the one-dimensional pages: it shades the part of the triangle where one coordinate is more than (or at most) $t$, and the same probability as an area under that coordinate’s marginal density. The buttons add random draws to the triangle.',
+    explorerIntro: 'The left plot shows the density on the triangle of probability vectors $(x_1, x_2, x_3)$; stronger blue shading means higher density. Each point of the triangle is one probability vector, with the corners labeled. Drag the amber point at the mean to move the center of the distribution; this changes the $\\alpha_j$ but keeps their total $\\alpha_0$, so the spread stays about the same (the total is lowered only when an $\\alpha_j$ would exceed the maximum of 20). The right plot shows the three marginal densities: each coordinate $X_j$ on its own has a beta distribution, $\\mathrm{Beta}(\\alpha_j, \\alpha_0 - \\alpha_j)$. Next to the summary, under the parameter boxes, a bar chart shows the three concentrations on a log scale; drag the top of a bar to change one $\\alpha_j$ (raising all three together makes the distribution tighter). The region tool replaces the area-under-the-curve tool of the one-dimensional pages: it shades the part of the triangle where one coordinate is more than (or at most) $t$, and the same probability as an area under that coordinate’s marginal density. The buttons add random draws to the triangle.',
     parameterization: 'Concentrations $\\alpha_1, \\dots, \\alpha_K > 0$ with total concentration $\\alpha_0 = \\sum_j \\alpha_j$; the explorer uses $K = 3$. An equivalent form uses the mean vector $\\mathbf m = \\boldsymbol\\alpha/\\alpha_0$ and the total $\\alpha_0$ (sometimes called the precision or prior sample size). A symmetric Dirichlet has all $\\alpha_j$ equal to one value $\\alpha$. Here $K$ is the number of categories; the hypergeometric page uses the same letter for something else, and $\\alpha$ is also used for the shape parameters of the beta and gamma distributions.',
 
     pdfTex: 'f(x_1, \\dots, x_K \\mid \\boldsymbol\\alpha) = \\frac{\\Gamma(\\alpha_0)}{\\prod_{j=1}^{K} \\Gamma(\\alpha_j)} \\prod_{j=1}^{K} x_j^{\\alpha_j - 1}, \\qquad x_j > 0,\\ \\sum_{j=1}^{K} x_j = 1,\\quad \\alpha_0 = \\sum_{j=1}^{K} \\alpha_j',
@@ -450,8 +455,8 @@ const mod = {
       { sym: 'x_j^{\\alpha_j - 1}', meaning: 'The shape factor for category $j$: it grows toward corner $j$ when $\\alpha_j > 1$ and toward the opposite edge (where $x_j = 0$) when $\\alpha_j < 1$.' },
     ],
 
-    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_{K-1} \\le x_{K-1}) = \\int_{\\{\\mathbf y \\in \\Delta^{K-1}:\\ y_j \\le x_j\\}} f(\\mathbf y)\\, d\\mathbf y, \\qquad P(X_j \\le t) = I_t(\\alpha_j,\\ \\alpha_0 - \\alpha_j)',
-    cdfIntro: 'The joint CDF has no closed form and is rarely used; it is an integral of the density over part of the simplex, computed numerically. Probabilities about one coordinate come from its beta marginal, as in the region tool above.',
+    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_{K-1} \\le x_{K-1}) = \\int_{\\{\\mathbf y \\in \\Delta^{K-1}:\\ y_j \\le x_j\\}} f(\\mathbf y)\\, d\\mathbf y',
+    cdfIntro: 'The joint CDF has no closed form and is rarely used; it is an integral of the density over part of the simplex, computed numerically. Probabilities about one coordinate come from its beta marginal, $P(X_j \\le t) = I_t(\\alpha_j,\\ \\alpha_0 - \\alpha_j)$, as in the region tool of the explorer.',
     cdfGlossary: [
       { sym: 'F(\\mathbf x)', meaning: 'The joint cumulative distribution function: the probability that each of the first $K - 1$ coordinates is at most the matching entry of $\\mathbf x$.' },
       { sym: '\\Delta^{K-1}', meaning: 'The simplex: all vectors of $K$ non-negative numbers that add up to 1 (a triangle when $K = 3$).' },

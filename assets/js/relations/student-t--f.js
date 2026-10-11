@@ -34,6 +34,8 @@ export default {
   to: 'f',
   title: 'The square of a t variable has an F distribution with one numerator degree of freedom',
 
+  summary: 'Squaring a t variable with $\\nu$ degrees of freedom gives an F variable with 1 and $\\nu$ degrees of freedom. This is why a two-group ANOVA gives exactly the same p-value as a two-sided two-sample t-test with pooled variance.',
+
   plain: [
     'Squaring a $t$ statistic with $\\nu$ degrees of freedom gives an F statistic with $d_1 = 1$ and $d_2 = \\nu$. Squaring folds the two tails of the $t$ distribution onto one tail: a value of $t$ far below 0 and a value far above 0 both become a large value of $t^2$.',
     'This is why a two-group ANOVA gives exactly the same p-value as the two-sided two-sample t-test (its F statistic is the square of the pooled t statistic), and why the F-test of a single regression coefficient agrees with the two-sided t-test of that coefficient. Critical values match too: $F_{0.95}(1, \\nu) = t_{\\nu,\\,0.975}^2$, for example $(2.228)^2 = 4.965$ for $\\nu = 10$.',
@@ -95,18 +97,18 @@ function pvalueDemo(box, { plot, ui }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   box.append(
-    ui.rich('p', 'Drag the amber marker under either plot, or type an observed $t$. The left plot shades the two-sided t-test p-value, the area beyond $\\pm t$ under the $t_\\nu$ density. The right plot shades the F-test p-value, the area beyond $t^2$ under the $F(1, \\nu)$ density. The two areas are always equal.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Two-sided t-test: area beyond ±t'), tBox),
       h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'F-test: area beyond t²'), fBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'Drag the amber marker under either plot, or type an observed $t$. The left plot shades the two-sided t-test p-value, the area beyond $\\pm t$ under the $t_\\nu$ density. The right plot shades the F-test p-value, the area beyond $t^2$ under the $F(1, \\nu)$ density. The two areas are always equal.', { class: 'small muted demo-intro' }));
   const panel = ui.paramPanel(controls, params, {
     get: () => store.get(),
     apply: (k, v) => store.set({ [k]: v }),
     onReset: () => store.set({ ...defaults }),
   });
-  const tPlot = new plot.Plot(tBox, { xLabel: 't', yLabel: 'density' });
-  const fPlot = new plot.Plot(fBox, { xLabel: 'F = t²', yLabel: 'density' });
+  const tPlot = new plot.Plot(tBox, { xLabel: 't', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
+  const fPlot = new plot.Plot(fBox, { xLabel: 'F = t²', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
 
   let raf = 0;
   const request = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };

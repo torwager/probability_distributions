@@ -45,6 +45,8 @@ export default {
   to: 'poisson',
   title: 'With many trials and a small success probability, the binomial approaches the Poisson distribution (law of rare events)',
 
+  summary: 'When the number of trials $n$ is large and the success probability $p$ is small, the binomial count is well approximated by a Poisson count with the same mean $\\lambda = np$. This law of rare events is why counts of rare, independent events are often modeled as Poisson.',
+
   plain: [
     'Suppose there are very many independent chances for an event, but each one is unlikely: many trials $n$, each with a small success probability $p$. The number of events is then binomial, but its distribution depends almost only on the expected number of events, $\\lambda = np$. As $n$ grows and $p$ shrinks with $np$ held at $\\lambda$, the binomial distribution approaches the Poisson distribution with mean $\\lambda$.',
     'This is the law of rare events (also called the Poisson limit theorem). It explains why counts of rare, independent events, such as typing errors on a page, mutations in a stretch of DNA, spikes of a neuron in a short time bin, or accidents at an intersection in a year, are well described by a Poisson distribution even though nobody knows the number of "trials" exactly.',

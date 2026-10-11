@@ -121,7 +121,7 @@ export default {
 
   explorer: {
     xLabel: 't',
-    pdfCaption: 'Probability density  f(t)  of the first-passage time t',
+    pdfCaption: 'Probability density  f(t)  of the time t',
     overlays: p => {
       const sd = sdOf(p);
       return [{
@@ -141,6 +141,7 @@ export default {
   },
 
   content: {
+    summary: 'The Wald (inverse Gaussian) distribution describes how long a quantity that drifts upward with random fluctuations takes to first reach a fixed threshold, with mean $\\mu$ and shape $\\lambda$. It models response times in evidence-accumulation models.',
     description: [
       'The Wald distribution, also called the inverse Gaussian distribution, describes how long it takes for a quantity that drifts upward with random fluctuations to reach a fixed level for the first time. A typical example is evidence accumulating toward a decision: the evidence total moves up on average at a constant rate (the drift) but jitters randomly, and the decision is made the first time the total reaches a threshold. The time at which that happens is Wald distributed. Its values are positive times.',
       'It has two parameters. The mean $\\mu$ is the average first-passage time, equal to the threshold divided by the drift rate. The shape $\\lambda$ controls the skew: small values give a sharp early peak and a long right tail, large values a nearly symmetric, nearly normal curve. In terms of the accumulation process, a threshold $a$, drift rate $v$ and noise standard deviation $\\sigma$ give $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$.',

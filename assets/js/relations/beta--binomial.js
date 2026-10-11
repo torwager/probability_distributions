@@ -27,6 +27,8 @@ export default {
   to: 'binomial',
   title: 'The beta distribution is the conjugate prior for the success probability of binomial data',
 
+  summary: 'A $\\mathrm{Beta}(\\alpha, \\beta)$ prior for an unknown success probability, updated with binomial data of $x$ successes in $n$ trials, gives a $\\mathrm{Beta}(\\alpha + x,\\ \\beta + n - x)$ posterior. So $\\alpha$ and $\\beta$ act like prior counts of successes and failures.',
+
   plain: [
     'Suppose we want to learn an unknown success probability $p$, such as the probability that a participant answers a question correctly or that a treatment works, from $n$ independent trials with $x$ successes. In Bayesian inference our uncertainty about $p$ before seeing the data is described by a prior distribution. If the prior is a beta distribution, $\\mathrm{Beta}(\\alpha, \\beta)$, then the posterior distribution after seeing the data is again a beta distribution, $\\mathrm{Beta}(\\alpha + x,\\ \\beta + n - x)$. A prior with this property is called conjugate.',
     'The update is simple counting: add the observed successes to $\\alpha$ and the observed failures to $\\beta$. So $\\alpha$ and $\\beta$ behave like counts of successes and failures seen before the experiment, and the prior is worth about $\\alpha + \\beta$ trials. The same update holds for Bernoulli data (one trial at a time, in any order), and for geometric or negative binomial data, where the number of successes $r$ is fixed in advance and the number of failures $k$ is observed.',
@@ -84,11 +86,11 @@ export default {
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     container.append(
-      ui.rich('p', 'Set the prior with $\\alpha$ and $\\beta$ and the data with $n$ trials and $x$ successes. The left plot shows the prior (dashed), the likelihood of the data scaled to area 1 (thin line) and the posterior (solid, shaded) for the success probability $p$. Drag the amber line to move the prior mean (this keeps $\\alpha + \\beta$, the prior’s weight), drag the amber marker under the axis to change the observed proportion $x/n$, or add trials one at a time with the buttons. The update formula below the plots is filled in with the current numbers.', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Prior, likelihood and posterior for $p$'), postBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Predicted successes in $m$ new trials'), predBox)),
-      formula, readout, controls);
+      formula, readout, controls,
+      ui.rich('p', 'Set the prior with $\\alpha$ and $\\beta$ and the data with $n$ trials and $x$ successes. The left plot shows the prior (dashed), the likelihood of the data scaled to area 1 (thin line) and the posterior (solid, shaded) for the success probability $p$. Drag the amber line to move the prior mean (this keeps $\\alpha + \\beta$, the prior’s weight), drag the amber marker under the axis to change the observed proportion $x/n$, or add trials one at a time with the buttons. The update formula below the plots is filled in with the current numbers.', { class: 'small muted demo-intro' }));
 
     const fix = (s, key) => {
       // keep 0 <= x <= n by moving the other count
@@ -109,8 +111,8 @@ export default {
         btn('Add a failure', () => { const s = store.get(); if (s.n < N_MAX) store.set({ n: s.n + 1 }); }),
         btn('Clear data', () => store.set({ n: 0, x: 0 })))));
 
-    const postPlot = new plot.Plot(postBox, { xLabel: 'success probability p', yLabel: 'density' });
-    const predPlot = new plot.Plot(predBox, { xLabel: 'k (successes in m new trials)', yLabel: 'probability' });
+    const postPlot = new plot.Plot(postBox, { xLabel: 'success probability p', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
+    const predPlot = new plot.Plot(predBox, { xLabel: 'k (successes in m new trials)', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H) });
 
     let raf = 0, kappa0 = null;
     const request = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };

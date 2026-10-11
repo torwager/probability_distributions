@@ -103,6 +103,7 @@ export default {
   },
 
   content: {
+    summary: 'The log-normal distribution describes a positive, right-skewed quantity whose logarithm is normal, with mean $\\mu$ and standard deviation $\\sigma$ on the log scale. It arises when many small effects multiply and fits incomes, sizes and response times.',
     description: [
       'The log-normal distribution describes a positive quantity whose logarithm has a normal distribution. It arises when many small independent effects <i>multiply</i> together, in the same way that the normal distribution arises when many small effects add up. Incomes, city populations, the sizes of particles and organisms, concentrations of chemicals, stock prices and response times are often approximately log-normal.',
       'It takes only positive values and is skewed to the right: most values are moderate, a few are very large. Its two parameters describe the logarithm. The log-mean $\\mu$ is the mean of $\\ln X$; $e^{\\mu}$ is the median of $X$, so changing $\\mu$ multiplies all values by the same factor. The log-standard deviation $\\sigma$ is the standard deviation of $\\ln X$; it controls how spread out and how skewed the distribution is. For small $\\sigma$ the curve is nearly symmetric, and for large $\\sigma$ it has a very long right tail.',

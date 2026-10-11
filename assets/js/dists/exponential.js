@@ -71,6 +71,7 @@ export default {
   },
 
   content: {
+    summary: 'The exponential distribution describes the waiting time until an event that occurs at random at a constant rate $\\lambda$; the mean wait is $1/\\lambda$. It is the only memoryless continuous distribution and gives the times between events in a Poisson process.',
     description: [
       'The exponential distribution describes the waiting time until an event that happens at random at a constant average rate, such as the time until the next radioactive decay, the next phone call to a help line, or the next spike of a neuron that fires irregularly. It takes non-negative real values. Short waits are the most likely, and long waits become less likely at a steady proportional rate.',
       'It has one parameter, the rate $\\lambda$: the average number of events per unit of time. The mean waiting time is $1/\\lambda$, so a rate of 4 events per hour means an average wait of a quarter of an hour. Some software (SciPy, NumPy) uses the scale $\\theta = 1/\\lambda$ instead; this site uses the rate.',

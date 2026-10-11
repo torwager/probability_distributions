@@ -29,6 +29,8 @@ export default {
   to: 'ex-gaussian',
   title: 'An exponential waiting time blurred by independent normal noise is ex-Gaussian',
 
+  summary: 'An exponential waiting time with mean $\\tau$, shifted by $\\mu$ and blurred by independent normal noise with standard deviation $\\sigma$, has an ex-Gaussian distribution. As $\\sigma$ shrinks to 0 the blur disappears and only the shifted exponential remains.',
+
   plain: [
     'Start from an exponential waiting time $Y$ with mean $\\tau$, shift it by a constant $\\mu$, and add independent normal noise with standard deviation $\\sigma$. The result is ex-Gaussian. The sharp start of the shifted exponential at $\\mu$ is smoothed into a rising edge whose width is about $\\sigma$, while the long exponential tail on the right stays.',
     'Its density is the convolution of the exponential and normal densities: each possible waiting time is spread out by the normal noise and the results are added up. As $\\sigma$ shrinks to 0 the blur disappears and the ex-Gaussian becomes the shifted exponential $\\mu + Y$.',

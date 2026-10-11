@@ -24,6 +24,8 @@ export default {
   to: 'student-t',
   title: 'A normal variable whose variance is drawn from an inverse-gamma distribution has a Student’s t distribution',
 
+  summary: 'A normal variable with mean 0 whose variance is drawn from an inverse-gamma distribution with shape and scale both equal to $\\nu/2$ has a Student’s t distribution with $\\nu$ degrees of freedom. Mixing normals of different widths produces the heavier tails.',
+
   plain: [
     'Take a normal variable with mean 0, but instead of fixing its variance, first draw the variance $\\sigma^2$ at random from an inverse-gamma distribution with shape and scale both equal to $\\nu/2$. The resulting variable has a Student’s t distribution with $\\nu$ degrees of freedom. In other words, the t distribution is an average (a mixture) of normal distributions with different variances, weighted by the inverse-gamma density.',
     'Mixing normals with different spreads produces heavier tails than any single normal: most draws come from normals of moderate width, but now and then a draw comes from a very wide one and lands far out. The smaller $\\nu$, the more spread out the inverse-gamma distribution of variances, and the heavier the tails of the t. As $\\nu$ grows, the variances concentrate at 1 and the t approaches the standard normal.',

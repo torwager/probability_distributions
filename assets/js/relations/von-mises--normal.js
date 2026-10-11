@@ -29,6 +29,8 @@ export default {
   to: 'normal',
   title: 'A highly concentrated von Mises distribution is approximately normal',
 
+  summary: 'When the concentration $\\kappa$ of a von Mises distribution of angles is large, the angles stay close to the mean direction, where the circle is nearly a straight line. The distribution is then approximately normal with variance $1/\\kappa$.',
+
   plain: [
     'The von Mises distribution describes angles on a circle, with mean direction $\\mu$ and concentration $\\kappa$. When $\\kappa$ is large, nearly all of the angles lie close to $\\mu$. On such a short stretch the circle is almost a straight line, and the distribution of the angle is almost a normal distribution with mean $\\mu$ and variance $1/\\kappa$, that is, standard deviation $1/\\sqrt\\kappa$.',
     'This is why $\\kappa$ is often read as a precision (one over a variance), and why a standard deviation $\\sigma$ in radians is often converted to $\\kappa \\approx 1/\\sigma^2$. The approximation is good once $\\kappa$ is above about 10; for small $\\kappa$ the angles spread around the whole circle and a normal curve, which has no edges, describes them poorly.',

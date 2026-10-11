@@ -20,6 +20,8 @@ export default {
   to: 'pareto',
   title: 'Exponentiating an exponential variable gives a Pareto variable, and taking logs goes back',
 
+  summary: 'If $X$ is exponential with rate $\\alpha$, then $x_m e^X$ has a Pareto distribution with minimum $x_m$ and tail index $\\alpha$, and taking logs goes back. The Pareto is to the exponential what the log-normal is to the normal.',
+
   plain: [
     'If $X$ is exponential with rate $\\alpha$, then $Y = x_m e^{X}$ has a Pareto distribution with minimum $x_m$ and tail index $\\alpha$. Since $X \\ge 0$, $Y$ is never below $x_m$. In the other direction, the logarithm of a Pareto variable divided by its minimum, $\\ln(Y/x_m)$, is exponential with rate $\\alpha$.',
     'So the Pareto is to the exponential what the log-normal is to the normal. On a logarithmic scale, the Pareto has the exponential’s thin tail; on the original scale this becomes a power-law tail, $P(Y > y) = (x_m/y)^{\\alpha}$, which falls off so slowly that the mean is infinite when $\\alpha \\le 1$ and the variance is infinite when $\\alpha \\le 2$.',

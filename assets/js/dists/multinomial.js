@@ -152,11 +152,13 @@ const STYLE = `
 .pd-mn .pd-side { font-size: .92rem; color: var(--ink-2); }
 .pd-mn .pd-side p { margin: .2rem 0 .7rem; }
 .pd-mn .pd-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .4rem; }
+/* the reset button and the extra buttons form one row under the parameter boxes */
+.pd-mn .explorer .param-actions.pd-buttons, .pd-mn.explorer .param-actions.pd-buttons { grid-column: 1 / -1; align-self: start; padding-bottom: 0; margin-top: 0; }
 .pd-mn .readouts { grid-template-columns: 1fr; gap: 0; }
 .pd-mn .readouts dd { margin: 0 0 .45rem; color: var(--ink); }
 .pd-mn .pd-sample { font-family: var(--mono); font-size: .9rem; }
 .pd-mn .explorer-area .segmented { margin-top: .6rem; }
-@media (max-width: 760px) { .pd-mn .pd-row { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .pd-mn .pd-row { grid-template-columns: 1fr; order: 4; } }
 `;
 function injectStyle(id, css) {
   if (typeof document === 'undefined' || document.getElementById(id)) return;
@@ -222,8 +224,9 @@ const mod = {
     store.set({ p: normalize(store.get().p, null) });
 
     // ---------- DOM
-    const barsBox = h('div', { class: 'plot-box' });
-    const rowsBox = h('div', { class: 'plot-box' });
+    // data-role marks the two plots that must be visible at the top of the page (tests/layout.mjs)
+    const barsBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
+    const rowsBox = h('div', { class: 'plot-box', 'data-role': 'main-plot' });
     const triBox = h('div', { class: 'plot-box' });
     const eventReadout = h('p', { class: 'area-readout', 'aria-live': 'polite', hidden: true });
     const triSide = h('div', { class: 'pd-side' });
@@ -235,10 +238,10 @@ const mod = {
     const readBox = h('div', { class: 'explorer-readouts' }, h('h3', { class: 'mini-title' }, 'Summary at these parameters'));
     const root = h('div', { class: 'explorer pd-mn is-discrete' },
       h('div', { class: 'explorer-plots' },
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Category probabilities  pⱼ'), barsBox),
-        h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Count in each category  P(Xⱼ = k), with Xⱼ ~ Bin(n, pⱼ)'), rowsBox, eventReadout)),
-      triRow,
+        h('figure', { class: 'plot-fig fig-pdf' }, h('figcaption', {}, 'Category probabilities  pⱼ'), barsBox),
+        h('figure', { class: 'plot-fig fig-cdf' }, h('figcaption', {}, 'Count in each category  P(Xⱼ = k), with Xⱼ ~ Bin(n, pⱼ)'), rowsBox, eventReadout)),
       h('div', { class: 'explorer-controls' }, panelBox, areaBox, readBox),
+      triRow,
       h('p', { class: 'explorer-hint' }, 'Drag the amber handles, or type values in the boxes. A focused handle also moves with the arrow keys (hold Shift for larger steps).'));
     container.appendChild(root);
 
@@ -302,10 +305,10 @@ const mod = {
     readBox.append(readDl);
 
     // ---------- plots
-    const barsPlot = new plot.Plot(barsBox, { xLabel: 'category j', yLabel: 'probability pⱼ', ariaLabel: 'Category probabilities', height: w => clamp(w * 0.62, 230, 330) });
+    const barsPlot = new plot.Plot(barsBox, { xLabel: 'category j', yLabel: 'probability pⱼ', ariaLabel: 'Category probabilities', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, min: 200, max: 360 }) });
     const rowsPlot = new plot.Plot(rowsBox, {
       xLabel: 'count k', yTicks: false, className: 'pd-rows', ariaLabel: 'Marginal distribution of each count',
-      margin: { l: 14 }, height: w => clamp(w * 0.62, 230, 330),
+      margin: { l: 14 }, height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, min: 200, max: 360 }),
     });
     const triPlot = new plot.Plot(triBox, { equalAspect: true, className: 'pd-simplex', ariaLabel: 'Joint probabilities of the count vectors on a triangle', margin: { t: 26, b: 26, l: 16, r: 16 }, height: w => clamp(w * 0.8, 260, 420) });
 
@@ -495,11 +498,12 @@ const mod = {
 
   // ---------------------------------------------------------------- content
   content: {
+    summary: 'The multinomial distribution gives the counts in each of $K$ categories after $n$ independent trials, where each trial lands in category $j$ with probability $p_j$, as in counting the faces in 60 rolls of a die. It extends the binomial to more categories.',
     description: [
       'The multinomial distribution describes the counts in each of $K$ categories after $n$ independent trials, when every trial lands in category $j$ with the same probability $p_j$. Rolling a die 60 times and counting the ones, twos, …, sixes is an example; so are the numbers of participants who choose each of three options, the numbers of responses of each type in an experiment, and the numbers of words of each kind in a document.',
       'The outcome is a vector of whole-number counts $\\mathbf X = (X_1, \\dots, X_K)$, with each $X_j \\ge 0$ and $X_1 + \\dots + X_K = n$. The parameters are the number of trials $n$, the number of categories $K$ and the probability vector $\\mathbf p = (p_1, \\dots, p_K)$, whose entries add up to 1. With $K = 2$ the multinomial is the binomial distribution, and with $n = 1$ it is a single categorical trial written as a one-hot vector. Each count on its own is binomial, $X_j \\sim \\mathrm{Bin}(n, p_j)$, but the counts are not independent: they must add up to $n$, so a large count in one category leaves less room for the others.',
     ],
-    explorerIntro: 'The top-left plot shows the category probabilities $p_1, \\dots, p_K$. Drag the top of any amber arrow to change that probability; the others are rescaled in proportion so that the total stays 1. The top-right plot shows, for each category $j$ in its own row, the distribution of its count $X_j$, which is $\\mathrm{Bin}(n, p_j)$; the dotted line in each row marks the expected count $np_j$. Drag the amber triangle under the axis to change the number of trials $n$. With $K = 3$ a third plot shows the whole joint distribution: every possible count vector as a dot on a triangle, with area proportional to its probability, and an amber point at the expected counts that you can drag to set all three probabilities. Change $K$ with its box (this resets the probabilities to $1/K$). The buttons draw a random count vector, which is marked in every plot. The event tool replaces the area-under-the-curve tool of the one-dimensional pages: it shows the probability that one count is at most, or more than, a value $k$.',
+    explorerIntro: 'The left plot shows the category probabilities $p_1, \\dots, p_K$. Drag the top of any amber arrow to change that probability; the others are rescaled in proportion so that the total stays 1. The right plot shows, for each category $j$ in its own row, the distribution of its count $X_j$, which is $\\mathrm{Bin}(n, p_j)$; the dotted line in each row marks the expected count $np_j$. Drag the amber triangle under the axis to change the number of trials $n$. With $K = 3$ a third plot, under the parameter boxes, shows the whole joint distribution: every possible count vector as a dot on a triangle, with area proportional to its probability, and an amber point at the expected counts that you can drag to set all three probabilities. Change $K$ with its box (this resets the probabilities to $1/K$). The buttons draw a random count vector, which is marked in every plot. The event tool replaces the area-under-the-curve tool of the one-dimensional pages: it shows the probability that one count is at most, or more than, a value $k$.',
     parameterization: 'Number of trials $n$, number of categories $K$ and the probability vector $\\mathbf p = (p_1, \\dots, p_K)$, with every $p_j \\ge 0$ and $p_1 + \\dots + p_K = 1$. The vector is set by dragging the bars (equal probabilities by default). The outcome is the count vector $\\mathbf X = (X_1, \\dots, X_K)$. On this page $K$ is the number of categories; on the hypergeometric page the same letter is a number of successes in the population.',
 
     pdfTex: 'P(X_1 = x_1, \\dots, X_K = x_K) = \\frac{n!}{x_1!\\, x_2! \\cdots x_K!}\\; p_1^{x_1} p_2^{x_2} \\cdots p_K^{x_K}, \\qquad x_1 + \\dots + x_K = n',
@@ -514,8 +518,8 @@ const mod = {
       { sym: 'p_1^{x_1} \\cdots p_K^{x_K}', meaning: 'The probability of any one particular sequence of trial outcomes with these counts.' },
     ],
 
-    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_K \\le x_K) = \\sum_{\\mathbf y \\le \\mathbf x,\\ \\sum_j y_j = n} P(\\mathbf X = \\mathbf y), \\qquad P(X_j \\le k) = \\sum_{i=0}^{k} \\binom{n}{i} p_j^{\\,i} (1-p_j)^{n-i}',
-    cdfIntro: 'A vector of counts has no single natural ordering, so the joint CDF is rarely used. It is a sum of the PMF over all count vectors below $\\mathbf x$ in every coordinate. The CDF of one count $X_j$ is the binomial CDF; the event tool in the explorer uses it.',
+    cdfTex: 'F(\\mathbf x) = P(X_1 \\le x_1, \\dots, X_K \\le x_K) = \\sum_{\\mathbf y \\le \\mathbf x,\\ \\sum_j y_j = n} P(\\mathbf X = \\mathbf y)',
+    cdfIntro: 'A vector of counts has no single natural ordering, so the joint CDF is rarely used. It is a sum of the PMF over all count vectors below $\\mathbf x$ in every coordinate. The CDF of one count $X_j$ is the binomial CDF, $P(X_j \\le k) = \\sum_{i=0}^{k} \\binom{n}{i} p_j^{\\,i} (1-p_j)^{n-i}$; the event tool in the explorer uses it.',
     cdfGlossary: [
       { sym: 'F(\\mathbf x)', meaning: 'The joint cumulative distribution function at the vector $\\mathbf x = (x_1, \\dots, x_K)$.' },
       { sym: 'P(X_1 \\le x_1, \\dots, X_K \\le x_K)', meaning: 'The probability that every count is at most the matching entry of $\\mathbf x$.' },

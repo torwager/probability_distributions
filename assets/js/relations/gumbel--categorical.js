@@ -19,6 +19,8 @@ export default {
   to: 'categorical',
   title: 'Choosing the option with the largest Gumbel-perturbed value gives softmax (categorical) choice probabilities',
 
+  summary: 'If each option has a value plus independent Gumbel noise with a common scale, and the option with the largest noisy value is chosen, the choice probabilities follow the softmax rule. The Gumbel scale is the softmax temperature; this is the basis of logit choice models.',
+
   plain: [
     'Suppose each of $K$ options has a value $u_j$ (a utility, an expected reward or a score), and on every occasion each value is perturbed by independent random noise $G_j$ before the largest perturbed value $u_j + G_j$ is chosen. Which option wins is random, so the choice has a categorical distribution. When the noise has a Gumbel distribution with scale $\\beta$, the choice probabilities have an exact and simple form: they are the softmax of the values, $p_j = e^{u_j/\\beta} / \\sum_i e^{u_i/\\beta}$.',
     'The Gumbel scale $\\beta$ plays the role of the softmax temperature. Little noise (small $\\beta$) means the best option is almost always chosen; a lot of noise (large $\\beta$) makes the choice nearly random. This is the random-utility derivation of the multinomial logit model of choice (McFadden), the link between Luce’s choice rule and noisy maximization, and the basis of the softmax choice rule in reinforcement-learning models. Read the other way, it gives the Gumbel-max trick: to draw from any categorical distribution $\\mathbf p$, add standard Gumbel noise to $\\ln p_j$ and take the largest.',
@@ -65,16 +67,17 @@ export default {
     ];
     const store = ui.createStore({ K: 3, beta: 1, u: defaultU(3), seed: 1, trial: 1 });
 
-    const noiseBox = h('div'), choiceBox = h('div');
+    const noiseBox = h('div', { 'data-role': 'main-plot' }), choiceBox = h('div', { 'data-role': 'main-plot' });
     const trialLine = h('p', { class: 'small', style: 'margin:.4rem 0 0' });
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
+    // the plots come first, so that they are visible on a laptop screen; the intro text follows the controls
     container.append(
-      ui.rich('p', 'Left: the density of each option’s noisy value $u_j + G_j$, a Gumbel distribution with mode $u_j$ and scale $\\beta$. Drag the amber markers under the axis to change the values $u_j$, and the tip of the amber arrow (length $\\beta$, drawn on the option with the largest value) to change the amount of noise. The dots on the axis are one simulated trial: the option with the largest noisy value (amber) is chosen. Right: how often each option is chosen in many trials (bars), compared with the softmax probabilities (stems).', { class: 'small muted demo-intro' }),
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Noisy values: Gumbel densities and one trial'), noiseBox, trialLine),
         h('figure', { class: 'plot-fig' }, h('figcaption', {}, `Choices in ${TRIALS.toLocaleString('en-US')} trials and the softmax probabilities`), choiceBox)),
-      readout, controls);
+      readout, controls,
+      ui.rich('p', 'Left: the density of each option’s noisy value $u_j + G_j$, a Gumbel distribution with mode $u_j$ and scale $\\beta$. Drag the amber markers under the axis to change the values $u_j$, and the tip of the amber arrow (length $\\beta$, drawn on the option with the largest value) to change the amount of noise. The dots on the axis are one simulated trial: the option with the largest noisy value (amber) is chosen. Right: how often each option is chosen in many trials (bars), compared with the softmax probabilities (stems).', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -87,8 +90,8 @@ export default {
     again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Simulation'), h('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem' }, one, again)));
 
-    const noisePlot = new plot.Plot(noiseBox, { xLabel: 'noisy value u + G', yLabel: 'density' });
-    const choicePlot = new plot.Plot(choiceBox, { xLabel: 'option j', yLabel: 'probability' });
+    const noisePlot = new plot.Plot(noiseBox, { xLabel: 'noisy value u + G', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
+    const choicePlot = new plot.Plot(choiceBox, { xLabel: 'option j', yLabel: 'probability', height: (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 }) });
 
     let sim = { key: '' };
     function simulate(s) {

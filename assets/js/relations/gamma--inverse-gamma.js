@@ -43,6 +43,8 @@ export default {
   to: 'inverse-gamma',
   title: 'The reciprocal of a gamma variable has an inverse-gamma distribution, and the reciprocal of an inverse-gamma variable is gamma',
 
+  summary: 'The reciprocal of a gamma variable with shape $\\alpha$ and rate $\\beta$ has an inverse-gamma distribution with shape $\\alpha$ and scale $\\beta$, and the reverse holds too. So a gamma prior on a precision (one over a variance) is an inverse-gamma prior on the variance.',
+
   plain: [
     'If $X$ has a gamma distribution with shape $\\alpha$ and rate $\\beta$, then its reciprocal $1/X$ has an inverse-gamma distribution with the same shape $\\alpha$ and scale $\\beta$. Going back, the reciprocal of an inverse-gamma variable is gamma. Large values of $X$ become small values of $1/X$ and the other way around, so the thin exponential right tail of the gamma becomes the left side of the inverse-gamma, and the gamma’s behavior near 0 becomes a heavy power-law right tail.',
     'The relationship matters most in Bayesian statistics. The precision of a normal distribution is one over its variance, $\\tau = 1/\\sigma^2$. Putting a $\\mathrm{Gamma}(\\alpha, \\beta)$ prior on the precision is exactly the same as putting an $\\mathrm{InvGamma}(\\alpha, \\beta)$ prior on the variance; the two are one prior written on two scales, and the conjugate updates match.',
@@ -108,19 +110,19 @@ function twoScales(box, { plot, ui }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   box.append(
-    ui.rich('p', 'The left plot shows the gamma density of $X$ (shape $\\alpha$, rate $\\beta$), for example the precision $\\tau$ of a normal model; the right plot shows the inverse-gamma density of $1/X$ (shape $\\alpha$, scale $\\beta$), for example the variance $\\sigma^2 = 1/\\tau$. The band $a < X \\le b$ and the band $1/b \\le 1/X < 1/a$ are the same event, so they have the same area; note that the left end of one is the right end of the other. Drag the band ends on either plot. The dashed line on the left (at the gamma mean $\\alpha/\\beta$) and the one on the right (at the inverse-gamma mode $\\beta/(\\alpha+1)$) both change $\\beta$ with $\\alpha$ fixed; set $\\alpha$ in its box.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Gamma density of $X$'), leftBox),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Inverse-gamma density of $1/X$'), rightBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'The left plot shows the gamma density of $X$ (shape $\\alpha$, rate $\\beta$), for example the precision $\\tau$ of a normal model; the right plot shows the inverse-gamma density of $1/X$ (shape $\\alpha$, scale $\\beta$), for example the variance $\\sigma^2 = 1/\\tau$. The band $a < X \\le b$ and the band $1/b \\le 1/X < 1/a$ are the same event, so they have the same area; note that the left end of one is the right end of the other. Drag the band ends on either plot. The dashed line on the left (at the gamma mean $\\alpha/\\beta$) and the one on the right (at the inverse-gamma mode $\\beta/(\\alpha+1)$) both change $\\beta$ with $\\alpha$ fixed; set $\\alpha$ in its box.', { class: 'small muted demo-intro' }));
 
   const panel = ui.paramPanel(controls, PARAMS, {
     get: () => store.get().p,
     apply: (k, v) => store.set({ p: { ...store.get().p, [k]: v } }),
     onReset: () => store.set({ p: defaults(), ua: 0.25, ub: 0.75 }),
   });
-  const L = new plot.Plot(leftBox, { xLabel: 'x (e.g. precision τ)', yLabel: 'density' });
-  const R = new plot.Plot(rightBox, { xLabel: 'y = 1/x (e.g. variance σ²)', yLabel: 'density' });
+  const L = new plot.Plot(leftBox, { xLabel: 'x (e.g. precision τ)', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
+  const R = new plot.Plot(rightBox, { xLabel: 'y = 1/x (e.g. variance σ²)', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
 
   let frozen = null, curL = null, curR = null, raf = 0;
   const request = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); };

@@ -12,7 +12,8 @@
     "manifest": "node tools/update-manifest.mjs",
     "catalog": "python3 tools/build_catalog.py",
     "map": "node tests/map.mjs",
-    "subpath": "node tests/subpath.mjs"
+    "subpath": "node tests/subpath.mjs",
+    "layout": "node tests/layout.mjs"
   },
   "license": "MIT"
 }

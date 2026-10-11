@@ -24,6 +24,8 @@ export default {
   to: 'cauchy',
   title: 'Student’s t with one degree of freedom is the standard Cauchy distribution',
 
+  summary: 'Student’s t distribution with one degree of freedom is the standard Cauchy distribution. Its tails are so heavy that it has no mean and no variance. Shifting and scaling it gives the rest of the Cauchy family.',
+
   plain: [
     'When the degrees of freedom are $\\nu = 1$, Student’s $t$ density becomes $1/[\\pi(1 + x^2)]$, the density of the standard Cauchy distribution. Shifting and stretching it gives the whole Cauchy family: $x_0 + \\gamma T$ has a Cauchy distribution with location $x_0$ and scale $\\gamma$.',
     'One degree of freedom means that the standard deviation in the denominator of $T = Z/\\sqrt{V/\\nu}$ is estimated from a single squared normal value, so it is fairly often close to 0, and the ratio is then huge. The tails are then so heavy that the Cauchy distribution has no mean and no variance, and averaging Cauchy draws does not make the average settle down. For $\\nu > 1$ the $t$ distribution has a mean, and for $\\nu > 2$ a variance.',
@@ -121,9 +123,9 @@ function runningMeanView(box, { plot, ui }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   box.append(
-    ui.rich('p', `Each line follows the average of the first $n$ draws from $t_\\nu$, for $n$ = 1 to ${N}, in ${PATHS} independent runs. For $\\nu > 1$ the mean exists (it is 0) and the averages settle toward it, slowly when $\\nu$ is close to 1. For $\\nu = 1$ (Cauchy) single huge draws keep throwing the averages off, however many draws have been made.`, { class: 'small muted demo-intro' }),
     h('figure', { class: 'plot-fig' }, h('figcaption', {}, 'Running average of t draws'), pBox),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', `Each line follows the average of the first $n$ draws from $t_\\nu$, for $n$ = 1 to ${N}, in ${PATHS} independent runs. For $\\nu > 1$ the mean exists (it is 0) and the averages settle toward it, slowly when $\\nu$ is close to 1. For $\\nu = 1$ (Cauchy) single huge draws keep throwing the averages off, however many draws have been made.`, { class: 'small muted demo-intro' }));
   const panel = ui.paramPanel(controls, params, {
     get: () => store.get(),
     apply: (k, v) => store.set({ [k]: v }),

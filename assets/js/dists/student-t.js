@@ -384,6 +384,7 @@ export default {
   },
 
   content: {
+    summary: 'Student’s $t$ distribution is a symmetric bell curve centered at 0 with heavier tails than the normal; the degrees of freedom $\\nu$ set how heavy. It describes how far a sample mean of normal data is from the true mean in estimated standard errors, and underlies t-tests.',
     description: [
       'Student’s $t$ distribution is a symmetric, bell-shaped distribution centered at 0 that has heavier tails than the normal distribution. It describes a sample mean that has been standardized with the standard deviation estimated from the same data, $t = (\\bar x - \\mu)/(s/\\sqrt n)$, rather than with the true standard deviation. A $t$ variable can take any real value.',
       'Its one parameter is the degrees of freedom $\\nu$ (in a one-sample t-test, $\\nu = n - 1$ for a sample of $n$ values). With few degrees of freedom the estimated standard deviation is itself uncertain, so extreme values of $t$ are much more common than under a normal distribution. As $\\nu$ grows, the $t$ distribution approaches the standard normal; with $\\nu = 1$ it is the Cauchy distribution.',
@@ -391,7 +392,7 @@ export default {
     ],
     explorerIntro: 'The left plot shows the density $f(x)$ of $t_\\nu$ (solid) with the standard normal density for comparison (dashed); the right plot shows the two CDFs. There are two ways to change the degrees of freedom $\\nu$. Drag the tip of the amber arrow at $x = 0$ up or down: its height is the peak height $f(0)$, so a lower peak means fewer degrees of freedom and heavier tails, and the peak approaches the normal peak $1/\\sqrt{2\\pi} \\approx 0.3989$ as $\\nu$ grows. Or drag the dashed amber line marked $t^*$ sideways: it sits on the critical value of the test chosen under <b>Hypothesis test</b>, and moving it outward lowers $\\nu$, because with fewer degrees of freedom a larger $t$ is needed to reject. Both handles move only a few pixels between $\\nu = 30$ and $\\nu = 100$, where the curves are almost the same; use the box there. The critical values at level $\\alpha$ are labeled on the plot (the second one of a two-sided test is a dotted line), and the outlined tails are the rejection region. Turn on the area tool and drag its marker (the triangle marked $x$) to an observed value of $t$ to read off its p-value; for a two-sided test the matching tail on the other side is shaded too.',
 
-    pdfTex: 'f(x \\mid \\nu) = \\frac{\\Gamma\\!\\left(\\frac{\\nu+1}{2}\\right)}{\\sqrt{\\nu\\pi}\\;\\Gamma\\!\\left(\\frac{\\nu}{2}\\right)} \\left(1 + \\frac{x^2}{\\nu}\\right)^{-\\frac{\\nu+1}{2}}',
+    pdfTex: 'f(x \\mid \\nu) = \\frac{\\Gamma\\!\\left(\\frac{\\nu+1}{2}\\right)}{\\sqrt{\\nu\\pi}\\;\\Gamma\\!\\left(\\frac{\\nu}{2}\\right)} \\left(1 + \\frac{x^2}{\\nu}\\right)^{-(\\nu+1)/2}',
     glossary: [
       { sym: 'x', meaning: 'A possible value of the random variable $T$. It can be any real number.' },
       { sym: 'f(x \\mid \\nu)', meaning: 'The probability density at $x$ for $\\nu$ degrees of freedom. Probabilities are areas under this curve.' },
@@ -399,14 +400,14 @@ export default {
       { sym: '\\Gamma(\\cdot)', meaning: 'The gamma function, which extends the factorial to non-integers: $\\Gamma(n) = (n-1)!$ for whole numbers and $\\Gamma(\\tfrac12) = \\sqrt\\pi$.' },
       { sym: '\\pi', meaning: 'The constant 3.14159…, the ratio of a circle’s circumference to its diameter.' },
       { sym: '\\dfrac{\\Gamma(\\frac{\\nu+1}{2})}{\\sqrt{\\nu\\pi}\\,\\Gamma(\\frac{\\nu}{2})}', meaning: 'The normalizing constant, which makes the total area equal to 1. It is also the height of the peak at $x = 0$.' },
-      { sym: '\\left(1 + \\frac{x^2}{\\nu}\\right)^{-\\frac{\\nu+1}{2}}', meaning: 'The shape of the curve. Far from 0 it falls off like the power $|x|^{-(\\nu+1)}$, much more slowly than the normal’s $e^{-x^2/2}$; this is what makes the tails heavy. For large $\\nu$ it is close to $e^{-x^2/2}$.' },
+      { sym: '\\left(1 + \\frac{x^2}{\\nu}\\right)^{-(\\nu+1)/2}', meaning: 'The shape of the curve. Far from 0 it falls off like the power $|x|^{-(\\nu+1)}$, much more slowly than the normal’s $e^{-x^2/2}$; this is what makes the tails heavy. For large $\\nu$ it is close to $e^{-x^2/2}$.' },
     ],
 
-    cdfTex: 'F(x \\mid \\nu) = \\begin{cases} \\tfrac12\\, I_{\\nu/(\\nu + x^2)}\\!\\left(\\tfrac{\\nu}{2}, \\tfrac12\\right), & x \\le 0, \\\\[4pt] 1 - \\tfrac12\\, I_{\\nu/(\\nu + x^2)}\\!\\left(\\tfrac{\\nu}{2}, \\tfrac12\\right), & x > 0. \\end{cases}',
+    cdfTex: 'F(x \\mid \\nu) = \\begin{cases} \\tfrac12\\, I_z\\!\\left(\\tfrac{\\nu}{2}, \\tfrac12\\right) & \\text{for } x \\le 0, \\\\[2pt] 1 - \\tfrac12\\, I_z\\!\\left(\\tfrac{\\nu}{2}, \\tfrac12\\right) & \\text{for } x > 0, \\end{cases} \\qquad z = \\frac{\\nu}{\\nu + x^2}',
     cdfGlossary: [
       { sym: 'F(x \\mid \\nu)', meaning: 'The cumulative distribution function: the probability that $T \\le x$, the area under the density to the left of $x$.' },
       { sym: 'I_z(a, b)', meaning: 'The regularized incomplete beta function: the probability that a $\\mathrm{Beta}(a, b)$ variable is at most $z$. It has no elementary formula and is computed numerically (here with a continued fraction).' },
-      { sym: '\\frac{\\nu}{\\nu + x^2}', meaning: 'A number between 0 and 1 that is close to 0 far out in the tails. The quantity $I_{\\nu/(\\nu+x^2)}(\\tfrac\\nu2, \\tfrac12)$ is exactly $P(|T| \\ge |x|)$, the two-sided tail area.' },
+      { sym: 'z = \\frac{\\nu}{\\nu + x^2}', meaning: 'A number between 0 and 1 that is close to 0 far out in the tails. The quantity $I_z(\\tfrac\\nu2, \\tfrac12)$ is exactly $P(|T| \\ge |x|)$, the two-sided tail area.' },
       { sym: '\\nu', meaning: 'The degrees of freedom.' },
     ],
     cdfIntro: 'The CDF is written with the incomplete beta function. For $\\nu = 1$ it is $\\tfrac12 + \\arctan(x)/\\pi$, and for $\\nu = 2$ it is $\\tfrac12 + x/(2\\sqrt{2 + x^2})$.',

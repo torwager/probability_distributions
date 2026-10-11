@@ -2,6 +2,7 @@
 // Run: node --test tests/   (or npm test)
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { checkSummary } from './content-rules.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -87,6 +88,8 @@ for (const file of files) {
     const c = mod.content;
     assert.ok(c, 'content');
     assert.ok(c.description && (Array.isArray(c.description) ? c.description.length : c.description.length > 40), 'description');
+    // summary (shown under the title): optional until every module has one; 1-3 sentences, about 150-300 characters
+    if (c.summary !== undefined) checkSummary(c.summary, `${id}.content.summary`);
     for (const f of ['pdfTex', 'cdfTex']) assert.ok(typeof c[f] === 'string' && c[f].length > 3, f);
     for (const f of ['glossary', 'cdfGlossary']) {
       assert.ok(Array.isArray(c[f]) && c[f].length, f);
@@ -127,14 +130,14 @@ for (const file of files) {
       for (const g of greekIn(c[texKey])) assert.ok(new RegExp('\\\\' + g + '(?![a-zA-Z])').test(explained), `${glKey} should explain \\${g}, which appears in ${texKey}`);
     }
     // prose uses TeX for Greek letters
-    const prose = [c.description, c.explorerIntro, c.parameterization, ...c.glossary.map(g => g.meaning), ...c.cdfGlossary.map(g => g.meaning),
+    const prose = [c.summary, c.description, c.explorerIntro, c.parameterization, ...c.glossary.map(g => g.meaning), ...c.cdfGlossary.map(g => g.meaning),
       ...c.properties.map(p => p.explain), ...c.limits.map(l => l.text), ...Object.values(c.uses).flat()].flat().filter(Boolean);
     for (const t of prose) {
       const m = proseOnly(t).match(ASCII_GREEK);
       assert.ok(!m, `write Greek letters in TeX ($\\${m && m[1]}$), not as the word "${m && m[1]}": ${String(t).slice(0, 90)}`);
     }
     // balanced $...$ in rich text
-    const rich = [c.description, c.explorerIntro, ...c.glossary.map(g => g.meaning), ...c.cdfGlossary.map(g => g.meaning), ...c.properties.map(p => p.explain),
+    const rich = [c.summary, c.description, c.explorerIntro, ...c.glossary.map(g => g.meaning), ...c.cdfGlossary.map(g => g.meaning), ...c.properties.map(p => p.explain),
       ...c.limits.map(l => l.text), ...Object.values(c.uses).flat()].flat().filter(Boolean);
     for (const t of rich) {
       const n = (String(t).replace(/\\\$/g, '').match(/\$/g) || []).length;

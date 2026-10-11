@@ -67,6 +67,7 @@ code, .mono { font-family: var(--mono); font-size: .85em; }
 .wrap { max-width: var(--max); margin: 0 auto; padding-left: var(--pad); padding-right: var(--pad); }
 main.wrap { padding-top: 104px; padding-bottom: 4rem; }
 ::selection { background: var(--amber-soft); }
+.nowrap { white-space: nowrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ------------------------------------------------------------------ Header */
@@ -163,7 +164,7 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .jump { display: flex; flex-wrap: wrap; gap: .35rem; margin: 1.1rem 0 0; padding: 0; list-style: none; }
 .jump a { display: inline-block; font-size: .8rem; font-weight: 500; padding: .25rem .7rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); background: var(--surface); }
 .jump a:hover { border-color: var(--amber-deep); color: var(--ink); }
-.doc-section { margin: 2.6rem 0 0; scroll-margin-top: 90px; }
+.doc-section { margin: 2.6rem 0 0; }
 .doc-section > h2 { font-size: clamp(1.4rem, 2.3vw, 1.85rem); padding-bottom: .45rem; border-bottom: 1px solid var(--line); margin-bottom: .9rem; }
 .doc-section h3 { font-size: 1.15rem; margin: 1.4rem 0 .5rem; }
 .section-intro { color: var(--ink-2); max-width: 75ch; }
@@ -179,12 +180,103 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .empty { padding: 2rem; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: var(--radius-sm); }
 .loading { color: var(--muted); font-size: .95rem; padding: 2rem 0; }
 
+/* ------------------------------------------------------------------ Compact page top (distribution and relation pages)
+   Order: page head (eyebrow, title, 1-3 line summary, "More" toggle + jump links), formulas strip,
+   interactive explorer or demo. Everything is kept short so that the plots fit on a laptop screen. */
+main.wrap.wrap-tight { padding-top: 82px; }
+.page-head-compact { margin-bottom: .9rem; max-width: none; }
+.page-head-compact .eyebrow { margin-bottom: .3rem; font-size: .72rem; }
+.page-head-compact h1 { margin-bottom: .25rem; }
+.dist-title { font-size: clamp(1.6rem, 2.5vw, 2.1rem); }
+.page-head-compact p.lede { font-size: 1rem; line-height: 1.52; color: var(--ink-2); max-width: 64rem; margin: 0 0 .45rem; }
+.head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1.1rem; }
+/* "More about ...": the full description replaces the summary in place (the summary is hidden meanwhile),
+   and the toggle row follows the text */
+.page-head-compact p.lede[hidden], .head-more[hidden] { display: none; }
+.head-more { margin: .1rem 0 .75rem; max-width: 78ch; }
+.page-head-compact .head-more p { font-size: 1rem; line-height: 1.6; color: var(--ink-2); max-width: 78ch; margin: 0 0 .7rem; }
+.head-more .chips { margin-top: .2rem; }
+
+/* disclosure button: a small pill with an amber chevron (amber = interactive) */
+.disclosure { display: inline-flex; align-items: center; gap: .45rem; font: inherit; font-size: .84rem; font-weight: 600; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; padding: .16rem .7rem .16rem .8rem; cursor: pointer; line-height: 1.4; transition: border-color .2s, background .2s; }
+.disclosure:hover { border-color: var(--amber-deep); }
+.disclosure[aria-expanded="true"] { background: var(--amber-soft); border-color: var(--amber); }
+.disclosure-chev { width: 7px; height: 7px; border-right: 2px solid var(--amber-deep); border-bottom: 2px solid var(--amber-deep); transform: translateY(-2px) rotate(45deg); transition: transform .2s var(--ease); flex: none; }
+.disclosure[aria-expanded="true"] .disclosure-chev { transform: translateY(1px) rotate(-135deg); }
+
+.jump-inline { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .5rem; font-size: .82rem; color: var(--muted); }
+.jump-inline ul { display: flex; flex-wrap: wrap; gap: .1rem 0; margin: 0; padding: 0; list-style: none; }
+.jump-inline li { white-space: nowrap; }
+.jump-inline li:not(:last-child)::after { content: "·"; margin: 0 .45rem; color: var(--muted); opacity: .6; }
+.jump-inline a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.jump-inline a:hover { color: var(--ink); text-decoration-color: var(--amber-deep); }
+
+/* formulas strip */
+.doc-section.formulas-strip { margin-top: 0; }
+.formula-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .7rem 1.1rem; }
+.formula-cell { min-width: 0; display: flex; flex-direction: column; }
+.formula-cell .mini-title { margin: 0 0 .3rem .1rem; letter-spacing: .1em; }
+.formula-pair .formula { flex: 1; display: flex; align-items: center; padding: 0 .9rem; min-height: 3.4rem; }
+.formula-pair .formula > .katex-display, .formula-pair .formula > .tex-fallback { width: 100%; margin: .3em 0; }
+/* on a phone a long formula is split into lines (core/ui.js fitDisplayFormula) */
+.formula-pair .formula[data-split] { flex-direction: column; align-items: stretch; justify-content: center; padding-top: .3rem; padding-bottom: .3rem; }
+.formula-pair .formula[data-split] .katex-display { margin: .2em 0; }
+.formula[data-split] .formula-line + .formula-line { border-top: none; }
+.formula-pair .katex { font-size: 1em; }
+.formula-tools { margin-top: .4rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+.symbols-region { margin-top: .5rem; }
+.symbols-region[hidden] { display: none; }
+.symbols-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .4rem 2rem; }
+.symbols-col { min-width: 0; }
+.symbols-col .glossary { grid-template-columns: fit-content(min(42%, 14rem)) minmax(0, 1fr); }
+.symbols-col .glossary-block { margin-top: 0; }
+.formula-note { font-size: .92rem; color: var(--ink-2); margin: .6rem 0 0; max-width: 70ch; }
+@media (max-width: 760px) {
+  .formula-pair, .symbols-pair { grid-template-columns: 1fr; }
+}
+
+/* relation pages: the formal statement and the demo right under the page head */
+.page-head-compact .rel-head-flow { font-size: clamp(1.6rem, 2.6vw, 2.15rem); margin: 0 0 .3rem; gap: .3rem .7rem; }
+.page-head-compact .rel-head-flow a { text-underline-offset: 5px; }
+.rel-label-chip { font-weight: 500; }
+.rel-label-chip .katex { font-size: 1.05em; }
+.page-head-compact .head-more p.rel-title { font-family: var(--serif); font-size: 1.1rem; color: var(--ink); }
+.doc-section.statement-strip { margin-top: 0; }
+.doc-section.statement-strip > h2.mini-title { border: none; padding: 0; margin: 0 0 .3rem .1rem; font-size: .74rem; letter-spacing: .1em; }
+.statement-strip .formula { padding: .1rem .9rem; }
+.statement-strip .formula .katex-display { margin: .4em 0; }
+.formula-line-wrap { text-align: center; margin: .45em 0; line-height: 1.9; }
+.formula-line-wrap .katex { font-size: 1.06em; }
+.doc-section.demo-section { margin-top: 1rem; }
+.demo .demo-intro { margin: .9rem 0 0; }
+
+/* the explorer section right under the formulas */
+.doc-section.explorer-section { margin-top: .8rem; }
+.explorer-help { margin-top: .9rem; max-width: 80ch; }
+.explorer-help .mini-title { margin-bottom: .3rem; }
+.explorer-help p { font-size: .93rem; color: var(--ink-2); margin: 0; }
+
 /* ------------------------------------------------------------------ Explorer */
-.explorer { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(12px, 2.2vw, 22px); }
+.explorer, .demo {
+  /* plot height on desktop. The page scripts set --plot-h-fit (plot.js fitToViewport) from the space left
+     under the page head and the formulas, so that both plots fit on a 1280x720 screen and the parameter
+     boxes too on a 1440x900 screen; until then (and on other pages) it grows with the viewport height.
+     Plots read it with `height: 'css'` or `height: (w, H) => fitHeight(w, H, ...)` (core/plot.js). */
+  --plot-h: var(--plot-h-fit, clamp(220px, calc(19.5vh + 110px), 440px));
+}
+.explorer { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(12px, 1.2vw, 14px) clamp(12px, 2vw, 22px) clamp(12px, 1.6vw, 18px); }
 .explorer-plots { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 2vw, 24px); }
 .plot-fig { margin: 0; min-width: 0; }
-.plot-fig figcaption { font-size: .86rem; font-weight: 600; color: var(--ink-2); margin: 0 0 .3rem .2rem; white-space: pre-wrap; }
-.explorer-controls { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: clamp(14px, 2.4vw, 30px); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.plot-fig figcaption { font-size: .86rem; font-weight: 600; color: var(--ink-2); margin: 0 0 .2rem .2rem; white-space: pre-wrap; line-height: 1.4; }
+.explorer-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .9rem clamp(14px, 2.4vw, 30px); margin-top: .6rem; padding-top: .7rem; border-top: 1px solid var(--line); }
+/* the parameter boxes come first, in one row across the explorer (so they are visible on a laptop screen),
+   with the reset button at the end of the row when it fits */
+.explorer-controls > .explorer-params { grid-column: 1 / -1; }
+.explorer .param-panel { grid-template-columns: repeat(auto-fill, minmax(min(100%, 215px), 1fr)); gap: .6rem 1.4rem; }
+.explorer .param-actions { grid-column: auto; align-self: end; padding-bottom: .3rem; }
+/* a module that adds its own buttons next to "Reset parameters" gets them in one row across the explorer */
+.explorer .param-actions:has(> :nth-child(2)) { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem .6rem; align-items: center; align-self: start; padding-bottom: 0; }
+.explorer .mini-title { margin-bottom: .45rem; }
 .mini-title, .doc-section h3.mini-title { font-family: var(--sans); font-size: .74rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 .6rem; line-height: 1.3; }
 .explorer-hint { font-size: .84rem; color: var(--muted); margin: .9rem 0 0; }
 .area-readout { margin: .5rem .2rem 0; font-size: .92rem; color: var(--ink); font-family: var(--sans); }
@@ -193,7 +285,6 @@ a.chip:hover, button.chip:hover { border-color: var(--chip-fg, var(--muted)); }
 .readouts { display: grid; grid-template-columns: max-content 1fr; gap: .3rem .9rem; margin: 0; font-size: .9rem; }
 .readouts dt { color: var(--ink-2); }
 .readouts dd { margin: 0; font-family: var(--mono); font-size: .88rem; }
-@media (max-width: 980px) { .explorer-controls { grid-template-columns: 1fr 1fr; } .explorer-params { grid-column: 1 / -1; } }
 @media (max-width: 760px) {
   .explorer-plots { grid-template-columns: 1fr; }
   .explorer { display: flex; flex-direction: column; }
@@ -402,6 +493,7 @@ body.modal-open { overflow: hidden; }
 
 /* ------------------------------------------------------------------ Demo controls (relation pages) */
 .demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(12px, 2.2vw, 22px); }
+.demo > :first-child { margin-top: 0; }
 .demo-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 2vw, 24px); }
 @media (max-width: 760px) { .demo-grid { grid-template-columns: 1fr; } }
 .demo-controls { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-items: flex-end; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }

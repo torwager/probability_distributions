@@ -14,6 +14,8 @@ export default {
   to: 'geometric',
   title: 'Counting successes in fixed trials and waiting for the first success are two views of one sequence',
 
+  summary: 'In one sequence of independent trials, the binomial counts successes in a fixed number of trials and the geometric counts failures before the first success. At least $k$ failures before the first success means no success in the first $k$ trials.',
+
   plain: [
     'Picture one long sequence of independent yes/no trials, each a success with probability $p$. The binomial and the geometric distribution ask two different questions about it. The binomial fixes the number of trials, say the first $k$, and counts the successes among them. The geometric fixes the number of successes (one) and counts how many failures come before it.',
     'The two questions are tied together. Waiting at least $k$ failures for the first success is the same event as seeing no success at all in the first $k$ trials. So the geometric tail probability $P(K \\ge k)$ equals the binomial probability of zero successes, $P(B_k = 0) = (1-p)^k$. The same duality links the negative binomial and the binomial: if $r$ is the number of successes waited for, then $P(\\mathrm{NegBin}(r, p) \\le k) = P(\\mathrm{Bin}(k + r, p) \\ge r)$.',
@@ -57,19 +59,19 @@ export default {
     const defaults = { p: 0.3, k: 3 };
     const store = ui.createStore({ ...defaults, seed: 1 });
 
-    const stripBox = h('div', { class: 'small', style: 'margin:.2rem 0 1rem' });
+    const stripBox = h('div', { class: 'small', style: 'margin:1rem 0 0' });
     const leftBox = h('div'), rightBox = h('div');
     const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
     const controls = h('div', { class: 'demo-controls' });
     const again = h('button', { type: 'button', class: 'btn small-btn' }, 'New sequence');
     again.addEventListener('click', () => store.set({ seed: store.get().seed + 1 }));
+    // the plots come first (visible on a laptop screen); the sequence strip and the explanation follow the controls
     container.append(
-      ui.rich('p', 'The circles are one simulated sequence of trials; the first $k$ are outlined in amber. The left plot shows the number of successes in the first $k$ trials, $B_k \\sim \\mathrm{Bin}(k, p)$, with the bar at 0 highlighted. The right plot shows the number of failures before the first success, $K \\sim \\mathrm{Geom}(p)$, with the values $K \\ge k$ highlighted. The two highlighted probabilities are always equal. Drag the amber marker on either plot to change $k$.', { class: 'small muted demo-intro' }),
-      stripBox,
       h('div', { class: 'demo-grid' },
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Successes in the first $k$ trials: $\\mathrm{Bin}(k, p)$'), leftBox),
         h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Failures before the first success: $\\mathrm{Geom}(p)$'), rightBox)),
-      readout, controls);
+      readout, controls, stripBox,
+      ui.rich('p', 'The circles are one simulated sequence of trials; the first $k$ are outlined in amber. The left plot shows the number of successes in the first $k$ trials, $B_k \\sim \\mathrm{Bin}(k, p)$, with the bar at 0 highlighted. The right plot shows the number of failures before the first success, $K \\sim \\mathrm{Geom}(p)$, with the values $K \\ge k$ highlighted. The two highlighted probabilities are always equal. Drag the amber marker on either plot to change $k$.', { class: 'small muted demo-intro' }));
 
     const panel = ui.paramPanel(controls, params, {
       get: () => store.get(),
@@ -78,8 +80,9 @@ export default {
     });
     controls.append(h('div', { class: 'demo-sim-ctl' }, h('h3', { class: 'mini-title' }, 'Sequence'), again));
 
-    const left = new plot.Plot(leftBox, { xLabel: 'number of successes in the first k trials', yLabel: 'probability' });
-    const right = new plot.Plot(rightBox, { xLabel: 'K (failures before the first success)', yLabel: 'probability' });
+    const height = (w, H) => plot.fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 });
+    const left = new plot.Plot(leftBox, { xLabel: 'number of successes in the first k trials', yLabel: 'probability', height });
+    const right = new plot.Plot(rightBox, { xLabel: 'K (failures before the first success)', yLabel: 'probability', height });
 
     // the x axes stay fixed while a marker is dragged, and refit when it is released
     let frozen = null;

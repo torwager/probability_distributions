@@ -35,6 +35,8 @@ export default {
   to: 'log-normal',
   title: 'Exponentiating a normal variable gives a log-normal variable, and taking the log of a log-normal variable gives a normal one',
 
+  summary: 'Exponentiating a normal variable gives a log-normal variable, and taking the log of a log-normal variable gives back a normal one. Because sums of many small independent effects tend to be normal, products of many small positive factors tend to be log-normal.',
+
   plain: [
     'If $X$ has a normal distribution with mean $\\mu$ and standard deviation $\\sigma$, then $Y = e^X$ has a log-normal distribution with the same two parameters. Going the other way, if $Y$ is log-normal then $\\ln Y$ is normal. The parameters $\\mu$ and $\\sigma$ of a log-normal distribution are therefore the mean and standard deviation of its logarithm, not of $Y$ itself.',
     'The exponential function turns sums into products: $e^{a + b} = e^a e^b$. Because sums of many small independent effects tend to be normal (the central limit theorem), products of many small independent positive factors tend to be log-normal. That is why quantities that grow by random percentages, such as incomes, sizes of organisms, concentrations and response times, are often modeled as log-normal.',
@@ -99,19 +101,19 @@ function twoScales(box, { math, plot, ui }) {
   const readout = h('p', { class: 'demo-readout', 'aria-live': 'polite' });
   const controls = h('div', { class: 'demo-controls' });
   box.append(
-    ui.rich('p', 'The left plot shows the normal density of $X$ and the right plot the log-normal density of $Y = e^X$. The shaded band $a < X \\le b$ on the left and the band $e^a < Y \\le e^b$ on the right are the same event, so they always have the same area. Drag the band ends (amber triangles) on either plot, drag the line at $\\mu$ and the arrow for $\\sigma$ on the left, or type values. Notice that the center $\\mu$ of $X$ becomes the median $e^{\\mu}$ of $Y$, not its mean.', { class: 'small muted demo-intro' }),
     h('div', { class: 'demo-grid' },
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Normal density of $X = \\ln Y$'), leftBox),
       h('figure', { class: 'plot-fig' }, ui.rich('figcaption', 'Log-normal density of $Y = e^X$'), rightBox)),
-    readout, controls);
+    readout, controls,
+    ui.rich('p', 'The left plot shows the normal density of $X$ and the right plot the log-normal density of $Y = e^X$. The shaded band $a < X \\le b$ on the left and the band $e^a < Y \\le e^b$ on the right are the same event, so they always have the same area. Drag the band ends (amber triangles) on either plot, drag the line at $\\mu$ and the arrow for $\\sigma$ on the left, or type values. Notice that the center $\\mu$ of $X$ becomes the median $e^{\\mu}$ of $Y$, not its mean.', { class: 'small muted demo-intro' }));
 
   const panel = ui.paramPanel(controls, PARAMS, {
     get: () => store.get().p,
     apply: (k, v) => store.set({ p: { ...store.get().p, [k]: v } }),
     onReset: () => store.set({ p: defaults(), za: -1, zb: 2 }),
   });
-  const L = new plot.Plot(leftBox, { xLabel: 'x = ln y', yLabel: 'density' });
-  const R = new plot.Plot(rightBox, { xLabel: 'y = eˣ', yLabel: 'density' });
+  const L = new plot.Plot(leftBox, { xLabel: 'x = ln y', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
+  const R = new plot.Plot(rightBox, { xLabel: 'y = eˣ', yLabel: 'density', height: (w, H) => plot.fitHeight(w, H) });
 
   let frozen = null; // {L, R} x domains kept fixed while something is dragged
   const setP = patch => {

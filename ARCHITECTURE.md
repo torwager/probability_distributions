@@ -68,7 +68,9 @@ Do these in order. A module is finished only when every step is done.
    handle in a browser (`npm run serve`, open `http://127.0.0.1:8000/distribution.html?d=<id>`), try extreme
    parameter values from the number boxes (each min and max), and check that the curve stays in view and the
    handles stay on the curve.
-9. Do not edit `assets/js/core/*`, `site.css`, the catalog or the tests unless your task says so. If you need a
+9. Run `npm run layout -- --only=<id>` (see [Page layout](#page-layout)): the summary must fit in 3 lines and
+   the main plots must be visible without scrolling on a laptop screen.
+10. Do not edit `assets/js/core/*`, `site.css`, the catalog or the tests unless your task says so. If you need a
    feature, build it in your module (`explorer.extraLayers`, `customExplorer`, a custom `demo`) and mention the
    missing core feature in your report.
 
@@ -88,10 +90,13 @@ The site explains things plainly. It is for students and researchers who want to
   `'$\\lambda$'` in a JS string. Never spell Greek letters as words ("lambda", "sigma"); the tests reject it.
   Use `\mathrm{Gamma}(\alpha, \beta)` for distribution names inside formulas.
 * **American spelling** and sentence case. Use "we" sparingly. Write "standard deviation", not "SD", in prose.
-* **Same structure on every page.** The page template orders the sections; your content fills them:
-  1. `description`: 1–3 paragraphs. What the distribution describes (with an everyday example), what values it
-     takes, what each parameter does.
-  2. `explorerIntro`: what the two plots show and what each handle does, in that order.
+* **Same structure on every page.** The page template orders the sections (see [Page layout](#page-layout));
+  your content fills them:
+  0. `summary`: 1–3 sentences shown under the title (see [Summaries](#summaries)).
+  1. `description`: 1–3 paragraphs, shown when the reader clicks "More about this distribution". What the
+     distribution describes (with an everyday example), what values it takes, what each parameter does.
+  2. `explorerIntro`: what the two plots show and what each handle does, in that order. It is shown under the
+     explorer ("How to use the explorer").
   3. Formulas: `pdfTex` + `glossary`, `cdfTex` + `cdfGlossary` (if the CDF has no closed form, write it as the
      integral or sum and say how it is computed), optional `extraFormulas` (hazard function, likelihood,
      conjugate update, quantile function).
@@ -118,6 +123,99 @@ The site explains things plainly. It is for students and researchers who want to
      when one exists.
 * **Numbers**: give constants to 4 significant figures in prose ($0.5772$), and do not claim more precision
   than the formula gives.
+
+## Page layout
+
+The page scripts (`pages/distribution.js`, `pages/relation.js`) build every page in the same order. The top of
+the page is kept short so that the interactive plots are visible **without scrolling on a laptop screen**
+(1280x720 and 1440x900 CSS pixels); `npm run layout` checks this for every page.
+
+**Distribution pages** (`distribution.html?d=<id>`):
+
+1. **Page head** (`.page-head.page-head-compact`): eyebrow (kind), the name (`h1.dist-title`), the summary
+   (`p.lede[data-role="summary"]`: `content.summary`, or, when a module has none, the first one or two
+   sentences of the first `description` paragraph), and one row with the toggle button **More about this
+   distribution** / **Show less** (`aria-expanded`, `aria-controls="about-more"`) and the "On this page" links.
+   The toggle expands the summary in place: while the region `#about-more` (the full `description` and the
+   chips: group, on the original map) is shown, the summary is hidden, so nothing is read twice; the toggle row
+   follows the text.
+2. **Formulas strip** (`#formulas`): the PDF/PMF and the CDF side by side (stacked on phones), each with a small
+   heading (`pdfTitle`, `cdfTitle`). A formula that is slightly too wide is shrunk (down to 72%). On a narrow
+   screen (formulas stacked, at most 760 px), a formula that would shrink below 80% is first split into lines
+   at its top-level wide spaces (`,\qquad`, `,\quad`: write the support or side condition after one) and then
+   before each `=` after the first (`ui.js` `fitDisplayFormula`); anything still wider scrolls sideways. Under them the toggle **What the symbols mean**
+   (`aria-controls="formula-symbols"`) opens both glossaries side by side, each preceded by `pdfIntro` /
+   `cdfIntro` when given. Every symbol is still explained there.
+3. **Interactive explorer** (`#explorer`, `.explorer-section`): the plots first, then the parameter boxes in
+   one row across the explorer, then the area tool and the summary of values side by side, then the hint.
+   `content.explorerIntro` follows the explorer card as "How to use the explorer".
+4. Then, as the reader scrolls: **Properties**, **Limits and special cases**, **Uses**, **Parameters and
+   conventions** (`#parameters`: the parameter list, the parameterization callout and any `extraFormulas`),
+   **Related distributions**, **References**.
+
+**Relationship pages** (`relation.html?r=<id>`): the page head (eyebrow, From → To, the summary: the module's
+`summary`, or the first one or two sentences of `plain`; a row with **More about this relationship**, which
+expands the summary in place to the region `#about-more`: the `title` sentence, all of `plain`, the map arrow
+kind and chips, with the summary hidden meanwhile; the relation's label and the "On this page" links); the
+**formal statement** (`#statement`, one line per sentence; on a phone a line that is still too wide after
+shrinking is set as inline math that wraps between words and after relations) with the toggle **What the
+symbols mean** (`aria-controls="statement-symbols"`); the **interactive demonstration** (`#demo`), whose plots should start
+inside a 1440x900 screen; then **Why this is true**, **The distributions involved**, **References**, and links
+to the previous and next relationship.
+
+### Summaries
+
+`content.summary` (distribution modules) and `summary` (relation modules) is the text under the title. Format:
+
+* a **string** of rich text (HTML allowed, inline TeX between `$...$`; no display math, no lists);
+* **1–3 plain sentences, about 150–300 characters** (the tests accept 100–330 visible characters, counting each
+  TeX command as one character, and at most 3 sentences);
+* it **must render in at most 3 lines at 1280 px** in the page head (about 135 characters per line; inline
+  fractions and tall TeX make a line taller, so prefer `$1/K$` to `$\frac{1}{K}$`);
+* it says what the distribution describes (or what the relationship states) and its parameters in everyday
+  words, the way the first sentences of `description` would. The full `description` (or `plain`) is still
+  shown in its place when the reader clicks "More about this distribution", so the summary may repeat its
+  opening (the reader never sees both at once);
+* same style rules as all prose: TeX for symbols and Greek letters, no slogans, no exclamation marks.
+
+Example (normal): `'The normal distribution describes a continuous quantity that clusters symmetrically around
+a mean $\\mu$, with spread set by the standard deviation $\\sigma$. Sums and averages of many independent effects
+tend toward it, which is why it underlies many statistical tests.'`
+
+### Plot sizes and the layout test
+
+The explorer and demo cards (`.explorer`, `.demo`) define the CSS variable **`--plot-h`**, the height a main
+plot should have on a laptop screen. By default it grows with the viewport height
+(`clamp(220px, 19.5vh + 110px, 440px)`); the page script then calls `plot.fitToViewport(section)`, which sets
+`--plot-h-fit` on the section so that the first main plot fits between its top and the bottom of the viewport,
+leaving room for the parameter boxes under it when the plot can still be at least 260 px tall (1440x900), and
+re-fits on window resize. Opening "More" or the symbols does not change it.
+
+Plots read it through their `height` option (`core/plot.js`):
+
+* `height: 'css'`, or
+* `height: (w, H) => ...`, where `H` is `--plot-h` in px (NaN when not set). The helper
+  `fitHeight(w, H, { ratio, phoneRatio, min, max })` returns `H` capped at `ratio · w` on desktop and
+  `phoneRatio · w` in a phone-width column (`w < 480`); the standard explorer uses
+  `fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.78, min: 200, max: 440 })`, and the demo helpers in
+  `core/demos.js` use `fitHeight(w, H, { ratio: 0.62, phoneRatio: 0.7, min: 220, max: 400 })`, which is the
+  recommended setting for a hand-written demo with two plots side by side.
+
+A hand-written demo or custom explorer puts its plots first, then the readout and the controls, and its
+introduction text after them, so that the plots start near the top of the card. Extra buttons appended to a
+parameter panel's `.param-actions` (next to "Reset parameters") form one row across the explorer.
+A link to a section (`distribution.html?d=normal#uses`) scrolls there after the page is built and keeps the
+section in place while the plots settle (`ui.js` `scrollToHash`).
+
+`npm run layout` (`tests/layout.mjs`) measures, for every distribution page at 1280x720 and 1440x900 with the
+page scrolled to the top: the summary has at most 3 lines (at 1280), the **bottom of every main plot's SVG is
+inside the viewport**, at 1440x900 the **parameter boxes** (`.explorer-params .param-input`) are inside the
+viewport, the two toggles work, and at 390 px there is no horizontal scroll. Main plots are found by
+`data-role`: the standard explorer marks its two plot boxes `data-role="pdf-plot"` and `data-role="cdf-plot"`;
+**a custom explorer must mark its main plot box(es) with `data-role="main-plot"`** (the element that contains
+the `Plot`, e.g. the `.plot-box` div), and those are measured instead. For relationship pages it checks the
+summary, that the formal statement is inside the viewport, the "More" toggle, the phone width, and warns when
+the top of the demo's first plot is below a 1440x900 screen.
 
 ## Conventions (from the catalog; repeat them on pages)
 
@@ -323,8 +421,9 @@ falls below 60% of its height.
 
 ```js
 content: {
+  summary: 'One to three sentences under the title (rich text, about 150-300 characters, at most 3 lines).',
   description: ['paragraph', 'paragraph'],   // or one string. What it describes, what values it takes, its parameters
-  explorerIntro: 'What the two plots show and what each handle does.',
+  explorerIntro: 'What the two plots show and what each handle does.',   // shown under the explorer
   parameterization: '...',                  // optional rich text; default is the catalog text
   pdfTex: 'f(x \\mid \\mu,\\sigma) = ...',  // display TeX (discrete: P(X = k) = ...)
   glossary: [{ sym: 'TeX', meaning: 'rich text' }],     // every symbol in pdfTex
@@ -422,6 +521,25 @@ ctx = {
   mountExplorer(container, mod, { store }), defaultParams(mod),   // reuse the standard explorer if helpful
 }
 ```
+
+**Layout and sizing of a custom explorer.** The container is the same as for the standard explorer (an empty
+div in `#explorer`, right under the formulas strip), and the page fits the plots to the screen after
+`customExplorer` returns (see [Plot sizes and the layout test](#plot-sizes-and-the-layout-test)). To pass
+`npm run layout`:
+
+* build the same structure: `div.explorer` > `div.explorer-plots` (one or two `figure.plot-fig`, each a short
+  one-line `figcaption` and a `div.plot-box`) > `div.explorer-controls` (`.explorer-params`, then
+  `.explorer-area` and `.explorer-readouts`) > `p.explorer-hint`. On desktop the parameter boxes form one row
+  directly under the plots; on phones (≤ 760 px) the parts are stacked in the order plot, parameters, area
+  tool, second plot, readouts (CSS `order`);
+* mark the main plot box(es) — the plots that must be visible at the top, normally the one or two plots of
+  `.explorer-plots` — with `data-role="main-plot"`;
+* size those plots with `height: (w, H) => ctx.plot.fitHeight(w, H, { ratio, phoneRatio, min, max })` (or
+  `height: 'css'`), not a fixed number or a height from the width alone. `H` is about 250 px at 1280x720 and
+  290–330 px at 1440x900. For an equal-aspect view (triangle, ellipses) use a ratio near 0.86;
+* put further plots (a polar view, a bar chart of concentrations, a joint triangle for K = 3, a second row of
+  plots) **after** `.explorer-controls` or beside the main plots, not between the plots and the parameter
+  boxes, and keep long explanations in `content.explorerIntro` (shown under the explorer), not in the card.
 
 A custom explorer uses the **raw plot API**: `new ctx.plot.Plot(el, opts)` and `plot.render(scene)` with layer
 and handle descriptors as documented at the top of `core/plot.js`. Raw handle descriptors carry their own
@@ -523,8 +641,9 @@ NaN) and describe the vector-valued properties in `content.properties`.
 | field | required | description |
 |---|---|---|
 | `id`, `from`, `to` | yes | must match the catalog entry exactly |
-| `title` | no | a longer descriptive title shown under the heading (a plain sentence) |
-| `plain` | yes | rich text or array of paragraphs: the plain-language explanation (may extend the catalog `plain`) |
+| `title` | no | a longer descriptive title (a plain sentence), shown at the top of the "More about this relationship" region and in the browser tab |
+| `summary` | recommended | rich text, 1–3 sentences shown under the heading (format in [Summaries](#summaries)); default: the first one or two sentences of `plain` |
+| `plain` | yes | rich text or array of paragraphs: the plain-language explanation (may extend the catalog `plain`), shown under "More about this relationship" |
 | `statementTex` | yes | TeX; normally the catalog `statement` (`getRelation(id).statement`). Long statements are split into lines at top-level `.\ `, `;\quad` and `;\ ` |
 | `glossary` | yes | `[{sym, meaning}]` explaining **every** symbol in the statement (the tests check Greek letters) |
 | `why` | yes | array of rich-text paragraphs and `{ tex: '...' }` display formulas: a derivation or the intuition, at the level of an undergraduate statistics course |
@@ -589,7 +708,10 @@ symbols as the distribution pages. Legend labels are plain text: write `Gamma(α
 
 For a hand-written demo, put controls in a `.demo-controls` div, plots in `.demo-grid` (two columns on desktop,
 one on phones) and numbers in a `p.demo-readout` (with `aria-live="polite"`), and use `ui.paramPanel` for
-parameters, as in `binomial--normal`.
+parameters, as in `binomial--normal`. Put the plots first: the helpers draw the plots, then the readout and
+controls, then the `intro` text (`p.demo-intro`), so that the plots start inside a laptop screen. Size demo
+plots with `height: (w, H) => ctx.plot.fitHeight(w, H)`; the page fits `H` to the screen as on distribution
+pages.
 
 ## Core libraries (summary)
 
@@ -612,7 +734,9 @@ Numerically delicate cases and what to use: the ex-Gaussian density (`logNormalC
 constant for large κ (`besselI0e`); binomial, Poisson and negative binomial CDFs (incomplete beta and gamma
 functions, not sums, for large n or λ).
 
-**plot.js**: `new Plot(container, { xLabel, yLabel, height, margin, equalAspect, xTicks, yTicks, onBackground })`,
+**plot.js**: `new Plot(container, { xLabel, yLabel, height, margin, equalAspect, xTicks, yTicks, onBackground })`
+(`height`: a number, `'css'` or `(w, H) => px`; see [Plot sizes](#plot-sizes-and-the-layout-test)),
+`fitHeight(w, H, opts)`, `fitToViewport(section, opts)` (used by the page scripts), `refreshPlots(root)`,
 `plot.render(scene)` (layer types `line, area, stems, bars, step, vline, hline, segment, dot, dots, text,
 bracket, polygon, heatmap`; `dots` draws many points in one layer, for scatter plots; handle types `vline,
 hArrow, vArrow, point, xPoint`; see the comment block at the top of plot.js). Plot option `bare: true` draws no
@@ -626,7 +750,9 @@ only then); a swipe elsewhere on a plot scrolls the page.
 `createStore`, `paramPanel`, `toggleSwitch(label, on, onChange)`, `segmented(options, value, onChange)`,
 `openModal({ title, body, wide, footer, initialFocus })` (accessible dialog: Esc closes, focus is trapped and
 starts on `initialFocus` or the close button, returns `close`),
-`section(id, title, intro)`, `glossaryList(items)`, `referenceList(refs)`, `texLabel(sym)`.
+`section(id, title, intro)`, `glossaryList(items, title)`, `referenceList(refs)`, `texLabel(sym)`,
+`sentences(rich)`, `leadSentences(rich, maxChars)` (the summary fallback), `disclosure({ id, label, labelOpen })`
+(a toggle button with `aria-expanded` and the region it shows), `fitFormula(box, minScale)`.
 
 **explorer.js**: `mountExplorer(container, mod, { store })`, `defaultParams(mod)`.
 
@@ -666,6 +792,12 @@ target), and the map must be usable at 390 px (pan and zoom, or a scrollable con
 * `npm run interact`: Playwright interaction test of the Normal page (mouse drags, typing, validation, the area
   tool and its keyboard control, real touch events on a phone), the binomial→normal demo and the two demo
   helpers.
+* `npm run layout`: Playwright layout test of the page tops (see [Plot sizes and the layout
+  test](#plot-sizes-and-the-layout-test)); prints a table of measured values and fails on any distribution page
+  whose summary is more than 3 lines at 1280 px, whose main plots are not fully visible at 1280x720 or
+  1440x900, whose parameter boxes are below a 1440x900 screen, whose toggles do not work, or that scrolls
+  sideways at 390 px. `--only=<substring>`, `--dists`, `--relations`, `--port=<n>`, `--shots` (screenshots in
+  `screenshots/layout/test/`).
 * `npm run map`: Playwright test of the map: `window.__map.checkLayout()` must report no overlaps (labels on
   tiles, labels on labels, tiles on tiles, labels on other arrows, arrows through tiles), every arrow starts and
   ends at its tiles, every label and arrow opens the right dialog with a link to its relation page, and focus
