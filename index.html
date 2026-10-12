@@ -19,18 +19,24 @@
 <a class="sr-only" href="#map-list">Skip the map and go to the list of distributions and relationships</a>
 <div id="site-header"></div>
 <main id="main" class="home-main">
-  <div class="wrap">
-    <div class="page-head home-head">
-      <p class="eyebrow">Map</p>
-      <h1>Probability distributions and how they are related</h1>
-      <p>This site is an interactive reference for the probability distributions used most in statistics and computational modeling, and for the relationships between them. Each distribution has its own page with an interactive plot, its formulas, its properties and its uses.</p>
-      <p>On the map below, each tile is a distribution with a small sketch of its shape. Click a tile to open that distribution's page. Each arrow is a relationship, such as a special case, a limit or a transformation, and its label gives the key step as a short formula. Click an arrow or its label to read an explanation. Drag to move the map, and use the buttons in its corner to zoom.</p>
+  <div class="home-screen">
+    <div class="home-top">
+      <div class="home-intro">
+        <h1>Probability distributions and how they are related</h1>
+        <p>Click a tile to open its page, or an arrow’s label to read how two distributions are related. <a href="#map-list">A list version</a> is below the map.</p>
+      </div>
+      <div class="home-view" id="map-view-switch"></div>
+    </div>
+    <div class="map-wide" id="map-root">
+      <noscript><p>The map needs JavaScript. The <a href="distributions.html">list of distributions</a> and the <a href="relationships.html">list of relationships</a> work without it.</p></noscript>
     </div>
   </div>
-  <div class="map-wide" id="map-root">
-    <noscript><p>The map needs JavaScript. The <a href="distributions.html">list of distributions</a> and the <a href="relationships.html">list of relationships</a> work without it.</p></noscript>
-  </div>
   <div class="wrap">
+    <section class="home-about" aria-labelledby="home-about-h">
+      <h2 id="home-about-h">About this site and the map</h2>
+      <p>This site is an interactive reference for the probability distributions used most in statistics and computational modeling, and for the relationships between them. Each distribution has its own page with an interactive plot, its formulas, its properties and its uses.</p>
+      <p>The map starts with the core distributions: the 15 distributions of the chart this map is based on, and the relationships between them. Choose “Full set of distributions” above the map to see all of them. On the map, each tile is a distribution with a small sketch of its shape; point at a tile (or move to it with the Tab key) to read what it is and what it is most often used for, and click it to open its page. Each arrow is a relationship, such as a special case, a limit or a transformation, and its label gives the key step as a short formula. Click an arrow or its label to read an explanation. Drag to move the map, and use the buttons in its corner to zoom; on a phone, pinch to zoom. The “Legend and filters” button on the map explains the line styles and shows or hides each kind of arrow.</p>
+    </section>
     <section class="map-list" id="map-list" aria-labelledby="map-list-h"></section>
   </div>
 </main>

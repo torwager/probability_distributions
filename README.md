@@ -5,12 +5,18 @@ modeling, and about how they are related to one another.
 
 Live site: https://torwager.github.io/probability_distributions/
 
-* **Map** (home page): the distributions as tiles and their relationships as labeled arrows. Clicking a tile
-  opens the distribution's page; clicking an arrow or its label opens a short explanation of the relationship
-  with a link to its interactive page. The map pans and zooms on phones.
+* **Map** (home page): the distributions as tiles and their relationships as labeled arrows, filling the
+  screen below a one-line introduction. It opens on **Core distributions**, a simpler map of the 15
+  distributions of the original chart and the 22 relationships between them; **Full set of distributions**
+  shows every distribution and relationship (`index.html?view=full`). Pointing at a tile (or moving to it with
+  Tab) shows a card with its summary and its most common uses; clicking it opens the distribution's page.
+  Clicking an arrow or its label opens a short explanation of the relationship with a link to its interactive
+  page. A "Legend and filters" panel on the map explains the line styles and shows or hides each kind of
+  arrow. The map pans and zooms, also on phones.
 * **Distribution pages** (`distribution.html?d=<id>`). Every page has the same sections in the same order, and
   the top of the page is kept short so that the plots are visible without scrolling on a laptop screen:
-  1. the name and a summary of one to three sentences, with a "More about this distribution" button that expands
+  1. the name and a summary of one to three sentences, a one-sentence "Common uses:" line (the catalog field
+     `commonUses`, also shown in the map's tile card), and a "More about this distribution" button that expands
      it in place to the full description of what the distribution describes and what its parameters do;
   2. the formulas for the PDF/PMF and the CDF side by side, with a "What the symbols mean" button that shows a
      glossary of every symbol;
@@ -84,7 +90,9 @@ npm run smoke       # Playwright: every page at 1280 px and 390 px; console erro
                     # errors, horizontal overflow; screenshots in screenshots/
 npm run interact    # Playwright: drags, typing, validation, the area tool, keyboard and touch on the Normal
                     # page, and the two relation demo helpers
-npm run map         # Playwright: map layout self-check, arrow directions, every label and arrow opens its dialog
+npm run map         # Playwright: both map views: layout self-check, arrow directions, every label and arrow
+                    # opens its dialog, every tile is clickable, the view switch and its URL, the tile card
+                    # on hover and focus, the map fills the screen at 1280x720, 1440x900 and 1920x1080
 npm run layout      # Playwright: the top of every distribution and relationship page at 1280x720 and 1440x900:
                     # summary at most 3 lines, plots (and parameter boxes at 1440x900) visible without
                     # scrolling, the expand buttons work, no horizontal scroll at 390 px
@@ -98,8 +106,8 @@ The Playwright scripts use a globally installed Playwright and Chromium (see `te
 
 [ARCHITECTURE.md](ARCHITECTURE.md) is the full module API and style guide. In short:
 
-1. Add the entry to the catalog: the data in `tools/catalog.source.json` (id, name, kind, group, parameters
-   with ranges and defaults; for a relationship: from, to, kind, label, statement) and the prose in
+1. Add the entry to the catalog: the data in `tools/catalog.source.json` (id, name, kind, group,
+   `commonUses` (one sentence starting "Used for"), parameters with ranges and defaults; for a relationship: from, to, kind, label, statement) and the prose in
    `tools/catalog_rich.py`, then run `python3 tools/build_catalog.py` to regenerate `assets/js/catalog.js`.
    Do not edit `catalog.js` by hand.
 2. Write `assets/js/dists/<id>.js` (copy `dists/normal.js`) or `assets/js/relations/<from>--<to>.js` (copy
@@ -111,7 +119,9 @@ The Playwright scripts use a globally installed Playwright and Chromium (see `te
 4. Run `npm test`, then `node tests/smoke.mjs --only=<id>` and `npm run layout -- --only=<id>`, and look at the screenshots; drag every handle and
    try the smallest and largest value of each parameter in a browser.
 5. Place the new tile or arrow on the map: a tile center in `NODES` and, if needed, an arrow route in `ROUTES`
-   in `assets/js/map/layout.js`. Then run `npm run map`, which fails if labels, tiles or arrows overlap.
+   in `assets/js/map/layout.js` (the full map; write x positions before the `SX` stretch). A relationship between two of the 15 core distributions also
+   appears in the core view and needs a place in `assets/js/map/layout-core.js`. Then run `npm run map`, which
+   fails if labels, tiles or arrows overlap in either view.
 
 ## Deployment
 

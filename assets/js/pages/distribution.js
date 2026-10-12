@@ -1,9 +1,9 @@
 // distribution.html?d=<id> — renders one distribution page from its module (assets/js/dists/<id>.js).
 // Sections, in this fixed order (see ARCHITECTURE.md, "Page layout"):
-//   page head (eyebrow, name, 1-3 line summary with a "More about this distribution" toggle that shows the
-//   full description), formulas strip (PDF/PMF and CDF side by side, symbols behind a toggle), interactive
-//   explorer (plots sized to fit a laptop screen, help text below), properties, limits and special cases,
-//   uses, parameters and conventions, related distributions, references.
+//   page head (eyebrow, name, 1-3 line summary, a one-sentence common-uses line ("Used for ...", lead words in bold), and a "More about this
+//   distribution" toggle that shows the full description), formulas strip (PDF/PMF and CDF side by side,
+//   symbols behind a toggle), interactive explorer (plots sized to fit a laptop screen, help text below),
+//   properties, limits and special cases, uses, parameters and conventions, related distributions, references.
 
 import { DISTRIBUTIONS, GROUP_ORDER, KIND_LABELS, getDist, relationsOf } from '../catalog.js';
 import { h, rich, renderTex, tex, section, glossaryList, referenceList, createStore, fmt, firstSentence, leadSentences, disclosure, fitDisplayFormula, scrollToHash } from '../core/ui.js';
@@ -65,21 +65,35 @@ function pageHead(cat, mod, jumpItems) {
   const desc = mod && mod.content && mod.content.description;
   const summary = summaryOf(mod, cat);
   const summaryEl = rich('p', summary, { class: 'lede', 'data-role': 'summary' });
+  // "Common uses: ..." (catalog commonUses) sits under the summary; while the full description is shown it
+  // moves to the end of the description (before the chips), so it is visible in both states.
+  // The sentence starts with "Used for"/"Used to", which serves as the label: it is shown in bold rather than
+  // adding a separate "Common uses:" label (which would say "uses" twice). Other openings get the label.
+  let usesEl = null;
+  if (cat.commonUses) {
+    const m = /^(Used (?:for|to))\s+/.exec(cat.commonUses);
+    usesEl = rich('p', m ? cat.commonUses.slice(m[0].length) : cat.commonUses, { class: 'common-uses', 'data-role': 'common-uses' });
+    usesEl.prepend(h('b', { class: 'common-uses-label' }, m ? m[1] : 'Common uses:'), ' ');
+  }
+  const chips = h('div', { class: 'chips' },
+    h('span', { class: 'chip steel' }, groupLabel(cat.group)),
+    h('span', { class: 'chip' }, cat.onOriginalMap ? 'Core distribution (in both views of the map)' : 'In the Full set of distributions view of the map'));
   const more = disclosure({ id: 'about-more', label: 'More about this distribution', labelOpen: 'Show less', regionClass: 'head-more',
-    onToggle: on => { summaryEl.hidden = on; } });
+    onToggle: on => {
+      summaryEl.hidden = on;
+      if (usesEl) { if (on) more.region.insertBefore(usesEl, chips); else summaryEl.after(usesEl); }
+    } });
   const paras = desc ? (Array.isArray(desc) ? desc : [desc]).map(String).filter(t => normText(t)) : [];
   if (!paras.length) paras.push(summary);
   if (!desc && cat.whyAdded) paras.push(cat.whyAdded);
   for (const p of paras) more.region.append(rich('p', p));
-  more.region.append(h('div', { class: 'chips' },
-    h('span', { class: 'chip steel' }, groupLabel(cat.group)),
-    h('span', { class: 'chip' }, cat.onOriginalMap ? 'On the original map' : 'Added to the original map')));
+  more.region.append(chips);
   const meta = h('div', { class: 'head-meta' }, more.button);
   if (jumpItems) meta.append(jumpLinks(jumpItems));
   return h('div', { class: 'page-head page-head-compact' },
     h('p', { class: 'eyebrow' }, KIND_EYEBROW[cat.kind] || 'Distribution'),
     h('h1', { class: 'dist-title' }, displayName(cat.name)),
-    summaryEl, more.region, meta);
+    summaryEl, ...(usesEl ? [usesEl] : []), more.region, meta);
 }
 
 /** "Normal (Gaussian)" -> "Normal distribution (Gaussian)"; "Student's t" -> "Student's t distribution". */

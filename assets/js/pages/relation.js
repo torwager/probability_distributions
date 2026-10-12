@@ -63,7 +63,7 @@ async function run() {
   for (const para of paras.filter(t => t.trim())) more.region.append(rich('p', para));
   if (EDGE_KINDS[rel.kind]) more.region.append(h('p', { class: 'small muted' }, `On the map, this is drawn as a “${(KIND_LABELS[rel.kind] || rel.kind).toLowerCase()}” arrow: ${EDGE_KINDS[rel.kind]}.`));
   more.region.append(h('div', { class: 'chips' }, h('span', { class: 'chip steel' }, KIND_LABELS[rel.kind] || rel.kind),
-    rel.onOriginalMap ? h('span', { class: 'chip' }, 'On the original map') : null));
+    (getDist(rel.from).onOriginalMap && getDist(rel.to).onOriginalMap) ? h('span', { class: 'chip' }, 'In the core map') : null));
   const labelChip = h('span', { class: 'chip rel-label-chip' }); renderTex(labelChip, rel.label);
   const jump = h('nav', { class: 'jump-inline', 'aria-label': 'On this page' }, h('span', { class: 'jump-label' }, 'On this page:'),
     h('ul', {}, [['demo', 'Demonstration'], ['why', 'Why this is true'], ['distributions', 'The distributions'], ['references', 'References']]

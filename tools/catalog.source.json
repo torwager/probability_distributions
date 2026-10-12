@@ -7,6 +7,7 @@
    "group": "uniform",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for random assignment and random sampling in experiments, for the null distribution of ranks in rank and permutation tests, and as an equal-weight prior over a finite set of options.",
    "parameterization": "Integers a <= b; each of the n = b - a + 1 values a, a+1, ..., b has probability 1/n. Some texts use the support {1,...,n} (a = 1, b = n) or {0,...,n-1}.",
    "params": [
     {
@@ -39,6 +40,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for any single yes/no outcome: estimating and comparing proportions, logistic regression, choices in two-alternative tasks, and hidden on/off indicators in Bayesian mixture models.",
    "parameterization": "Success probability p: P(X=1) = p, P(X=0) = 1 - p.",
    "params": [
     {
@@ -61,6 +63,7 @@
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
    "whyAdded": "Outcome of a single trial with K > 2 possible categories. It is the likelihood for choice data, classification labels, mixture-component indicators and softmax / multinomial-logit models in computational modeling.",
+   "commonUses": "Used for a single choice among several options: multinomial logistic regression and classifiers, softmax choice models, and component labels in Bayesian mixture and topic models.",
    "parameterization": "K categories labeled 1..K with probability vector p = (p_1,...,p_K), p_j >= 0, sum p_j = 1. The probability vector is set interactively by dragging bars (default p_j = 1/K, renormalized to sum to 1). Some texts code the outcome as a one-hot vector (= Multinomial(1, p)).",
    "params": [
     {
@@ -83,6 +86,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for successes out of a known number of trials: exact binomial and sign tests, binomial (logistic) regression, accuracy data, and Bayesian estimates of a proportion with a beta prior.",
    "parameterization": "Number of successes X in n independent trials, each with success probability p.",
    "params": [
     {
@@ -115,6 +119,7 @@
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
    "whyAdded": "Counts in each of K categories after n independent categorical trials. Basis of chi-squared goodness-of-fit and contingency-table tests, and of Dirichlet-multinomial Bayesian models (e.g. topic models, choice counts).",
+   "commonUses": "Used for counts across several categories: chi-squared goodness-of-fit and contingency-table tests, multinomial processing tree models, and Bayesian models of choice or word counts with a Dirichlet prior.",
    "parameterization": "n trials, K categories, probability vector p = (p_1,...,p_K) with sum 1 (set interactively by dragging bars; default uniform). X = (X_1,...,X_K) with X_j = number of trials landing in category j.",
    "params": [
     {
@@ -147,6 +152,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for sampling without replacement from a finite population: Fisher’s exact test, gene-set enrichment tests, capture–recapture estimates of population size, and card-game probabilities.",
    "parameterization": "Population of N items of which K are 'successes'; n items are drawn without replacement; X = number of successes drawn. (Conventions differ: R uses m = K, n = N - K, k = draws; SciPy uses M = N, n = K, N = draws.)",
    "params": [
     {
@@ -189,6 +195,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for the number of tries before a first success: trials to learn in all-or-none learning models, run lengths, discrete-time survival with a constant hazard, and attempts in rejection sampling.",
    "parameterization": "K = number of failures before the first success in independent Bernoulli(p) trials: P(K=k) = (1-p)^k p, k = 0,1,2,...; mean (1-p)/p. Alternative convention: Y = K + 1 = number of trials up to and including the first success, support {1,2,...}, mean 1/p. The failures convention is chosen so that Geometric(p) = NegBin(1,p).",
    "params": [
     {
@@ -211,6 +218,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for overdispersed counts whose variance exceeds the mean: negative binomial regression, RNA-seq differential expression, neural spike counts, and case or species counts in epidemiology and ecology.",
    "parameterization": "K = number of failures before the r-th success in independent Bernoulli(p) trials: P(K=k) = C(k+r-1, k) p^r (1-p)^k; mean r(1-p)/p, variance r(1-p)/p^2. r may be any positive real (via the gamma-Poisson mixture). Alternatives: trials until r-th success; mean/dispersion form used in GLMs (R glm.nb, Stan neg_binomial_2) with mean mu = r(1-p)/p and variance mu + mu^2/r.",
    "params": [
     {
@@ -243,6 +251,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for counts of independent events in a fixed time or space: Poisson regression and log-linear models, neural spike and photon counts, queue arrivals, and Bayesian rate estimates with a gamma prior.",
    "parameterization": "Rate (mean) lambda: P(X=k) = e^{-lambda} lambda^k / k!; mean = variance = lambda. For a process with rate lambda per unit time, counts in time t are Poisson(lambda t).",
    "params": [
     {
@@ -265,6 +274,7 @@
    "group": "counting / Bernoulli trials",
    "onOriginalMap": false,
    "whyAdded": "Binomial count whose success probability itself varies according to a Beta distribution. Used for overdispersed proportions (e.g. per-subject accuracy that differs across subjects), as the prior/posterior predictive of the Beta-Binomial Bayesian model, and in hierarchical models.",
+   "commonUses": "Used for overdispersed binomial counts, such as test scores or numbers correct when ability varies across people, for clustered yes/no data, and as the predictive distribution in Bayesian models of proportions.",
    "parameterization": "n trials; p ~ Beta(alpha, beta) and X | p ~ Binomial(n, p). P(X=k) = C(n,k) B(k+alpha, n-k+beta) / B(alpha, beta). Alternative: mean pi = alpha/(alpha+beta) and overdispersion rho = 1/(alpha+beta+1).",
    "params": [
     {
@@ -307,6 +317,7 @@
    "group": "uniform",
    "onOriginalMap": false,
    "whyAdded": "Every value in an interval is equally likely. It is the basis of random-number generation and inverse-CDF sampling, the distribution of p-values under a true null hypothesis, and a common flat prior.",
+   "commonUses": "Used for random-number generation and Monte Carlo simulation, for the spread of p-values when the null hypothesis is true, and as a flat prior or a random-guessing component in models.",
    "parameterization": "Lower bound a and upper bound b, density 1/(b-a) on [a,b].",
    "params": [
     {
@@ -339,6 +350,7 @@
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for constant-hazard survival and reliability models, times between neural spikes, arrivals or radioactive decays, event timing in simulations, and as a simple prior on standard deviations in Bayesian models.",
    "parameterization": "Rate lambda: f(x) = lambda e^{-lambda x}, mean 1/lambda. Alternative: scale theta = 1/lambda (mean), used by SciPy/NumPy.",
    "params": [
     {
@@ -361,6 +373,7 @@
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for gamma regression of positive, skewed data such as costs, rainfall and response times, and as the conjugate prior for a Poisson rate or the inverse variance of normal data.",
    "parameterization": "Shape alpha (also written k) and rate beta: f(x) = beta^alpha x^{alpha-1} e^{-beta x} / Gamma(alpha); mean alpha/beta, variance alpha/beta^2. This is the BDA/Stan convention. Alternative: shape k and scale theta = 1/beta (Wikipedia's (k, theta), SciPy, NumPy).",
    "params": [
     {
@@ -393,6 +406,7 @@
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for lifetimes and times to failure: reliability engineering, parametric survival regression with censored data, material strength, wind speeds, and Weibull psychometric functions in psychophysics.",
    "parameterization": "Shape k and scale lambda: F(x) = 1 - exp(-(x/lambda)^k). k < 1: decreasing hazard; k = 1: exponential with rate 1/lambda; k > 1: increasing hazard; k = 2: Rayleigh with sigma = lambda/sqrt(2). Note lambda here is a scale, not a rate.",
    "params": [
     {
@@ -425,6 +439,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for measurement error and averages, in z-tests, t-tests, regression and ANOVA, in signal detection and Kalman filter models, and as a prior for unknown means in Bayesian models.",
    "parameterization": "Mean mu and standard deviation sigma; written N(mu, sigma^2). Alternatives: variance sigma^2, or precision tau = 1/sigma^2 (BUGS/JAGS).",
    "params": [
     {
@@ -457,6 +472,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for positive, skewed data analyzed on the log scale, such as drug concentrations, response times and particle sizes, for bioequivalence testing and stock-price models, and as a prior on positive parameters.",
    "parameterization": "mu and sigma are the mean and standard deviation of ln X (not of X). Median e^mu, mean e^{mu + sigma^2/2}.",
    "params": [
     {
@@ -489,6 +505,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for t-tests and confidence intervals for means and regression coefficients, as a robust likelihood for data with outliers, and as a weakly informative prior in Bayesian models.",
    "parameterization": "Standard t with nu degrees of freedom (centered at 0, scale 1). Location-scale version mu + sigma T is used for robust regression and priors; mean 0 for nu > 1, variance nu/(nu-2) for nu > 2.",
    "params": [
     {
@@ -511,6 +528,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for Pearson’s chi-squared tests of counts and contingency tables, likelihood-ratio tests and nested model comparison, tests and intervals for a variance, and goodness of fit in curve fitting.",
    "parameterization": "Degrees of freedom k: distribution of the sum of k squared independent standard normals; mean k, variance 2k. Equals Gamma(k/2, rate 1/2).",
    "params": [
     {
@@ -533,6 +551,7 @@
    "group": "Bayesian priors",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for the conjugate prior of a success probability, priors on any parameter between 0 and 1, beta regression of proportions, and Thompson sampling in A/B tests and bandit tasks.",
    "parameterization": "Shapes alpha, beta: f(x) = x^{alpha-1}(1-x)^{beta-1} / B(alpha,beta); mean alpha/(alpha+beta). Alternative: mean m = alpha/(alpha+beta) and concentration kappa = alpha+beta.",
    "params": [
     {
@@ -565,6 +584,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Ratio of two scaled chi-squared variables. Reference distribution for ANOVA, regression F-tests, nested model comparison, and tests of equal variances.",
+   "commonUses": "Used for testing whether several group means differ in ANOVA, comparing nested regression models or two variances, power analysis for these tests, and F-contrasts in neuroimaging.",
    "parameterization": "Numerator degrees of freedom d1 and denominator degrees of freedom d2; mean d2/(d2-2) for d2 > 2.",
    "params": [
     {
@@ -597,6 +617,7 @@
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "The standard example of a distribution with no mean or variance: averages of Cauchy samples do not settle down as the sample grows. It equals Student's t with 1 degree of freedom and the ratio of two independent standard normal variables (centered at 0). It is used for robust likelihoods and for heavy-tailed, weakly informative priors that allow occasional large values.",
+   "commonUses": "Used for a default prior on effect sizes in Bayes factor t-tests, weakly informative priors on regression coefficients, robust likelihoods for outliers, and resonance line shapes in physics and spectroscopy.",
    "parameterization": "Location x0 (median and mode) and scale gamma (half-width at half-maximum; also the semi-interquartile range).",
    "params": [
     {
@@ -629,6 +650,7 @@
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Prior for standard-deviation (scale) parameters, for example the between-subject standard deviation in a hierarchical (multilevel) model, where each subject has its own parameter drawn from a group distribution. It puts most of its mass near zero but has a heavy tail, so the data can still support a large standard deviation. Gelman (2006) recommended it (and the half-t) as a weakly informative default. More recent Stan prior guidance often uses the half-normal, half-t or exponential instead; these are shown as alternatives on this page.",
+   "commonUses": "Used for weakly informative priors on standard deviations in hierarchical models, such as group-level variation in cognitive models, and as the scale part of the horseshoe prior for sparse signals.",
    "parameterization": "Scale gamma: |X| for X ~ Cauchy(0, gamma); f(x) = 2 / (pi gamma (1 + (x/gamma)^2)), median gamma. Written HalfCauchy(0, A) in Gelman (2006).",
    "params": [
     {
@@ -651,6 +673,7 @@
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Symmetric with a sharp peak and tails that decay exponentially, so they are heavier than the normal's. If regression errors are assumed to be Laplace, the best fit minimizes absolute rather than squared errors (median or least-absolute-deviation regression). A Laplace prior on regression coefficients makes the single most probable value of the posterior (the MAP estimate) equal to the LASSO estimate, which shrinks small coefficients to exactly zero. It is also the noise added to published statistics in differential privacy.",
+   "commonUses": "Used for median (least absolute deviations) regression and robust error models, as the Bayesian prior behind the LASSO and other sparse models, and for adding calibrated noise in differential privacy.",
    "parameterization": "Location mu and scale b: f(x) = exp(-|x-mu|/b) / (2b); variance 2b^2. Alternative: rate lambda = 1/b.",
    "params": [
     {
@@ -683,6 +706,7 @@
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Its CDF is the logistic (sigmoid) function, an S-shaped curve rising from 0 to 1. Logistic regression can be written as a hidden continuous score plus logistic noise that is compared with zero; this gives the logit link, in which the log-odds of a 1 is a linear function of the predictors. The same S-shaped curve is used for psychometric functions (probability of detecting or discriminating a stimulus as its intensity changes) and in item response theory (probability of answering a test item correctly as a function of a person's ability).",
+   "commonUses": "Used for logistic and ordinal regression, item response theory, psychometric functions and choice models, where its S-shaped cumulative curve turns a weighted sum of predictors into a probability.",
    "parameterization": "Location mu and scale s: F(x) = 1 / (1 + e^{-(x-mu)/s}); variance s^2 pi^2 / 3.",
    "params": [
     {
@@ -715,6 +739,7 @@
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution of 1/X for a gamma variable. Conjugate prior (and posterior) for the variance of a normal distribution; also the mixing distribution that turns a normal into a Student's t.",
+   "commonUses": "Used for normal variances in Bayesian models, as the conjugate prior in Gibbs samplers and linear regression, and for keeping a scale, such as a Gaussian-process length scale, away from zero.",
    "parameterization": "Shape alpha and scale beta: f(x) = beta^alpha x^{-alpha-1} e^{-beta/x} / Gamma(alpha); mean beta/(alpha-1) for alpha > 1. If X ~ Gamma(alpha, rate beta) then 1/X ~ InvGamma(alpha, scale beta).",
    "params": [
     {
@@ -747,6 +772,7 @@
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution over probability vectors (points on the simplex). Conjugate prior for categorical and multinomial probabilities; used for mixture weights and topic models (LDA). Its margins are Beta distributions.",
+   "commonUses": "Used for priors on sets of category probabilities in Bayesian categorical and multinomial models, for mixture weights and topic models, and for compositional data made of proportions.",
    "parameterization": "Concentration vector alpha = (alpha_1,...,alpha_K), all > 0; alpha_0 = sum of alpha_j. Mean E[X_j] = alpha_j / alpha_0. The interactive view uses K = 3 (a triangle). Alternative: mean vector m and total concentration alpha_0.",
    "params": [
     {
@@ -789,6 +815,7 @@
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Joint distribution of several correlated normal variables, described by a mean for each variable and a covariance matrix (each variable's variance plus the covariance between each pair). It underlies multiple regression, multivariate tests such as MANOVA (analysis of variance with several outcome variables at once), linear mixed models, Gaussian-process models of smooth unknown functions, and Kalman filters that track a hidden state changing over time. In large samples, Bayesian posterior distributions and the sampling distributions of maximum-likelihood estimates are approximately multivariate normal.",
+   "commonUses": "Used for several correlated measurements: MANOVA, factor and discriminant analysis, random effects in mixed models, Gaussian processes, Kalman filters, and the sampling distribution or prior of regression coefficients.",
    "parameterization": "Mean vector mu in R^d and covariance matrix Sigma (symmetric positive definite). The interactive view is bivariate (d = 2) with Sigma = [[sigma_1^2, rho sigma_1 sigma_2], [rho sigma_1 sigma_2, sigma_2^2]]. Alternatives: precision matrix Sigma^{-1}; Cholesky factor L; Stan multi_normal_cholesky with LKJ prior on the correlation matrix.",
    "params": [
     {
@@ -851,6 +878,7 @@
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "The circular analogue of the normal distribution, for angles, phases and directions. Used for circular data and in computational models of orientation and color working memory (mixture models), head direction and spike phase.",
+   "commonUses": "Used for angles and directions such as headings, phases and orientations: statistical tests on circular data, neural tuning curves, and response errors in visual working memory tasks.",
    "parameterization": "Mean direction mu and concentration kappa: f(x) = e^{kappa cos(x-mu)} / (2 pi I_0(kappa)), where I_0 is the modified Bessel function of order 0. kappa = 0 is uniform on the circle; large kappa is approximately N(mu, 1/kappa).",
    "params": [
     {
@@ -883,6 +911,7 @@
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "Sum of a normal and an independent exponential variable. The standard descriptive model of right-skewed response-time distributions in psychology.",
+   "commonUses": "Used for fitting response-time distributions, separating overall speed from a tail of occasional slow responses (as in studies of attention, aging and ADHD), and as a likelihood in Bayesian response-time models.",
    "parameterization": "mu and sigma are the mean and SD of the normal component; tau is the mean (scale) of the exponential component (rate 1/tau). Overall mean mu + tau, variance sigma^2 + tau^2. Alternatives: rate lambda = 1/tau; SciPy exponnorm uses K = tau/sigma.",
    "params": [
     {
@@ -925,6 +954,7 @@
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "First time a drifting Brownian motion reaches a boundary. Used as a single-boundary evidence-accumulation model of response times (shifted Wald), as a building block of drift-diffusion models, and as a GLM family for positive skewed data.",
+   "commonUses": "Used for response times in evidence-accumulation models with a single threshold, inverse Gaussian regression of positive, skewed data, and first-passage times to a boundary in reliability and physics.",
    "parameterization": "Mean mu and shape lambda: f(x) = sqrt(lambda/(2 pi x^3)) exp(-lambda (x-mu)^2 / (2 mu^2 x)); variance mu^3/lambda. Evidence-accumulation form: drift rate v, threshold a and noise standard deviation sigma give mu = a/v and lambda = a^2/sigma^2. The name 'inverse Gaussian' does not mean that 1/X is Gaussian. The normal describes where a drifting random walk is at a fixed time; the inverse Gaussian describes when it first reaches a fixed level. SciPy invgauss uses shape mu/lambda with scale lambda.",
    "params": [
     {
@@ -957,6 +987,7 @@
    "group": "waiting times / positive continuous",
    "onOriginalMap": false,
    "whyAdded": "The basic power-law distribution, for quantities with very heavy right tails such as incomes, city sizes and file sizes. A generalized version models values above a high threshold in extreme-value analysis. In Bayesian model checking, Pareto-smoothed importance sampling (PSIS, used for approximate leave-one-out cross-validation) fits a generalized Pareto to the largest importance weights, and its estimated tail index (k-hat) flags data points for which the approximation is unreliable.",
+   "commonUses": "Used for power-law data such as wealth, insurance losses, file sizes and earthquake energies, for estimating how heavy a tail is, and for assessing the risk of very large losses.",
    "parameterization": "Type I Pareto with scale (minimum) x_m and tail index alpha: P(X > x) = (x_m/x)^alpha for x >= x_m; mean alpha x_m/(alpha-1) for alpha > 1. Alternative: Lomax (Pareto type II) shifted to start at 0.",
    "params": [
     {
@@ -989,6 +1020,7 @@
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Limiting distribution of the largest of many independent values whose tails are lighter than any power law, such as normal, exponential or gamma values (extreme value type I). If the value of each option in a choice is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax (multinomial logit) rule used in reinforcement-learning and decision models. The same fact gives the Gumbel-max trick: add Gumbel noise to the log-probabilities and take the largest to draw a sample from a categorical distribution.",
+   "commonUses": "Used for yearly maximum floods, rainfall and wind speeds in engineering design, as the error term in logit (random utility) choice models, and for the Gumbel-max and Gumbel-softmax tricks in machine learning.",
    "parameterization": "Maximum-type Gumbel with location mu and scale beta: F(x) = exp(-e^{-(x-mu)/beta}); mean mu + 0.5772 beta. The minimum-type Gumbel is its mirror image.",
    "params": [
     {

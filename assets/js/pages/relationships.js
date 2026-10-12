@@ -29,7 +29,7 @@ for (const k of ORDER) {
     ul.append(h('li', { class: 'rel-item' },
       h('div', { class: 'rel-top' },
         h('span', { class: 'rel-name' }, h('a', { href: `relation.html?r=${r.id}` }, `${getDist(r.from).name} ${r.bidirectional ? '↔' : '→'} ${getDist(r.to).name}`)),
-        lab, r.onOriginalMap ? h('span', { class: 'chip' }, 'Original map') : null),
+        lab, (getDist(r.from).onOriginalMap && getDist(r.to).onOriginalMap) ? h('span', { class: 'chip', title: 'In the Core distributions view of the map' }, 'Core') : null),
       rich('p', firstSentence(r.plain))));
   }
   root.append(ul);

@@ -196,6 +196,10 @@ main.wrap.wrap-tight { padding-top: 82px; }
 .head-more { margin: .1rem 0 .75rem; max-width: 78ch; }
 .page-head-compact .head-more p { font-size: 1rem; line-height: 1.6; color: var(--ink-2); max-width: 78ch; margin: 0 0 .7rem; }
 .head-more .chips { margin-top: .2rem; }
+/* "Common uses: ..." under the summary (moves to the end of the full description while it is shown) */
+.page-head-compact p.common-uses, .page-head-compact .head-more p.common-uses { font-size: .9rem; line-height: 1.45; color: var(--ink-2); max-width: 64rem; margin: -.15rem 0 .4rem; }
+.page-head-compact .head-more p.common-uses { margin: 0 0 .55rem; }
+.common-uses-label { color: var(--ink); font-weight: 600; }
 
 /* disclosure button: a small pill with an amber chevron (amber = interactive) */
 .disclosure { display: inline-flex; align-items: center; gap: .45rem; font: inherit; font-size: .84rem; font-weight: 600; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; padding: .16rem .7rem .16rem .8rem; cursor: pointer; line-height: 1.4; transition: border-color .2s, background .2s; }

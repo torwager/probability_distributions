@@ -61,7 +61,7 @@ export async function openRelationDialog(rel) {
     h('span', { class: `chip steel rd-kind k-${rel.kind}` }, KIND_LABELS[rel.kind] || rel.kind),
     label,
     rel.bidirectional ? h('span', { class: 'chip' }, 'Two-way') : null,
-    rel.onOriginalMap ? h('span', { class: 'chip' }, 'On the original map') : null));
+    (getDist(rel.from).onOriginalMap && getDist(rel.to).onOriginalMap) ? h('span', { class: 'chip' }, 'In the core map') : null));
 
   if (mod && mod.title) body.append(h('p', { class: 'rd-sub' }, mod.title));
   const plain = (mod && mod.plain) || rel.plain;

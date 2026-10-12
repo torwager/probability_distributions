@@ -4,16 +4,18 @@
 import { DISTRIBUTIONS, RELATIONS, GROUP_ORDER, KIND_LABELS, getDist } from '../catalog.js';
 import { h, rich, renderTex, firstSentence } from '../core/ui.js';
 import { groupLabel } from '../core/layout.js';
-import { KIND_ORDER } from './map.js';
+import { KIND_ORDER, CORE_IDS, isCoreRel } from './map.js';
 import { openRelationDialog } from './dialog.js';
 import { swatch } from './legend.js';
+
+const coreTag = () => h('span', { class: 'ml-core', title: 'In the Core distributions view of the map' }, 'core');
 
 const KIND_SHORT = { discrete: 'Discrete', continuous: 'Continuous', 'multivariate-discrete': 'Multivariate, discrete', 'multivariate-continuous': 'Multivariate, continuous' };
 
 export function buildList(section) {
   section.append(
     h('h2', { id: 'map-list-h' }, 'The map as a list'),
-    h('p', { class: 'section-intro' }, 'The same content as the map: the distributions by family, and the relationships by kind. Each relationship can be opened as the same pop-up as on the map, or on its own page. The ',
+    h('p', { class: 'section-intro' }, 'The same content as the map: the distributions by family, and the relationships by kind. The ones marked “core” are in the Core distributions view of the map; the Full set of distributions view has them all. Each relationship can be opened as the same pop-up as on the map, or on its own page. The ',
       h('a', { href: 'distributions.html' }, 'list of distributions'), ' and the ', h('a', { href: 'relationships.html' }, 'list of relationships'), ' have more detail.'));
 
   const cols = h('div', { class: 'ml-cols' });
@@ -27,6 +29,7 @@ export function buildList(section) {
       const n = RELATIONS.filter(r => r.from === d.id || r.to === d.id).length;
       ul.append(h('li', {},
         h('a', { href: `distribution.html?d=${encodeURIComponent(d.id)}` }, d.name),
+        CORE_IDS.has(d.id) ? coreTag() : null,
         h('span', { class: 'ml-meta' }, ` ${KIND_SHORT[d.kind]} · ${n} relationship${n === 1 ? '' : 's'}`),
         rich('span', firstSentence(d.blurb), { class: 'ml-blurb' })));
     }
@@ -43,7 +46,7 @@ export function buildList(section) {
       renderTex(lab, r.label);
       const name = `${getDist(r.from).name} ${r.bidirectional ? '↔' : '→'} ${getDist(r.to).name}`;
       ul.append(h('li', {},
-        h('a', { href: `relation.html?r=${encodeURIComponent(r.id)}` }, name), ' ', lab, ' ',
+        h('a', { href: `relation.html?r=${encodeURIComponent(r.id)}` }, name), isCoreRel(r) ? coreTag() : null, ' ', lab, ' ',
         h('button', {
           type: 'button', class: 'btn link ml-open', 'aria-label': `Explain: ${name}`,
           onclick: () => openRelationDialog(r),

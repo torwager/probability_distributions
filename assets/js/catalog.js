@@ -4,7 +4,8 @@
 // distribution fields: id, name, kind ('discrete' | 'continuous' | 'multivariate-discrete' | 'multivariate-continuous'),
 //   group, onOriginalMap, whyAdded (rich), parameterization (rich), parameterizationText (plain unicode),
 //   params[{sym, key, label, name, meaning (rich), meaningText (plain), domain, default, min, max, integer}],
-//   support (TeX), blurb (one plain sentence), mapPos {col,row} (placeholder grid position for the map).
+//   support (TeX), blurb (one plain sentence), commonUses (rich; one sentence on the most common uses),
+//   commonUsesText (plain unicode), mapPos {col,row} (placeholder grid position for the map).
 // relation fields: id ('from--to'), from, to, bidirectional, kind (see edgeKinds), label (TeX), statement (TeX),
 //   plain (rich), plainText (plain unicode), onOriginalMap.
 // notation entries: {sym (TeX), plain (rich), plainText, match}; conventions: array of rich-text sentences.
@@ -27,6 +28,7 @@ export const CATALOG = deepFreeze({
    "group": "uniform",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for random assignment and random sampling in experiments, for the null distribution of ranks in rank and permutation tests, and as an equal-weight prior over a finite set of options.",
    "parameterization": "Integers $a \\le b$. Each of the $n = b - a + 1$ values $a, a+1, \\dots, b$ has probability $1/n$. Some texts use the support $\\{1, \\dots, n\\}$ (that is, $a = 1$, $b = n$) or $\\{0, \\dots, n-1\\}$.",
    "params": [
     {
@@ -58,6 +60,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\{a,a+1,\\dots,b\\}",
    "parameterizationText": "Integers a ≤ b. Each of the n = b - a + 1 values a, a+1, …, b has probability 1/n. Some texts use the support {1, …, n} (that is, a = 1, b = n) or {0, …, n-1}.",
+   "commonUsesText": "Used for random assignment and random sampling in experiments, for the null distribution of ranks in rank and permutation tests, and as an equal-weight prior over a finite set of options.",
    "blurb": "Each of a fixed range of consecutive whole numbers is equally likely, as with the roll of a fair die.",
    "mapPos": {
     "col": 0,
@@ -71,6 +74,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for any single yes/no outcome: estimating and comparing proportions, logistic regression, choices in two-alternative tasks, and hidden on/off indicators in Bayesian mixture models.",
    "parameterization": "Success probability $p$: $P(X = 1) = p$ and $P(X = 0) = 1 - p$.",
    "params": [
     {
@@ -89,6 +93,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\{0,1\\}",
    "parameterizationText": "Success probability p: P(X = 1) = p and P(X = 0) = 1 - p.",
+   "commonUsesText": "Used for any single yes/no outcome: estimating and comparing proportions, logistic regression, choices in two-alternative tasks, and hidden on/off indicators in Bayesian mixture models.",
    "blurb": "A single trial with two outcomes: success (coded 1) with probability p, failure (coded 0) otherwise.",
    "mapPos": {
     "col": 1,
@@ -102,6 +107,7 @@ export const CATALOG = deepFreeze({
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
    "whyAdded": "The outcome of a single trial with $K > 2$ possible categories. It is the likelihood for choice data, classification labels, mixture-component indicators and softmax (multinomial-logit) models in computational modeling.",
+   "commonUses": "Used for a single choice among several options: multinomial logistic regression and classifiers, softmax choice models, and component labels in Bayesian mixture and topic models.",
    "parameterization": "$K$ categories labeled $1, \\dots, K$ with probability vector $\\mathbf p = (p_1, \\dots, p_K)$, where every $p_j \\ge 0$ and $\\sum_j p_j = 1$. On this page the probabilities are set by dragging bars; they start equal ($p_j = 1/K$) and are rescaled so that they always add up to 1. Some texts code the outcome as a one-hot vector, which is the same as $\\mathrm{Multinomial}(1, \\mathbf p)$.",
    "params": [
     {
@@ -120,6 +126,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\{1,2,\\dots,K\\}",
    "parameterizationText": "K categories labeled 1, …, K with probability vector p = (p1, …, pK), where every pj ≥ 0 and Σj pj = 1. On this page the probabilities are set by dragging bars; they start equal (pj = 1/K) and are rescaled so that they always add up to 1. Some texts code the outcome as a one-hot vector, which is the same as Multinomial(1, p).",
+   "commonUsesText": "Used for a single choice among several options: multinomial logistic regression and classifiers, softmax choice models, and component labels in Bayesian mixture and topic models.",
    "blurb": "A single trial with K possible outcomes, each with its own probability.",
    "mapPos": {
     "col": 2,
@@ -133,6 +140,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for successes out of a known number of trials: exact binomial and sign tests, binomial (logistic) regression, accuracy data, and Bayesian estimates of a proportion with a beta prior.",
    "parameterization": "Number of successes $X$ in $n$ independent trials, each with success probability $p$.",
    "params": [
     {
@@ -164,6 +172,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{0,1,\\dots,n\\}",
    "parameterizationText": "Number of successes X in n independent trials, each with success probability p.",
+   "commonUsesText": "Used for successes out of a known number of trials: exact binomial and sign tests, binomial (logistic) regression, accuracy data, and Bayesian estimates of a proportion with a beta prior.",
    "blurb": "The number of successes in a fixed number n of independent trials that share the same success probability p.",
    "mapPos": {
     "col": 2,
@@ -177,6 +186,7 @@ export const CATALOG = deepFreeze({
    "group": "categorical / multivariate counts",
    "onOriginalMap": false,
    "whyAdded": "The counts in each of $K$ categories after $n$ independent categorical trials. It is the basis of chi-squared goodness-of-fit and contingency-table tests, and of Dirichlet–multinomial Bayesian models (for example topic models and choice counts).",
+   "commonUses": "Used for counts across several categories: chi-squared goodness-of-fit and contingency-table tests, multinomial processing tree models, and Bayesian models of choice or word counts with a Dirichlet prior.",
    "parameterization": "$n$ trials, $K$ categories and a probability vector $\\mathbf p = (p_1, \\dots, p_K)$ that adds up to 1 (set on this page by dragging bars; equal by default). The outcome is the vector of counts $\\mathbf X = (X_1, \\dots, X_K)$, where $X_j$ is the number of trials that land in category $j$.",
    "params": [
     {
@@ -208,6 +218,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "\\mathbf{x}=(x_1,\\dots,x_K),\\ x_j\\in\\{0,\\dots,n\\},\\ \\sum_{j=1}^K x_j=n",
    "parameterizationText": "n trials, K categories and a probability vector p = (p1, …, pK) that adds up to 1 (set on this page by dragging bars; equal by default). The outcome is the vector of counts X = (X1, …, XK), where Xj is the number of trials that land in category j.",
+   "commonUsesText": "Used for counts across several categories: chi-squared goodness-of-fit and contingency-table tests, multinomial processing tree models, and Bayesian models of choice or word counts with a Dirichlet prior.",
    "blurb": "The counts in each of K categories after n independent trials.",
    "mapPos": {
     "col": 3,
@@ -221,6 +232,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for sampling without replacement from a finite population: Fisher’s exact test, gene-set enrichment tests, capture–recapture estimates of population size, and card-game probabilities.",
    "parameterization": "A population of $N$ items, of which $K$ count as successes. $n$ items are drawn without replacement, and $X$ is the number of successes drawn. Software uses different letters: R uses $m = K$, $n = N - K$ and $k$ = number of draws; SciPy uses $M = N$, $n = K$ and $N$ = number of draws.",
    "params": [
     {
@@ -265,6 +277,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{\\max(0,\\,n+K-N),\\dots,\\min(n,K)\\}",
    "parameterizationText": "A population of N items, of which K count as successes. n items are drawn without replacement, and X is the number of successes drawn. Software uses different letters: R uses m = K, n = N - K and k = number of draws; SciPy uses M = N, n = K and N = number of draws.",
+   "commonUsesText": "Used for sampling without replacement from a finite population: Fisher’s exact test, gene-set enrichment tests, capture–recapture estimates of population size, and card-game probabilities.",
    "blurb": "The number of successes in a sample drawn without replacement from a finite population.",
    "mapPos": {
     "col": 1,
@@ -278,6 +291,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for the number of tries before a first success: trials to learn in all-or-none learning models, run lengths, discrete-time survival with a constant hazard, and attempts in rejection sampling.",
    "parameterization": "$K$ = the number of failures before the first success in independent $\\mathrm{Bernoulli}(p)$ trials: $P(K = k) = (1-p)^k p$ for $k = 0, 1, 2, \\dots$, with mean $(1-p)/p$. The other common convention counts trials instead: $Y = K + 1$ is the number of trials up to and including the first success, with support $\\{1, 2, \\dots\\}$ and mean $1/p$. This site counts failures so that $\\mathrm{Geometric}(p) = \\mathrm{NegBin}(1, p)$.",
    "params": [
     {
@@ -296,6 +310,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
    "parameterizationText": "K = the number of failures before the first success in independent Bernoulli(p) trials: P(K = k) = (1-p)ᵏ p for k = 0, 1, 2, …, with mean (1-p)/p. The other common convention counts trials instead: Y = K + 1 is the number of trials up to and including the first success, with support {1, 2, …} and mean 1/p. This site counts failures so that Geometric(p) = NegBin(1, p).",
+   "commonUsesText": "Used for the number of tries before a first success: trials to learn in all-or-none learning models, run lengths, discrete-time survival with a constant hazard, and attempts in rejection sampling.",
    "blurb": "The number of failures before the first success in a sequence of independent trials.",
    "mapPos": {
     "col": 0,
@@ -309,6 +324,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for overdispersed counts whose variance exceeds the mean: negative binomial regression, RNA-seq differential expression, neural spike counts, and case or species counts in epidemiology and ecology.",
    "parameterization": "$K$ = the number of failures before the $r$-th success in independent $\\mathrm{Bernoulli}(p)$ trials: $P(K = k) = \\binom{k+r-1}{k} p^r (1-p)^k$, with mean $r(1-p)/p$ and variance $r(1-p)/p^2$. $r$ may be any positive real number (this comes from the gamma–Poisson mixture). Other forms: the number of trials until the $r$-th success; and the mean–dispersion form used in regression software (R <code>glm.nb</code>, Stan <code>neg_binomial_2</code>) with mean $\\mu = r(1-p)/p$ and variance $\\mu + \\mu^2/r$.",
    "params": [
     {
@@ -340,6 +356,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
    "parameterizationText": "K = the number of failures before the r-th success in independent Bernoulli(p) trials: P(K = k) = C(k+r-1, k) p^r (1-p)ᵏ, with mean r(1-p)/p and variance r(1-p)/p². r may be any positive real number (this comes from the gamma–Poisson mixture). Other forms: the number of trials until the r-th success; and the mean–dispersion form used in regression software (R glm.nb, Stan neg_binomial_2) with mean μ = r(1-p)/p and variance μ + μ²/r.",
+   "commonUsesText": "Used for overdispersed counts whose variance exceeds the mean: negative binomial regression, RNA-seq differential expression, neural spike counts, and case or species counts in epidemiology and ecology.",
    "blurb": "The number of failures before the r-th success; also a standard model for counts whose variance exceeds their mean.",
    "mapPos": {
     "col": 1,
@@ -353,6 +370,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for counts of independent events in a fixed time or space: Poisson regression and log-linear models, neural spike and photon counts, queue arrivals, and Bayesian rate estimates with a gamma prior.",
    "parameterization": "Rate (mean) $\\lambda$: $P(X = k) = e^{-\\lambda} \\lambda^k / k!$, and the mean and the variance both equal $\\lambda$. For events that occur at rate $\\lambda$ per unit time, the count in a window of length $t$ is $\\mathrm{Poisson}(\\lambda t)$.",
    "params": [
     {
@@ -371,6 +389,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{0,1,2,\\dots\\}",
    "parameterizationText": "Rate (mean) λ: P(X = k) = e^-λ λᵏ / k!, and the mean and the variance both equal λ. For events that occur at rate λ per unit time, the count in a window of length t is Poisson(λ t).",
+   "commonUsesText": "Used for counts of independent events in a fixed time or space: Poisson regression and log-linear models, neural spike and photon counts, queue arrivals, and Bayesian rate estimates with a gamma prior.",
    "blurb": "The number of events in a fixed interval when events occur independently at a constant average rate.",
    "mapPos": {
     "col": 2,
@@ -384,6 +403,7 @@ export const CATALOG = deepFreeze({
    "group": "counting / Bernoulli trials",
    "onOriginalMap": false,
    "whyAdded": "Binomial count whose success probability itself varies according to a Beta distribution. Used for overdispersed proportions (e.g. per-subject accuracy that differs across subjects), as the prior/posterior predictive of the Beta-Binomial Bayesian model, and in hierarchical models.",
+   "commonUses": "Used for overdispersed binomial counts, such as test scores or numbers correct when ability varies across people, for clustered yes/no data, and as the predictive distribution in Bayesian models of proportions.",
    "parameterization": "$n$ trials; $p \\sim \\mathrm{Beta}(\\alpha, \\beta)$ and, given $p$, $X \\sim \\mathrm{Binomial}(n, p)$. Then $P(X = k) = \\binom nk B(k + \\alpha,\\, n - k + \\beta) / B(\\alpha, \\beta)$. An alternative form uses the mean $\\pi = \\alpha/(\\alpha + \\beta)$ and the overdispersion $\\rho = 1/(\\alpha + \\beta + 1)$.",
    "params": [
     {
@@ -428,6 +448,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "k\\in\\{0,1,\\dots,n\\}",
    "parameterizationText": "n trials; p ~ Beta(α, β) and, given p, X ~ Binomial(n, p). Then P(X = k) = C(n, k) B(k + α, n - k + β) / B(α, β). An alternative form uses the mean π = α/(α + β) and the overdispersion ρ = 1/(α + β + 1).",
+   "commonUsesText": "Used for overdispersed binomial counts, such as test scores or numbers correct when ability varies across people, for clustered yes/no data, and as the predictive distribution in Bayesian models of proportions.",
    "blurb": "A binomial count whose success probability itself varies according to a Beta distribution.",
    "mapPos": {
     "col": 3,
@@ -441,6 +462,7 @@ export const CATALOG = deepFreeze({
    "group": "uniform",
    "onOriginalMap": false,
    "whyAdded": "Every value in an interval is equally likely. It is the basis of random-number generation and inverse-CDF sampling, the distribution of p-values under a true null hypothesis, and a common flat prior.",
+   "commonUses": "Used for random-number generation and Monte Carlo simulation, for the spread of p-values when the null hypothesis is true, and as a flat prior or a random-guessing component in models.",
    "parameterization": "Lower bound $a$ and upper bound $b$; the density is $1/(b - a)$ on $[a, b]$.",
    "params": [
     {
@@ -472,6 +494,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[a,b]",
    "parameterizationText": "Lower bound a and upper bound b; the density is 1/(b - a) on [a, b].",
+   "commonUsesText": "Used for random-number generation and Monte Carlo simulation, for the spread of p-values when the null hypothesis is true, and as a flat prior or a random-guessing component in models.",
    "blurb": "Every value in an interval from a to b is equally likely.",
    "mapPos": {
     "col": 5,
@@ -485,6 +508,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for constant-hazard survival and reliability models, times between neural spikes, arrivals or radioactive decays, event timing in simulations, and as a simple prior on standard deviations in Bayesian models.",
    "parameterization": "Rate $\\lambda$: $f(x) = \\lambda e^{-\\lambda x}$, with mean $1/\\lambda$. Alternative: the scale (mean) $\\theta = 1/\\lambda$, used by SciPy and NumPy.",
    "params": [
     {
@@ -503,6 +527,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,\\infty)",
    "parameterizationText": "Rate λ: f(x) = λ e^-λ x, with mean 1/λ. Alternative: the scale (mean) θ = 1/λ, used by SciPy and NumPy.",
+   "commonUsesText": "Used for constant-hazard survival and reliability models, times between neural spikes, arrivals or radioactive decays, event timing in simulations, and as a simple prior on standard deviations in Bayesian models.",
    "blurb": "The waiting time until the next event when events occur independently at a constant rate.",
    "mapPos": {
     "col": 3,
@@ -516,6 +541,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for gamma regression of positive, skewed data such as costs, rainfall and response times, and as the conjugate prior for a Poisson rate or the inverse variance of normal data.",
    "parameterization": "Shape $\\alpha$ (also written $k$) and rate $\\beta$: $f(x) = \\beta^\\alpha x^{\\alpha-1} e^{-\\beta x} / \\Gamma(\\alpha)$, with mean $\\alpha/\\beta$ and variance $\\alpha/\\beta^2$. This is the convention of <i>Bayesian Data Analysis</i> and Stan. Alternative: shape $k$ and scale $\\theta = 1/\\beta$ (Wikipedia's $(k, \\theta)$, SciPy, NumPy).",
    "params": [
     {
@@ -547,6 +573,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in(0,\\infty)",
    "parameterizationText": "Shape α (also written k) and rate β: f(x) = β^α x^α-1 e^-β x / Γ(α), with mean α/β and variance α/β². This is the convention of Bayesian Data Analysis and Stan. Alternative: shape k and scale θ = 1/β (Wikipedia's (k, θ), SciPy, NumPy).",
+   "commonUsesText": "Used for gamma regression of positive, skewed data such as costs, rainfall and response times, and as the conjugate prior for a Poisson rate or the inverse variance of normal data.",
    "blurb": "A distribution for positive values; with a whole-number shape it is the total waiting time for several events.",
    "mapPos": {
     "col": 5,
@@ -560,6 +587,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for lifetimes and times to failure: reliability engineering, parametric survival regression with censored data, material strength, wind speeds, and Weibull psychometric functions in psychophysics.",
    "parameterization": "Shape $k$ and scale $\\lambda$: $F(x) = 1 - \\exp\\!\\big(-(x/\\lambda)^k\\big)$. With $k < 1$ the hazard (failure rate) decreases over time; $k = 1$ is the exponential with rate $1/\\lambda$; with $k > 1$ the hazard increases; $k = 2$ is the Rayleigh distribution with $\\sigma = \\lambda/\\sqrt 2$. Note that $\\lambda$ is a scale here, not a rate.",
    "params": [
     {
@@ -591,6 +619,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,\\infty)",
    "parameterizationText": "Shape k and scale λ: F(x) = 1 - exp(-(x/λ)ᵏ). With k 1 the hazard increases; k = 2 is the Rayleigh distribution with σ = λ/√2. Note that λ is a scale here, not a rate.",
+   "commonUsesText": "Used for lifetimes and times to failure: reliability engineering, parametric survival regression with censored data, material strength, wind speeds, and Weibull psychometric functions in psychophysics.",
    "blurb": "A distribution of lifetimes whose failure rate can decrease, stay constant or increase over time.",
    "mapPos": {
     "col": 4,
@@ -604,6 +633,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for measurement error and averages, in z-tests, t-tests, regression and ANOVA, in signal detection and Kalman filter models, and as a prior for unknown means in Bayesian models.",
    "parameterization": "Mean $\\mu$ and standard deviation $\\sigma$, written $\\mathcal N(\\mu, \\sigma^2)$. Alternatives: the variance $\\sigma^2$, or the precision $\\tau = 1/\\sigma^2$ (used in BUGS and JAGS).",
    "params": [
     {
@@ -635,6 +665,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "Mean μ and standard deviation σ, written N(μ, σ²). Alternatives: the variance σ², or the precision τ = 1/σ² (used in BUGS and JAGS).",
+   "commonUsesText": "Used for measurement error and averages, in z-tests, t-tests, regression and ANOVA, in signal detection and Kalman filter models, and as a prior for unknown means in Bayesian models.",
    "blurb": "The bell curve: a symmetric distribution described by its mean and standard deviation.",
    "mapPos": {
     "col": 8,
@@ -648,6 +679,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for positive, skewed data analyzed on the log scale, such as drug concentrations, response times and particle sizes, for bioequivalence testing and stock-price models, and as a prior on positive parameters.",
    "parameterization": "$\\mu$ and $\\sigma$ are the mean and standard deviation of $\\ln X$, not of $X$. The median of $X$ is $e^{\\mu}$ and its mean is $e^{\\mu + \\sigma^2/2}$.",
    "params": [
     {
@@ -679,6 +711,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in(0,\\infty)",
    "parameterizationText": "μ and σ are the mean and standard deviation of ln X, not of X. The median of X is e^μ and its mean is e^μ + σ²/2.",
+   "commonUsesText": "Used for positive, skewed data analyzed on the log scale, such as drug concentrations, response times and particle sizes, for bioequivalence testing and stock-price models, and as a prior on positive parameters.",
    "blurb": "A positive, right-skewed distribution whose logarithm has a normal distribution.",
    "mapPos": {
     "col": 9,
@@ -692,6 +725,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for t-tests and confidence intervals for means and regression coefficients, as a robust likelihood for data with outliers, and as a weakly informative prior in Bayesian models.",
    "parameterization": "The standard $t$ distribution with $\\nu$ degrees of freedom (centered at 0, scale 1). The location–scale version $\\mu + \\sigma T$ is used for robust regression and as a prior. The mean is 0 when $\\nu > 1$ and the variance is $\\nu/(\\nu - 2)$ when $\\nu > 2$.",
    "params": [
     {
@@ -710,6 +744,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "The standard t distribution with ν degrees of freedom (centered at 0, scale 1). The location–scale version μ + σ T is used for robust regression and as a prior. The mean is 0 when ν > 1 and the variance is ν/(ν - 2) when ν > 2.",
+   "commonUsesText": "Used for t-tests and confidence intervals for means and regression coefficients, as a robust likelihood for data with outliers, and as a weakly informative prior in Bayesian models.",
    "blurb": "A bell-shaped distribution with heavier tails than the normal, used for tests and intervals about means.",
    "mapPos": {
     "col": 7,
@@ -723,6 +758,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for Pearson’s chi-squared tests of counts and contingency tables, likelihood-ratio tests and nested model comparison, tests and intervals for a variance, and goodness of fit in curve fitting.",
    "parameterization": "Degrees of freedom $k$: the distribution of the sum of $k$ squared independent standard normal variables, with mean $k$ and variance $2k$. It equals $\\mathrm{Gamma}(k/2,\\ \\text{rate } 1/2)$.",
    "params": [
     {
@@ -741,6 +777,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,\\infty)",
    "parameterizationText": "Degrees of freedom k: the distribution of the sum of k squared independent standard normal variables, with mean k and variance 2k. It equals Gamma(k/2, rate 1/2).",
+   "commonUsesText": "Used for Pearson’s chi-squared tests of counts and contingency tables, likelihood-ratio tests and nested model comparison, tests and intervals for a variance, and goodness of fit in curve fitting.",
    "blurb": "The sum of squared independent standard normal variables; used in variance and goodness-of-fit tests.",
    "mapPos": {
     "col": 6,
@@ -754,6 +791,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": true,
    "whyAdded": "",
+   "commonUses": "Used for the conjugate prior of a success probability, priors on any parameter between 0 and 1, beta regression of proportions, and Thompson sampling in A/B tests and bandit tasks.",
    "parameterization": "Shapes $\\alpha$ and $\\beta$: $f(x) = x^{\\alpha-1} (1-x)^{\\beta-1} / B(\\alpha, \\beta)$, with mean $\\alpha/(\\alpha + \\beta)$. Alternative: the mean $m = \\alpha/(\\alpha + \\beta)$ and the concentration $\\kappa = \\alpha + \\beta$.",
    "params": [
     {
@@ -785,6 +823,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,1]",
    "parameterizationText": "Shapes α and β: f(x) = x^α-1 (1-x)^β-1 / B(α, β), with mean α/(α + β). Alternative: the mean m = α/(α + β) and the concentration κ = α + β.",
+   "commonUsesText": "Used for the conjugate prior of a success probability, priors on any parameter between 0 and 1, beta regression of proportions, and Thompson sampling in A/B tests and bandit tasks.",
    "blurb": "A distribution for proportions and probabilities, on the interval from 0 to 1.",
    "mapPos": {
     "col": 4,
@@ -798,6 +837,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Ratio of two scaled chi-squared variables. Reference distribution for ANOVA, regression F-tests, nested model comparison, and tests of equal variances.",
+   "commonUses": "Used for testing whether several group means differ in ANOVA, comparing nested regression models or two variances, power analysis for these tests, and F-contrasts in neuroimaging.",
    "parameterization": "Numerator degrees of freedom $d_1$ and denominator degrees of freedom $d_2$. The mean is $d_2/(d_2 - 2)$ when $d_2 > 2$.",
    "params": [
     {
@@ -829,6 +869,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,\\infty)",
    "parameterizationText": "Numerator degrees of freedom d1 and denominator degrees of freedom d2. The mean is d2/(d2 - 2) when d2 > 2.",
+   "commonUsesText": "Used for testing whether several group means differ in ANOVA, comparing nested regression models or two variances, power analysis for these tests, and F-contrasts in neuroimaging.",
    "blurb": "The ratio of two chi-squared variables, each divided by its degrees of freedom; the reference distribution for ANOVA and regression F-tests.",
    "mapPos": {
     "col": 7,
@@ -842,6 +883,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "The standard example of a distribution with no mean or variance: averages of Cauchy samples do not settle down as the sample grows. It equals Student's t with 1 degree of freedom and the ratio of two independent standard normal variables (centered at 0). It is used for robust likelihoods and for heavy-tailed, weakly informative priors that allow occasional large values.",
+   "commonUses": "Used for a default prior on effect sizes in Bayes factor t-tests, weakly informative priors on regression coefficients, robust likelihoods for outliers, and resonance line shapes in physics and spectroscopy.",
    "parameterization": "Location $x_0$ (the median and the mode) and scale $\\gamma$ (the half-width of the peak at half its height, which is also half the distance between the quartiles).",
    "params": [
     {
@@ -873,6 +915,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "Location x0 (the median and the mode) and scale γ (the half-width of the peak at half its height, which is also half the distance between the quartiles).",
+   "commonUsesText": "Used for a default prior on effect sizes in Bayes factor t-tests, weakly informative priors on regression coefficients, robust likelihoods for outliers, and resonance line shapes in physics and spectroscopy.",
    "blurb": "A symmetric distribution with tails so heavy that it has no mean or variance.",
    "mapPos": {
     "col": 8,
@@ -886,6 +929,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Prior for standard-deviation (scale) parameters, for example the between-subject standard deviation in a hierarchical (multilevel) model, where each subject has its own parameter drawn from a group distribution. It puts most of its mass near zero but has a heavy tail, so the data can still support a large standard deviation. Gelman (2006) recommended it (and the half-t) as a weakly informative default. More recent Stan prior guidance often uses the half-normal, half-t or exponential instead; these are shown as alternatives on this page.",
+   "commonUses": "Used for weakly informative priors on standard deviations in hierarchical models, such as group-level variation in cognitive models, and as the scale part of the horseshoe prior for sparse signals.",
    "parameterization": "Scale $\\gamma$: the distribution of $|X|$ for $X \\sim \\mathrm{Cauchy}(0, \\gamma)$, with density $f(x) = \\dfrac{2}{\\pi \\gamma \\,(1 + (x/\\gamma)^2)}$ and median $\\gamma$. Gelman (2006) writes it $\\mathrm{HalfCauchy}(0, A)$.",
    "params": [
     {
@@ -904,6 +948,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[0,\\infty)",
    "parameterizationText": "Scale γ: the distribution of |X| for X ~ Cauchy(0, γ), with density f(x) = (2)/(π γ (1 + (x/γ)²)) and median γ. Gelman (2006) writes it HalfCauchy(0, A).",
+   "commonUsesText": "Used for weakly informative priors on standard deviations in hierarchical models, such as group-level variation in cognitive models, and as the scale part of the horseshoe prior for sparse signals.",
    "blurb": "The positive half of a Cauchy distribution, often used as a prior for standard deviations.",
    "mapPos": {
     "col": 9,
@@ -917,6 +962,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Symmetric with a sharp peak and tails that decay exponentially, so they are heavier than the normal's. If regression errors are assumed to be Laplace, the best fit minimizes absolute rather than squared errors (median or least-absolute-deviation regression). A Laplace prior on regression coefficients makes the single most probable value of the posterior (the MAP estimate) equal to the LASSO estimate, which shrinks small coefficients to exactly zero. It is also the noise added to published statistics in differential privacy.",
+   "commonUses": "Used for median (least absolute deviations) regression and robust error models, as the Bayesian prior behind the LASSO and other sparse models, and for adding calibrated noise in differential privacy.",
    "parameterization": "Location $\\mu$ and scale $b$: $f(x) = \\exp(-|x - \\mu|/b) / (2b)$, with variance $2b^2$. Alternative: the rate $\\lambda = 1/b$.",
    "params": [
     {
@@ -948,6 +994,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "Location μ and scale b: f(x) = exp(-|x - μ|/b) / (2b), with variance 2b². Alternative: the rate λ = 1/b.",
+   "commonUsesText": "Used for median (least absolute deviations) regression and robust error models, as the Bayesian prior behind the LASSO and other sparse models, and for adding calibrated noise in differential privacy.",
    "blurb": "A symmetric distribution with a sharp peak and exponentially decaying tails on both sides.",
    "mapPos": {
     "col": 3,
@@ -961,6 +1008,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Its CDF is the logistic (sigmoid) function, an S-shaped curve rising from 0 to 1. Logistic regression can be written as a hidden continuous score plus logistic noise that is compared with zero; this gives the logit link, in which the log-odds of a 1 is a linear function of the predictors. The same S-shaped curve is used for psychometric functions (probability of detecting or discriminating a stimulus as its intensity changes) and in item response theory (probability of answering a test item correctly as a function of a person's ability).",
+   "commonUses": "Used for logistic and ordinal regression, item response theory, psychometric functions and choice models, where its S-shaped cumulative curve turns a weighted sum of predictors into a probability.",
    "parameterization": "Location $\\mu$ and scale $s$: $F(x) = 1 / \\big(1 + e^{-(x - \\mu)/s}\\big)$, with variance $s^2 \\pi^2 / 3$.",
    "params": [
     {
@@ -992,6 +1040,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "Location μ and scale s: F(x) = 1 / (1 + e^-(x - μ)/s), with variance s² π² / 3.",
+   "commonUsesText": "Used for logistic and ordinal regression, item response theory, psychometric functions and choice models, where its S-shaped cumulative curve turns a weighted sum of predictors into a probability.",
    "blurb": "A symmetric distribution whose CDF is the logistic (sigmoid) curve.",
    "mapPos": {
     "col": 5,
@@ -1005,6 +1054,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution of 1/X for a gamma variable. Conjugate prior (and posterior) for the variance of a normal distribution; also the mixing distribution that turns a normal into a Student's t.",
+   "commonUses": "Used for normal variances in Bayesian models, as the conjugate prior in Gibbs samplers and linear regression, and for keeping a scale, such as a Gaussian-process length scale, away from zero.",
    "parameterization": "Shape $\\alpha$ and scale $\\beta$: $f(x) = \\beta^\\alpha x^{-\\alpha-1} e^{-\\beta/x} / \\Gamma(\\alpha)$, with mean $\\beta/(\\alpha - 1)$ when $\\alpha > 1$. If $X \\sim \\mathrm{Gamma}(\\alpha,\\ \\text{rate } \\beta)$ then $1/X \\sim \\mathrm{InvGamma}(\\alpha,\\ \\text{scale } \\beta)$.",
    "params": [
     {
@@ -1036,6 +1086,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in(0,\\infty)",
    "parameterizationText": "Shape α and scale β: f(x) = β^α x^-α-1 e^-β/x / Γ(α), with mean β/(α - 1) when α > 1. If X ~ Gamma(α, rate β) then 1/X ~ InvGamma(α, scale β).",
+   "commonUsesText": "Used for normal variances in Bayesian models, as the conjugate prior in Gibbs samplers and linear regression, and for keeping a scale, such as a Gaussian-process length scale, away from zero.",
    "blurb": "The distribution of the reciprocal of a gamma variable; a conjugate prior for the variance of a normal distribution.",
    "mapPos": {
     "col": 6,
@@ -1049,6 +1100,7 @@ export const CATALOG = deepFreeze({
    "group": "Bayesian priors",
    "onOriginalMap": false,
    "whyAdded": "Distribution over probability vectors (points on the simplex). Conjugate prior for categorical and multinomial probabilities; used for mixture weights and topic models (LDA). Its margins are Beta distributions.",
+   "commonUses": "Used for priors on sets of category probabilities in Bayesian categorical and multinomial models, for mixture weights and topic models, and for compositional data made of proportions.",
    "parameterization": "Concentration vector $\\boldsymbol\\alpha = (\\alpha_1, \\dots, \\alpha_K)$ with every $\\alpha_j > 0$, and total concentration $\\alpha_0 = \\sum_j \\alpha_j$. The mean is $\\mathrm E[X_j] = \\alpha_j / \\alpha_0$. The interactive view uses $K = 3$, shown on a triangle. Alternative: a mean vector $\\mathbf m$ and the total concentration $\\alpha_0$.",
    "params": [
     {
@@ -1093,6 +1145,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "\\mathbf{x}\\in\\Delta^{K-1}=\\{\\mathbf x: x_j>0,\\ \\sum_{j=1}^K x_j=1\\}",
    "parameterizationText": "Concentration vector α = (α1, …, αK) with every αj > 0, and total concentration α0 = Σj αj. The mean is mathrm E[Xj] = αj / α0. The interactive view uses K = 3, shown on a triangle. Alternative: a mean vector m and the total concentration α0.",
+   "commonUsesText": "Used for priors on sets of category probabilities in Bayesian categorical and multinomial models, for mixture weights and topic models, and for compositional data made of proportions.",
    "blurb": "A distribution over lists of probabilities that add up to 1; the multivariate version of the Beta.",
    "mapPos": {
     "col": 4,
@@ -1106,6 +1159,7 @@ export const CATALOG = deepFreeze({
    "group": "normal family / sampling distributions",
    "onOriginalMap": false,
    "whyAdded": "Joint distribution of several correlated normal variables, described by a mean for each variable and a covariance matrix (each variable's variance plus the covariance between each pair). It underlies multiple regression, multivariate tests such as MANOVA (analysis of variance with several outcome variables at once), linear mixed models, Gaussian-process models of smooth unknown functions, and Kalman filters that track a hidden state changing over time. In large samples, Bayesian posterior distributions and the sampling distributions of maximum-likelihood estimates are approximately multivariate normal.",
+   "commonUses": "Used for several correlated measurements: MANOVA, factor and discriminant analysis, random effects in mixed models, Gaussian processes, Kalman filters, and the sampling distribution or prior of regression coefficients.",
    "parameterization": "Mean vector $\\boldsymbol\\mu$ in $\\mathbb R^d$ and covariance matrix $\\Sigma$ (symmetric and positive definite). The interactive view is bivariate ($d = 2$) with $\\Sigma = \\begin{pmatrix} \\sigma_1^2 & \\rho\\sigma_1\\sigma_2 \\\\ \\rho\\sigma_1\\sigma_2 & \\sigma_2^2 \\end{pmatrix}$. Alternatives: the precision matrix $\\Sigma^{-1}$; a Cholesky factor $L$ with $\\Sigma = LL^\\top$; in Stan, <code>multi_normal_cholesky</code> with an LKJ prior on the correlation matrix.",
    "params": [
     {
@@ -1176,6 +1230,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "\\mathbf{x}\\in\\mathbb{R}^d",
    "parameterizationText": "Mean vector μ in ℝ^d and covariance matrix Σ (symmetric and positive definite). The interactive view is bivariate (d = 2) with Σ = (2×2 matrix). Alternatives: the precision matrix Σ⁻¹; a Cholesky factor L with Σ = LLᵀ; in Stan, multi_normal_cholesky with an LKJ prior on the correlation matrix.",
+   "commonUsesText": "Used for several correlated measurements: MANOVA, factor and discriminant analysis, random effects in mixed models, Gaussian processes, Kalman filters, and the sampling distribution or prior of regression coefficients.",
    "blurb": "The joint distribution of several correlated normal variables.",
    "mapPos": {
     "col": 9,
@@ -1189,6 +1244,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "The circular analogue of the normal distribution, for angles, phases and directions. Used for circular data and in computational models of orientation and color working memory (mixture models), head direction and spike phase.",
+   "commonUses": "Used for angles and directions such as headings, phases and orientations: statistical tests on circular data, neural tuning curves, and response errors in visual working memory tasks.",
    "parameterization": "Mean direction $\\mu$ and concentration $\\kappa$: $f(x) = e^{\\kappa \\cos(x - \\mu)} / \\big(2\\pi I_0(\\kappa)\\big)$, where $I_0$ is the modified Bessel function of order 0. $\\kappa = 0$ is the uniform distribution on the circle; for large $\\kappa$ it is approximately $\\mathcal N(\\mu, 1/\\kappa)$.",
    "params": [
     {
@@ -1220,6 +1276,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[-\\pi,\\pi)",
    "parameterizationText": "Mean direction μ and concentration κ: f(x) = e^κ cos(x - μ) / (2π I0(κ)), where I0 is the modified Bessel function of order 0. κ = 0 is the uniform distribution on the circle; for large κ it is approximately N(μ, 1/κ).",
+   "commonUsesText": "Used for angles and directions such as headings, phases and orientations: statistical tests on circular data, neural tuning curves, and response errors in visual working memory tasks.",
    "blurb": "A bell-shaped distribution for angles and directions on a circle.",
    "mapPos": {
     "col": 8,
@@ -1233,6 +1290,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "Sum of a normal and an independent exponential variable. The standard descriptive model of right-skewed response-time distributions in psychology.",
+   "commonUses": "Used for fitting response-time distributions, separating overall speed from a tail of occasional slow responses (as in studies of attention, aging and ADHD), and as a likelihood in Bayesian response-time models.",
    "parameterization": "$\\mu$ and $\\sigma$ are the mean and standard deviation of the normal component; $\\tau$ is the mean (scale) of the exponential component, whose rate is $1/\\tau$. The overall mean is $\\mu + \\tau$ and the variance is $\\sigma^2 + \\tau^2$. Alternatives: the rate $\\lambda = 1/\\tau$; SciPy's <code>exponnorm</code> uses $K = \\tau/\\sigma$.",
    "params": [
     {
@@ -1277,6 +1335,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "μ and σ are the mean and standard deviation of the normal component; τ is the mean (scale) of the exponential component, whose rate is 1/τ. The overall mean is μ + τ and the variance is σ² + τ². Alternatives: the rate λ = 1/τ; SciPy's exponnorm uses K = τ/σ.",
+   "commonUsesText": "Used for fitting response-time distributions, separating overall speed from a tail of occasional slow responses (as in studies of attention, aging and ADHD), and as a likelihood in Bayesian response-time models.",
    "blurb": "The sum of a normal and an independent exponential variable, often used to describe response times.",
    "mapPos": {
     "col": 6,
@@ -1290,6 +1349,7 @@ export const CATALOG = deepFreeze({
    "group": "response times and circular data",
    "onOriginalMap": false,
    "whyAdded": "First time a drifting Brownian motion reaches a boundary. Used as a single-boundary evidence-accumulation model of response times (shifted Wald), as a building block of drift-diffusion models, and as a GLM family for positive skewed data.",
+   "commonUses": "Used for response times in evidence-accumulation models with a single threshold, inverse Gaussian regression of positive, skewed data, and first-passage times to a boundary in reliability and physics.",
    "parameterization": "Mean $\\mu$ and shape $\\lambda$: $f(x) = \\sqrt{\\dfrac{\\lambda}{2\\pi x^3}}\\, \\exp\\!\\Big(-\\dfrac{\\lambda (x - \\mu)^2}{2\\mu^2 x}\\Big)$, with variance $\\mu^3/\\lambda$. Evidence-accumulation form: a drift rate $v$, a threshold $a$ and a noise standard deviation $\\sigma$ give $\\mu = a/v$ and $\\lambda = a^2/\\sigma^2$. The name “inverse Gaussian” does not mean that $1/X$ is normal: the normal describes where a drifting random walk is at a fixed time, and the inverse Gaussian describes when it first reaches a fixed level. SciPy's <code>invgauss</code> uses the shape $\\mu/\\lambda$ with scale $\\lambda$.",
    "params": [
     {
@@ -1321,6 +1381,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in(0,\\infty)",
    "parameterizationText": "Mean μ and shape λ: f(x) = √((λ)/(2π x³)) exp(-(λ (x - μ)²)/(2μ² x)), with variance μ³/λ. Evidence-accumulation form: a drift rate v, a threshold a and a noise standard deviation σ give μ = a/v and λ = a²/σ². The name “inverse Gaussian” does not mean that 1/X is normal: the normal describes where a drifting random walk is at a fixed time, and the inverse Gaussian describes when it first reaches a fixed level. SciPy's invgauss uses the shape μ/λ with scale λ.",
+   "commonUsesText": "Used for response times in evidence-accumulation models with a single threshold, inverse Gaussian regression of positive, skewed data, and first-passage times to a boundary in reliability and physics.",
    "blurb": "The time a drifting random walk takes to first reach a fixed boundary.",
    "mapPos": {
     "col": 7,
@@ -1334,6 +1395,7 @@ export const CATALOG = deepFreeze({
    "group": "waiting times / positive continuous",
    "onOriginalMap": false,
    "whyAdded": "The basic power-law distribution, for quantities with very heavy right tails such as incomes, city sizes and file sizes. A generalized version models values above a high threshold in extreme-value analysis. In Bayesian model checking, Pareto-smoothed importance sampling (PSIS, used for approximate leave-one-out cross-validation) fits a generalized Pareto to the largest importance weights, and its estimated tail index (k-hat) flags data points for which the approximation is unreliable.",
+   "commonUses": "Used for power-law data such as wealth, insurance losses, file sizes and earthquake energies, for estimating how heavy a tail is, and for assessing the risk of very large losses.",
    "parameterization": "Type I Pareto with scale (minimum) $x_m$ and tail index $\\alpha$: $P(X > x) = (x_m/x)^\\alpha$ for $x \\ge x_m$, with mean $\\alpha x_m / (\\alpha - 1)$ when $\\alpha > 1$. Alternative: the Lomax (Pareto type II) distribution, shifted to start at 0.",
    "params": [
     {
@@ -1365,6 +1427,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in[x_m,\\infty)",
    "parameterizationText": "Type I Pareto with scale (minimum) xm and tail index α: P(X > x) = (xm/x)^α for x ≥ xm, with mean α xm / (α - 1) when α > 1. Alternative: the Lomax (Pareto type II) distribution, shifted to start at 0.",
+   "commonUsesText": "Used for power-law data such as wealth, insurance losses, file sizes and earthquake energies, for estimating how heavy a tail is, and for assessing the risk of very large losses.",
    "blurb": "A power-law distribution with a heavy right tail.",
    "mapPos": {
     "col": 2,
@@ -1378,6 +1441,7 @@ export const CATALOG = deepFreeze({
    "group": "heavy-tailed / symmetric / extreme value",
    "onOriginalMap": false,
    "whyAdded": "Limiting distribution of the largest of many independent values whose tails are lighter than any power law, such as normal, exponential or gamma values (extreme value type I). If the value of each option in a choice is perturbed by independent Gumbel noise and the option with the highest noisy value is chosen, the choice probabilities follow the softmax (multinomial logit) rule used in reinforcement-learning and decision models. The same fact gives the Gumbel-max trick: add Gumbel noise to the log-probabilities and take the largest to draw a sample from a categorical distribution.",
+   "commonUses": "Used for yearly maximum floods, rainfall and wind speeds in engineering design, as the error term in logit (random utility) choice models, and for the Gumbel-max and Gumbel-softmax tricks in machine learning.",
    "parameterization": "Maximum-type Gumbel with location $\\mu$ and scale $\\beta$: $F(x) = \\exp\\!\\big(-e^{-(x - \\mu)/\\beta}\\big)$, with mean $\\mu + 0.5772\\,\\beta$. The minimum-type Gumbel is its mirror image.",
    "params": [
     {
@@ -1409,6 +1473,7 @@ export const CATALOG = deepFreeze({
    ],
    "support": "x\\in\\mathbb{R}",
    "parameterizationText": "Maximum-type Gumbel with location μ and scale β: F(x) = exp(-e^-(x - μ)/β), with mean μ + 0.5772 β. The minimum-type Gumbel is its mirror image.",
+   "commonUsesText": "Used for yearly maximum floods, rainfall and wind speeds in engineering design, as the error term in logit (random utility) choice models, and for the Gumbel-max and Gumbel-softmax tricks in machine learning.",
    "blurb": "The distribution of the largest of many independent values; it also produces the softmax choice rule.",
    "mapPos": {
     "col": 4,

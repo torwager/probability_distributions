@@ -643,6 +643,7 @@ export function openModal({ title, body, wide = false, footer = null, titleTex =
   backdrop.addEventListener('mousedown', e => { if (e.target === backdrop) close(); });
   // focus `initialFocus` (an element inside the dialog, or a function returning one) if given, else the first focusable
   setTimeout(() => {
+    if (closed) return;   // closed again before the first focus (a quick Esc): focus is already back where it was
     let target = typeof initialFocus === 'function' ? initialFocus(dialog) : initialFocus;
     if (!(target && dialog.contains(target))) target = focusables()[0] || dialog;
     target.focus({ preventScroll: true });

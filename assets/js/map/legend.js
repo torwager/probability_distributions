@@ -1,10 +1,12 @@
-// Legend and filters shown above the map: one chip per kind of arrow (each chip shows the line style
-// and turns that kind on or off), a switch for "original map only", and a key to the tile sketches.
+// Legend and filters: a small panel that floats in a corner of the map. Closed, it is one button
+// ("Legend and filters"); open, it shows one chip per kind of arrow (each chip shows the line style and
+// turns that kind on or off), a key to the tile sketches, and the family colors (pointing at a family
+// highlights its distributions). Counts and families follow the view shown (core or full).
 
-import { RELATIONS, KIND_LABELS, DISTRIBUTIONS, GROUP_ORDER } from '../catalog.js';
+import { KIND_LABELS, GROUP_ORDER } from '../catalog.js';
 import { groupLabel } from '../core/layout.js';
 import { GROUP_STYLE } from './layout.js';
-import { h, toggleSwitch } from '../core/ui.js';
+import { h } from '../core/ui.js';
 import { KIND_ORDER } from './map.js';
 
 const KIND_HELP = {
@@ -28,23 +30,37 @@ export function swatch(kind, twoWay = false) {
   return span;
 }
 
-function tileKey(cls, label, svg) {
-  return h('span', { class: 'tile-key' }, h('span', { class: 'tk-tile ' + cls, html: svg, 'aria-hidden': 'true' }), label);
+function tileKey(cls, label, svg, kind) {
+  return h('span', { class: 'tile-key', 'data-kind': kind }, h('span', { class: 'tk-tile ' + cls, html: svg, 'aria-hidden': 'true' }), label);
 }
 
-export function buildLegend(container, map) {
-  const counts = Object.fromEntries(KIND_ORDER.map(k => [k, RELATIONS.filter(r => r.kind === k).length]));
-  const chips = h('div', { class: 'kind-chips', role: 'group', 'aria-label': 'Show or hide arrows by kind' });
+const STORE_KEY = 'pd-map-legend-open';
+const remembered = () => { try { return localStorage.getItem(STORE_KEY) === '1'; } catch (_) { return false; } };
+const remember = on => { try { localStorage.setItem(STORE_KEY, on ? '1' : '0'); } catch (_) { /* ignore */ } };
+
+export function buildLegend(map) {
+  // ---- arrows: one chip per kind
+  const chips = h('div', { class: 'kind-chips', role: 'group', 'aria-labelledby': 'lg-arrows' });
   const chipEls = new Map();
   const sync = () => {
-    for (const [k, b] of chipEls) b.setAttribute('aria-pressed', String(map.filter.kinds.has(k)));
-    allBtn.disabled = map.filter.kinds.size === KIND_ORDER.length;
+    const rels = map.views[map.view].rels;
+    for (const [k, b] of chipEls) {
+      const n = rels.filter(r => r.kind === k).length;
+      b.setAttribute('aria-pressed', String(map.filter.kinds.has(k)));
+      b.querySelector('.kc-n').textContent = String(n);
+      b.hidden = !n;
+    }
+    allBtn.hidden = map.filter.kinds.size === KIND_ORDER.length;
+    // families present in this view
+    const groups = new Set(map.views[map.view].dists.map(d => d.group));
+    for (const b of fams.querySelectorAll('.fam-key')) b.hidden = !groups.has(b.dataset.group);
+    keys.querySelector('[data-kind="mv"]').hidden = !map.views[map.view].dists.some(d => d.kind.startsWith('multivariate'));
   };
   for (const k of KIND_ORDER) {
     const b = h('button', {
       type: 'button', class: `kind-chip k-${k}`, 'aria-pressed': 'true', 'data-kind': k,
       title: `${KIND_LABELS[k]}: ${KIND_HELP[k]}. Click to show or hide these arrows.`,
-    }, swatch(k), h('span', { class: 'kc-name' }, KIND_LABELS[k]), h('span', { class: 'kc-n' }, String(counts[k])));
+    }, swatch(k), h('span', { class: 'kc-name' }, KIND_LABELS[k]), h('span', { class: 'kc-n' }, ''));
     b.addEventListener('click', () => {
       const f = map.filter.kinds;
       // the first click on a chip while all are shown isolates that kind; later clicks toggle
@@ -56,27 +72,23 @@ export function buildLegend(container, map) {
     chipEls.set(k, b);
     chips.append(b);
   }
-  const allBtn = h('button', { type: 'button', class: 'kind-chip kc-all', onclick: () => { KIND_ORDER.forEach(x => map.filter.kinds.add(x)); sync(); map.applyFilter(); } }, 'Show all');
+  const allBtn = h('button', { type: 'button', class: 'kind-chip kc-all', onclick: () => { KIND_ORDER.forEach(x => map.filter.kinds.add(x)); sync(); map.applyFilter(); } }, 'Show all arrows');
   chips.append(allBtn);
-  const orig = toggleSwitch('Original map only', false, on => { map.filter.originalOnly = on; map.applyFilter(); });
-  orig.el.classList.add('orig-switch');
-  orig.el.title = 'Show only the 15 distributions and 18 arrows of the original chart this map is based on';
 
+  // ---- tiles
   const DISC = '<svg viewBox="0 0 30 14"><path d="M4 13V9M9 13V4M14 13V2M19 13V5M24 13V10" /></svg>';
   const CONT = '<svg viewBox="0 0 30 14"><path class="f" d="M1 13C8 13 10 2 15 2S22 13 29 13Z"/><path d="M1 13C8 13 10 2 15 2S22 13 29 13"/></svg>';
   const MV = '<svg viewBox="0 0 30 14"><ellipse cx="15" cy="7" rx="11" ry="4.6" transform="rotate(-18 15 7)"/><ellipse cx="15" cy="7" rx="5.5" ry="2.2" transform="rotate(-18 15 7)"/></svg>';
   const keys = h('div', { class: 'tile-keys' },
-    h('span', { class: 'lg-title' }, 'Tiles'),
-    tileKey('tk-d', 'discrete (bars at whole numbers)', DISC),
-    tileKey('tk-c', 'continuous (density curve)', CONT),
-    tileKey('tk-mv', 'multivariate (stacked tile)', MV),
-    h('span', { class: 'tile-key' }, swatch('special-case', true), 'two heads: the relationship works both ways'));
+    tileKey('tk-d', 'discrete: bars at whole numbers', DISC),
+    tileKey('tk-c', 'continuous: density curve', CONT),
+    tileKey('tk-mv', 'multivariate: stacked tile', MV, 'mv'),
+    h('span', { class: 'tile-key' }, swatch('special-case', true), 'two heads: works both ways'));
 
-  const fams = h('div', { class: 'fam-keys' }, h('span', { class: 'lg-title' }, 'Families'));
+  // ---- families
+  const fams = h('div', { class: 'fam-keys' });
   for (const g of GROUP_ORDER) {
-    const n = DISTRIBUTIONS.filter(d => d.group === g).length;
-    if (!n) continue;
-    const b = h('button', { type: 'button', class: 'fam-key', style: `--rg:${GROUP_STYLE[g]}`, title: `Highlight the ${n} distributions in this family` },
+    const b = h('button', { type: 'button', class: 'fam-key', 'data-group': g, style: `--rg:${GROUP_STYLE[g]}`, title: 'Highlight the distributions in this family' },
       h('span', { class: 'fam-dot', 'aria-hidden': 'true' }), groupLabel(g));
     b.addEventListener('mouseenter', () => map.hoverGroup(g, true));
     b.addEventListener('mouseleave', () => map.hoverGroup(g, false));
@@ -86,15 +98,29 @@ export function buildLegend(container, map) {
     fams.append(b);
   }
 
-  // above the map: which arrows to show
-  const toolbar = h('div', { class: 'map-legend map-toolbar' },
-    h('div', { class: 'lg-row' }, h('span', { class: 'lg-title', id: 'lg-arrows' }, 'Arrows'), chips, orig.el));
-  // below the map: what the tiles and colors mean
-  const key = h('div', { class: 'map-legend map-key' },
-    h('div', { class: 'lg-row' }, keys),
-    h('div', { class: 'lg-row' }, fams),
-    h('p', { class: 'lg-note' }, 'Click a kind of arrow to show only those arrows; click more kinds to add them. Point at a family to highlight its distributions.'));
-  container.insertBefore(toolbar, map.frame);
-  container.append(key);
+  // ---- the panel
+  const body = h('div', { class: 'lg-body', id: 'map-legend-body' },
+    h('p', { class: 'lg-title', id: 'lg-arrows' }, 'Arrows'),
+    h('p', { class: 'lg-note' }, 'Click a kind to show only those arrows; click more kinds to add them.'),
+    chips,
+    h('p', { class: 'lg-title' }, 'Tiles'), keys,
+    h('p', { class: 'lg-title' }, 'Families'), fams);
+  const toggle = h('button', { type: 'button', class: 'lg-toggle', 'aria-expanded': 'false', 'aria-controls': 'map-legend-body' },
+    h('span', { class: 'lg-toggle-icon', 'aria-hidden': 'true', html: '<svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h9M3 15h5"/></svg>' }),
+    h('span', { class: 'lg-toggle-text' }, 'Legend and filters'),
+    h('span', { class: 'lg-dot', 'aria-hidden': 'true' }));
+  const panel = h('div', { class: 'map-ctl map-legend' }, toggle, body);
+  const setOpen = on => {
+    toggle.setAttribute('aria-expanded', String(on));
+    body.hidden = !on;
+    panel.classList.toggle('open', on);
+  };
+  toggle.addEventListener('click', () => { const on = toggle.getAttribute('aria-expanded') !== 'true'; setOpen(on); remember(on); });
+  panel.addEventListener('keydown', e => { if (e.key === 'Escape' && !body.hidden) { e.stopPropagation(); setOpen(false); remember(false); toggle.focus(); } });
+  setOpen(remembered());
+  // the panel lives inside the map frame (so it is also there in full screen)
+  map.frame.append(panel);
+  map.onViewChange(sync);
   sync();
+  return { panel, setOpen, sync };
 }

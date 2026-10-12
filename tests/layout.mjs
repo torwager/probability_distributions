@@ -9,6 +9,8 @@
 //   (c) the "More about this distribution" toggle works (aria-expanded flips, its region is shown and hidden,
 //       and the summary is hidden while the region is shown);
 //   (d) the "What the symbols mean" toggle works (and shows a glossary);
+//   (f) the "Common uses:" line ([data-role="common-uses"]) is shown in the page head, inside the viewport
+//       and above the main plots, and it stays visible while "More about this distribution" is open;
 // and at 390x844 (e) there is no horizontal page scroll.
 //
 // Relationship pages: the summary is at most 3 lines at 1280 px, the formal statement is inside the
@@ -83,6 +85,8 @@ async function checkToggle(page, controls, mustContain) {
   const s1 = await st();
   if (s1.exp !== 'true' || !s1.shown) return `#${controls} did not open (aria-expanded=${s1.exp}, shown=${s1.shown})`;
   if (head && s1.summary) return 'the summary is still shown while #about-more is open';
+  if (head && (await page.locator('[data-role="common-uses"]').count()) && !(await page.locator('[data-role="common-uses"]').isVisible()))
+    return 'the "Common uses" line is hidden while #about-more is open';
   if (mustContain && !(await page.locator(`#${controls} ${mustContain}`).count())) return `#${controls} has no ${mustContain}`;
   await btn.click();
   const s2 = await st();
@@ -115,6 +119,13 @@ async function distLaptop(ctx, id, w, hgt) {
       vh: innerHeight,
       formulas: Math.round((document.getElementById('formulas') || ex).getBoundingClientRect().height),
       head: Math.round((document.querySelector('.page-head') || ex).getBoundingClientRect().bottom),
+      plotTop: els.filter(vis).length ? Math.round(Math.min(...els.filter(vis).map(el => el.getBoundingClientRect().top))) : null,
+      uses: (() => {
+        const u = document.querySelector('.page-head [data-role="common-uses"]');
+        if (!u || !u.getClientRects().length) return null;
+        const r = u.getBoundingClientRect();
+        return { top: Math.round(r.top), bottom: Math.round(r.bottom), text: u.textContent.trim() };
+      })(),
     };
   });
   if (!geo) fails.push('no #explorer section');
@@ -123,6 +134,13 @@ async function distLaptop(ctx, id, w, hgt) {
     m.plot = geo.plots.length ? Math.max(...geo.plots.map(p => p.bottom)) : NaN;
     m.params = geo.params;
     if (!geo.plots.length) fails.push('no main plot marked (data-role pdf-plot/cdf-plot or main-plot)');
+    m.uses = geo.uses ? geo.uses.bottom : null;
+    if (!geo.uses) fails.push('no visible "Common uses" line [data-role="common-uses"] in the page head');
+    else {
+      if (!/^(Used (for|to)|Common uses:)\s+\S/.test(geo.uses.text)) fails.push(`the common-uses line should start with "Used for", "Used to" or "Common uses:" (found "${geo.uses.text.slice(0, 30)}")`);
+      if (geo.uses.top < 0 || geo.uses.bottom > geo.vh) fails.push(`common-uses line at ${geo.uses.top}-${geo.uses.bottom}px is outside the viewport`);
+      if (geo.plotTop !== null && geo.uses.bottom > geo.plotTop) fails.push(`common-uses line ends at ${geo.uses.bottom}px, below the top of the plots (${geo.plotTop}px)`);
+    }
     for (const p of geo.plots) if (p.bottom > geo.vh) fails.push(`${p.role} bottom at ${p.bottom}px > ${geo.vh}px`);
     if (w === 1440) {
       if (geo.params === null) fails.push('no parameter boxes in the explorer');
@@ -203,8 +221,8 @@ const pad = (s, n) => String(s).padEnd(n);
 const num = v => (v === null || v === undefined || Number.isNaN(v) ? '—' : String(v));
 
 if (dists.length) {
-  console.log('\nDistribution pages (px from the top of the viewport; plot = lowest main-plot bottom, params = lowest parameter box bottom)');
-  console.log(pad('page', 22) + pad('lines', 7) + pad('720: plot', 11) + pad('900: plot', 11) + pad('900: params', 13) + pad('390 scroll', 12) + 'result');
+  console.log('\nDistribution pages (px from the top of the viewport; uses = bottom of the common-uses line; plot = lowest main-plot bottom, params = lowest parameter box bottom)');
+  console.log(pad('page', 22) + pad('lines', 7) + pad('720: uses', 11) + pad('720: plot', 11) + pad('900: plot', 11) + pad('900: params', 13) + pad('390 scroll', 12) + 'result');
   const rows = await pool(dists, 4, async id => {
     const a = await distLaptop(ctxs[1280], id, 1280, 720);
     const b = await distLaptop(ctxs[1440], id, 1440, 900);
@@ -214,7 +232,7 @@ if (dists.length) {
   for (const { id, a, b, c } of rows) {
     const fails = [...a.fails.map(f => '1280x720: ' + f), ...b.fails.map(f => '1440x900: ' + f), ...c.fails.map(f => '390x844: ' + f)];
     if (fails.length) failures++;
-    console.log(pad(id, 22) + pad(num(a.m.lines), 7) + pad(num(a.m.plot), 11) + pad(num(b.m.plot), 11) + pad(num(b.m.params), 13) + pad(num(c.over), 12) + (fails.length ? 'FAIL' : 'ok'));
+    console.log(pad(id, 22) + pad(num(a.m.lines), 7) + pad(num(a.m.uses), 11) + pad(num(a.m.plot), 11) + pad(num(b.m.plot), 11) + pad(num(b.m.params), 13) + pad(num(c.over), 12) + (fails.length ? 'FAIL' : 'ok'));
     for (const f of fails) console.log('    ' + f);
   }
 }

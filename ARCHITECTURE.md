@@ -136,9 +136,11 @@ the page is kept short so that the interactive plots are visible **without scrol
    (`p.lede[data-role="summary"]`: `content.summary`, or, when a module has none, the first one or two
    sentences of the first `description` paragraph), and one row with the toggle button **More about this
    distribution** / **Show less** (`aria-expanded`, `aria-controls="about-more"`) and the "On this page" links.
-   The toggle expands the summary in place: while the region `#about-more` (the full `description` and the
-   chips: group, on the original map) is shown, the summary is hidden, so nothing is read twice; the toggle row
-   follows the text.
+   Directly under the summary is the common-uses line (its opening words "Used for" are shown in bold as the label; a sentence with another opening gets a bold "Common uses:" label) (`p.common-uses[data-role="common-uses"]`, the
+   catalog's `commonUses`, in smaller text). The toggle expands the summary in place: while the region
+   `#about-more` (the full `description` and the chips: group, and whether it is a core distribution or only in the full map) is shown, the summary is
+   hidden, so nothing is read twice, and the common-uses line moves to the end of the description, before the
+   chips; the toggle row follows the text.
 2. **Formulas strip** (`#formulas`): the PDF/PMF and the CDF side by side (stacked on phones), each with a small
    heading (`pdfTitle`, `cdfTitle`). A formula that is slightly too wide is shrunk (down to 72%). On a narrow
    screen (formulas stacked, at most 760 px), a formula that would shrink below 80% is first split into lines
@@ -210,7 +212,8 @@ section in place while the plots settle (`ui.js` `scrollToHash`).
 `npm run layout` (`tests/layout.mjs`) measures, for every distribution page at 1280x720 and 1440x900 with the
 page scrolled to the top: the summary has at most 3 lines (at 1280), the **bottom of every main plot's SVG is
 inside the viewport**, at 1440x900 the **parameter boxes** (`.explorer-params .param-input`) are inside the
-viewport, the two toggles work, and at 390 px there is no horizontal scroll. Main plots are found by
+viewport, the "Common uses:" line is shown inside the viewport above the plots (and stays visible while "More
+about this distribution" is open), the two toggles work, and at 390 px there is no horizontal scroll. Main plots are found by
 `data-role`: the standard explorer marks its two plot boxes `data-role="pdf-plot"` and `data-role="cdf-plot"`;
 **a custom explorer must mark its main plot box(es) with `data-role="main-plot"`** (the element that contains
 the `Plot`, e.g. the `.plot-box` div), and those are measured instead. For relationship pages it checks the
@@ -233,10 +236,16 @@ import { CATALOG, DISTRIBUTIONS, RELATIONS, NOTATION, EDGE_KINDS, KIND_LABELS, G
          getDist, getRelation, relationsOf, catalogParams, notationFor } from '../catalog.js';
 ```
 
-* Distribution entry: `{ id, name, kind, group, onOriginalMap, whyAdded, parameterization, parameterizationText,
-  params, support, blurb, mapPos:{col,row} }`. `kind` is `'discrete' | 'continuous' | 'multivariate-discrete' |
-  'multivariate-continuous'`. `parameterization` and `whyAdded` are rich text (see below);
-  `parameterizationText` is a plain unicode version for places that cannot show TeX. `support` is TeX.
+* Distribution entry: `{ id, name, kind, group, onOriginalMap, whyAdded, commonUses, commonUsesText,
+  parameterization, parameterizationText, params, support, blurb, mapPos:{col,row} }`. `kind` is
+  `'discrete' | 'continuous' | 'multivariate-discrete' | 'multivariate-continuous'`. `parameterization`,
+  `whyAdded` and `commonUses` are rich text (see below); `parameterizationText` and `commonUsesText` are plain
+  unicode versions for places that cannot show TeX (aria labels, tooltips). `support` is TeX.
+* `commonUses` is one sentence of about 15-30 words on the distribution's most common uses in frequentist
+  statistics, Bayesian statistics and computational modeling. Every entry starts with "Used for", ends with a
+  single period, avoids symbols, and does not repeat the summary. It is written directly in
+  `tools/catalog.source.json` (the build script fails if one is missing) and is shown under the summary on the
+  distribution page ("Common uses: ...") and in the hover card of the map tiles. `npm test` checks the format.
 * Param spec: `{ sym (TeX), key (JS identifier, e.g. 'mu', 'd1', 'alpha1', 'xm'), label (unicode, e.g. 'μ'),
   name, meaning (rich text), meaningText (plain unicode), domain (TeX), default, min, max, integer }`.
   `min`/`max` bound the sliders **and** the values accepted from the number boxes.
@@ -768,14 +777,46 @@ starts on `initialFocus` or the close button, returns `close`),
 
 ## The map (index.html)
 
-The map builder replaces `index.html` and `assets/js/pages/index.js`. Use `DISTRIBUTIONS[i].mapPos`
-(placeholder grid positions, refine freely), `RELATIONS` (with `kind` → line style from `EDGE_KINDS`,
-`label` TeX next to the arrow, `bidirectional` → two heads, `onOriginalMap` → can be styled distinctly),
-`ui.openModal` for the relation pop-up (`plain` rendered with `rich`, `renderTexLines(statement)`, a glossary
-from `notationFor(statement)` and a link to `relation.html?r=<id>`), and `pages/common.js` `drawSpark(holder, mod)`
-for small density sketches on tiles (only for ids in the manifest; use `hasDist`). Keep a link to
-`distributions.html` for a plain list. Arrow labels must be large enough to tap on a phone (at least a 32 px
-target), and the map must be usable at 390 px (pan and zoom, or a scrollable container).
+Files: `index.html`, `assets/js/pages/index.js` (builds the map, the view switch, the legend and the list, and
+keeps the view in the address), `assets/js/map/*`, `assets/css/map.css`.
+
+* **Two views**, each with its own hand-made layout (`VIEWS` in `map/map.js`):
+  `core` ("Core distributions", the default) shows the 15 distributions with `onOriginalMap` and every catalog
+  relation between two of them (layout in `map/layout-core.js`); `full` ("Full set of distributions") shows
+  every distribution and relation (layout in `map/layout.js`, whose hand-tuned x positions are stretched
+  sideways by `SX` = 1.25 at load so that the map fills a wide screen; tiles keep their size). A layout module exports `TILE`, `NODES` (tile
+  centers, optional `w`, `h`, `big`, `label`), `WORLD` (size), `ROUTES` (per relation: `bend`, `via`, `r`,
+  `fromDx/fromDy/toDx/toDy`, label hints `lt`, `lo`, `fixed`, `ldx/ldy`; see the comment in `layout.js`),
+  `GLYPH` (sketch size) and `PHONE_SCALE` (largest scale of the first view on a phone). Each view is one
+  `.map-world` element inside the stage that pan and zoom move; the hidden one is `inert`.
+  `map.setView('core' | 'full')` cross-fades and fits the new view. The address is `index.html` for the core
+  view and `index.html?view=full` for the full view (`history.replaceState`, so the back button returns to
+  the same view).
+* **Screen fit**: `.home-screen` (the intro row and the map) is exactly the viewport height below the fixed
+  72 px header; the frame has 12 px gutters and the map is fitted with 6 px of padding. On a phone the frame
+  spans the width, leaves a strip below it for scrolling, and the first view shows the middle of the map at
+  a readable scale. The full-screen button still covers the whole window.
+* **Over the map** (inside `.map-frame`): zoom buttons (a column at the top right when the map is limited by
+  the height of the frame, a row at the bottom right when it is limited by the width; `ctlInsets` in
+  `map.js` picks the one that leaves the map larger, and uses spare room at the sides to clear the legend
+  button), the "Legend and filters" panel (top left;
+  bottom left on phones; open or closed is remembered in `localStorage`) with the arrow-kind filter chips,
+  the tile key and the family colors; a card that describes a tile; a line that describes an arrow.
+* **Tile card**: on mouse hover and on keyboard focus (not on touch, where a tap opens the page), it shows the
+  name, the kind, the first sentence of `blurb` and "Common uses:" from the catalog field `commonUses` (left
+  out when the field is missing). It ignores the pointer and sits inside the frame, never over its own tile
+  or the map's controls; among positions beside the tile (and, for a tile surrounded by neighbours, a coarse
+  grid over the frame) it takes the one that hides least of the neighbours and the arrow labels, then of
+  other tiles, with a cost for distance from the tile (`placeCard`). It is the tile's `aria-describedby` while shown, and Esc hides it.
+* **Arrow line**: hovering an arrow or its label shows one line describing it, along the bottom (or top)
+  edge of the frame where it hides least of the arrow's tiles and label, other tiles and the controls
+  (`placeInfo`).
+* Relation dialogs use `ui.openModal` (`map/dialog.js`: `plain` rendered with `rich`, `renderTexLines(statement)`,
+  a glossary from `notationFor(statement)` and a link to `relation.html?r=<id>`). Tiles show density sketches
+  (`map/glyphs.js`). Arrow labels are at least a 32 px target. Below the map: a short "About" section and the
+  list view (`map/list.js`), which marks the core distributions and relations.
+* `window.__map` (for tests): `view`, `setView`, `views`, `checkLayout(view?)`, `tiles`, `labels`, `edges`, `geo`,
+  `labelPos` (of the view shown), `pz`, `setFull`, `card`.
 
 ## Tests
 
@@ -798,10 +839,16 @@ target), and the map must be usable at 390 px (pan and zoom, or a scrollable con
   1440x900, whose parameter boxes are below a 1440x900 screen, whose toggles do not work, or that scrolls
   sideways at 390 px. `--only=<substring>`, `--dists`, `--relations`, `--port=<n>`, `--shots` (screenshots in
   `screenshots/layout/test/`).
-* `npm run map`: Playwright test of the map: `window.__map.checkLayout()` must report no overlaps (labels on
-  tiles, labels on labels, tiles on tiles, labels on other arrows, arrows through tiles), every arrow starts and
-  ends at its tiles, every label and arrow opens the right dialog with a link to its relation page, and focus
-  returns to the label when the dialog closes.
+* `npm run map`: Playwright test of the map, in both views: `window.__map.checkLayout()` must report no overlaps
+  (labels on tiles, labels on labels, tiles on tiles, labels on other arrows, arrows through tiles), every arrow
+  starts and ends at its tiles, every label and arrow opens the right dialog with a link to its relation page,
+  focus returns to the label when the dialog closes, and every tile is on top and links to its page. Also: the
+  view switch and the `?view=full` address (and the back button), the tile card on hover and on keyboard focus
+  (with the common uses; checked on every tile of both views at 1280x720: inside the frame, never over its
+  tile or the controls), the arrow line (every core arrow at 1280x720 and 1440x900: inside the frame, clear of
+  the arrow, its tiles and the controls), the frame filling the screen at 1280x720, 1440x900 and 1920x1080 (bottom and side
+  gutters at most 24 px, the map spanning at least 85% of the frame), and the phone layout. `--port=<n>`,
+  `--quick` (opens the dialogs of a sample of the arrows).
 
 Playwright is used from the global install (`/opt/node22/lib/node_modules/playwright`) and Chromium from
 `/opt/pw-browsers`; override with `PLAYWRIGHT_PATH` and `CHROMIUM_PATH`.

@@ -1,4 +1,5 @@
-// Hand-tuned layout of the map (world units are CSS pixels at zoom 1).
+// Hand-tuned layout of the "Full set of distributions" view of the map (world units are CSS pixels at
+// zoom 1). The "Core distributions" view has its own layout in layout-core.js.
 //
 // NODES: tile centers. The 15 distributions of the original chart (docs/original-map.png) keep their
 // relative arrangement: discrete Bernoulli-trial family at the top left, Normal below Poisson with
@@ -59,6 +60,10 @@ export const NODES = {
 
 export const WORLD = { w: 1547, h: 1075 };
 
+/** Size of the density sketch on a tile, and the largest scale of the first view on a phone. */
+export const GLYPH = { w: 120, h: 34 };
+export const PHONE_SCALE = 0.46;
+
 export const ROUTES = {
   // arcs over the top of the map and around its right side
   'logistic--bernoulli': { r: 40, via: [[1385, 70], [606, 70]] },
@@ -76,7 +81,7 @@ export const ROUTES = {
   'poisson--negative-binomial': { bend: -20, fromDy: -22, toDy: 14 },
   // lower left
   'student-t--f': { r: 30, fromDy: 12, via: [[36, 720], [36, 1040], [730, 1040]], toDx: -30 },
-  'inverse-gamma--student-t': { r: 24, via: [[300, 800], [260, 730]] },
+  'inverse-gamma--student-t': { r: 24, via: [[300, 800], [260, 730]], lt: 0.25 },
   'gamma--inverse-gamma': { r: 30, via: [[880, 815], [880, 908], [460, 908]] },
   'chi-squared--f': { fromDx: 40, lt: 0.3 },
   'normal--multivariate-normal': { fromDx: 70, toDx: -20 },
@@ -94,6 +99,14 @@ export const ROUTES = {
   'poisson--exponential': { lt: 0.3, fixed: true },
   'chi-squared--gamma': { lt: 0.86, lo: -1 },
 };
+
+// The positions above were tuned for a nearly square map, but laptop screens are wide. To fill them, the
+// whole layout is stretched sideways by SX: tile centers and route points move apart horizontally, the
+// tiles keep their size, and the arrows between them get longer (which also leaves more room for labels).
+export const SX = 1.25;
+for (const n of Object.values(NODES)) n.x = Math.round(n.x * SX);
+for (const r of Object.values(ROUTES)) if (r.via) r.via = r.via.map(([x, y]) => [Math.round(x * SX), y]);
+WORLD.w = Math.round(WORLD.w * SX);
 
 /** Optional text labels for the family regions ({group, x, y, text?, anchor?}); the family colors are explained in the legend under the map instead. */
 export const REGION_LABELS = [];

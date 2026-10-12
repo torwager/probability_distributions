@@ -17,7 +17,7 @@ function lintRich(t, where) {
   const m = proseOnly(t).match(ASCII_GREEK);
   assert.ok(!m, `${where}: write Greek letters in TeX ($\\${m && m[1]}$), not as the word "${m && m[1]}"`);
 }
-import { checkSummary } from './content-rules.mjs';
+import { checkSummary, sentenceCount, visibleLength } from './content-rules.mjs';
 const list = dir => fs.readdirSync(path.join(ROOT, dir)).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3)).sort();
 
 test('catalog is frozen and consistent', () => {
@@ -35,9 +35,26 @@ test('catalog is frozen and consistent', () => {
   }
 });
 
+test('every distribution has a one-sentence commonUses line (plain-text version too)', () => {
+  for (const d of DISTRIBUTIONS) {
+    const t = d.commonUses, where = `${d.id}.commonUses`;
+    assert.equal(typeof t, 'string', `${where} must be a string`);
+    assert.ok(t.trim(), `${where} is empty`);
+    assert.equal(sentenceCount(t), 1, `${where}: exactly one sentence`);
+    assert.ok(/^Used (for|to) /.test(t), `${where}: start with "Used for" or "Used to"`);
+    assert.ok(/[^.]\.$/.test(t) && (t.match(/\.(\s|$)/g) || []).length === 1, `${where}: one terminal period`);
+    const words = t.trim().split(/\s+/).length, len = visibleLength(t);
+    assert.ok(words >= 12 && words <= 34, `${where}: about 15-30 words (found ${words})`);
+    assert.ok(len >= 80 && len <= 240, `${where}: 80-240 characters (found ${len})`);
+    assert.ok(typeof d.commonUsesText === 'string' && d.commonUsesText.trim() && !/[$<\\]/.test(d.commonUsesText),
+      `${d.id}.commonUsesText: plain text without TeX or tags`);
+  }
+});
+
 test('catalog prose is rich text with TeX for symbols', () => {
   for (const d of DISTRIBUTIONS) {
     lintRich(d.parameterization, `${d.id}.parameterization`);
+    lintRich(d.commonUses, `${d.id}.commonUses`);
     if (d.whyAdded) lintRich(d.whyAdded, `${d.id}.whyAdded`);
     for (const p of d.params) lintRich(p.meaning, `${d.id}.${p.key}.meaning`);
   }

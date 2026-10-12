@@ -5,12 +5,18 @@
 //        otherwise it scrolls the page and a hint explains how to zoom.
 // Touch: one finger pans, two fingers pinch-zoom, a tap opens what is under the finger.
 // Keyboard (viewport focused): arrow keys pan, + and − zoom, 0 fits the whole map.
+//
+// `world` is the element that is moved (the map's stage); setSize() changes the size of what it shows
+// (the two views of the map have different sizes). The first view (and the view after a resize, while
+// the map has not been moved) fits the whole map, except that it is never smaller than startScale()
+// (used on phones, where the whole map would be too small to read): then it shows the middle of the map,
+// or the point startCenter().
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-export function createPanZoom(viewport, world, { width, height, pad = 16, insets = () => ({}), onHint, onFirstTouch, maxScale = 2.6 } = {}) {
+export function createPanZoom(viewport, world, { width, height, pad = 16, insets = () => ({}), onHint, onFirstTouch, maxScale = 2.6, startScale = () => 0, startCenter = () => null } = {}) {
   let s = 1, x = 0, y = 0;
-  let fitted = true;           // still showing the initial "fit" view (refit on resize)
+  let fitted = 'start';        // still showing the start view or the whole map ('start' / 'whole'; refit on resize)
   let active = false;          // the map has been clicked: plain wheel zooms
   let minScale = 0.2;
   const listeners = new Set();
@@ -28,10 +34,10 @@ export function createPanZoom(viewport, world, { width, height, pad = 16, insets
   }
 
   // room kept free for the controls that float over the map ({right, bottom} in px)
-  const ins = () => ({ right: 0, bottom: 0, top: 0, ...insets() });
+  const ins = () => ({ left: 0, right: 0, bottom: 0, top: 0, ...insets() });
   function fitScale() {
     const i = ins();
-    return Math.min((vw() - 2 * pad - i.right) / width, (vh() - 2 * pad - i.bottom - i.top) / height);
+    return Math.min((vw() - 2 * pad - i.left - i.right) / width, (vh() - 2 * pad - i.bottom - i.top) / height);
   }
 
   function constrain() {
@@ -42,14 +48,21 @@ export function createPanZoom(viewport, world, { width, height, pad = 16, insets
     y = clamp(y, my - H, vh() - my);
   }
 
-  function fit(animate = false) {
+  /** Show the whole map (whole = true) or the start view (the whole map, or the middle at startScale()). */
+  function fit(animate = false, whole = true) {
     const f = fitScale();
     minScale = Math.min(f * 0.85, 0.5);
-    s = f;
+    s = whole ? f : Math.max(f, Math.min(maxScale, startScale() || 0));
     const i = ins();
-    x = (vw() - i.right - width * s) / 2;
+    x = i.left + (vw() - i.left - i.right - width * s) / 2;
     y = i.top + (vh() - i.top - i.bottom - height * s) / 2;
-    fitted = true;
+    fitted = whole ? 'whole' : 'start';
+    if (s > f) {
+      // zoomed in beyond the whole map: center on startCenter() (world units) when given
+      const c = startCenter();
+      if (c) { x = i.left + (vw() - i.left - i.right) / 2 - c[0] * s; y = i.top + (vh() - i.top - i.bottom) / 2 - c[1] * s; }
+      constrain();
+    }
     apply(animate);
   }
 
@@ -211,13 +224,22 @@ export function createPanZoom(viewport, world, { width, height, pad = 16, insets
     if (vw() === lastW && vh() === lastH) return;
     const first = !lastW;
     lastW = vw(); lastH = vh();
-    if (first || fitted) fit();
+    if (first || fitted) fit(false, fitted === 'whole');
     else { minScale = Math.min(fitScale() * 0.85, 0.5); constrain(); apply(); }
   });
   ro.observe(viewport);
 
+  /** Change the size of the content (world units) and show its start view. */
+  function setSize(w, h, animate = false) {
+    width = w; height = h;
+    fit(animate, false);
+  }
+
   return {
-    fit, zoomAt, panBy, ensureVisible,
+    fit, zoomAt, panBy, ensureVisible, setSize,
+    /** The start view: the whole map, or its middle at a readable scale on a phone. */
+    reset: (animate = false) => fit(animate, false),
+    get fitted() { return fitted; },
     zoomIn: () => zoomAt(1.3, vw() / 2, vh() / 2, true),
     zoomOut: () => zoomAt(1 / 1.3, vw() / 2, vh() / 2, true),
     get scale() { return s; },
